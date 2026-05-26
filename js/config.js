@@ -1,6 +1,6 @@
 // === Two Build Finance V4 — Config ===
 // Apps Script API endpoint (read/write Finance-Master-2569 Sheet)
-const FINANCE_API_URL = 'https://script.google.com/macros/s/AKfycbwFGUrdoER2KacLGyiDAV7ul4ajla7k0yfGm5FzWkiD7tPtvnPg1-SoK8vc9V2NRU37/exec';
+const FINANCE_API_URL = 'https://script.google.com/macros/s/AKfycbyZEYnPf3aAWIr7FGGN5Ko8ngvQtsDZr7UBXBoXeMXeRAjQDU_bI5t7LpDUEpzfeqh0/exec';
 
 // Google Sheet (Finance-Master-2569)
 const FINANCE_SHEET_ID = '1xwjuIUdmTuvKVXjvJsI_uNPzgO7YL9gWsQ2o5m95-nA';
