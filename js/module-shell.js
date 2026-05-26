@@ -116,27 +116,25 @@ const ModuleShell = (() => {
       document.getElementById('ms-api-status').innerHTML = '<span style="color:#ef4444">● Offline</span>';
     }
 
-    // Drive folder
+    // Drive folder — silent if Drive scope ยังไม่ได้ authorize
     try {
       const fld = await API.listModuleFolder(state.module);
       if (fld.ok) {
         document.getElementById('ms-drive-status').innerHTML =
           '<span style="color:#10b981">✓ ' + fld.count + ' ไฟล์</span>';
         document.getElementById('ms-drive-link').href = fld.folder_url;
+      } else if (fld.error && /ไม่ได้รับอนุญาต|not authorized|drive/i.test(fld.error)) {
+        // Drive scope ยังไม่ได้ authorize — แนะนำ ONE_CLICK_SETUP
+        document.getElementById('ms-drive-status').innerHTML =
+          '<span style="color:#9ca3af" title="Drive scope ยังไม่ได้ authorize · เปิด Apps Script editor → Run ONE_CLICK_SETUP">⊘ ยังไม่ตั้งค่า</span>';
+        document.getElementById('ms-drive-link').href = 'https://script.google.com/d/1nIaviXMKINMARpZBd8yPIjaMh1IH49rUuq3TgNtzy-ekozGGLcfAl6wn/edit';
+        document.getElementById('ms-drive-link').textContent = '⚙️ ตั้งค่า Drive (ครั้งเดียว)';
       } else {
         document.getElementById('ms-drive-status').innerHTML =
-          '<span style="color:#f59e0b">! ยังไม่ได้สร้าง</span>';
-        document.getElementById('ms-drive-link').href = '#';
-        document.getElementById('ms-drive-link').onclick = async (e) => {
-          e.preventDefault();
-          if (!confirm('สร้างโฟลเดอร์ Drive สำหรับ 11 modules ตอนนี้?')) return;
-          const r = await API.setupAllFolders();
-          if (r.ok) { alert('✓ สร้างโฟลเดอร์ Drive ครบแล้ว'); refreshPanel(); }
-          else alert('✗ ' + (r.error || 'ผิดพลาด'));
-        };
+          '<span style="color:#f59e0b">! ' + (fld.error || 'ไม่พบ') + '</span>';
       }
     } catch (e) {
-      document.getElementById('ms-drive-status').innerHTML = '<span style="color:#ef4444">- ไม่ได้</span>';
+      document.getElementById('ms-drive-status').innerHTML = '<span style="color:#9ca3af">- ไม่ได้</span>';
     }
   }
 
