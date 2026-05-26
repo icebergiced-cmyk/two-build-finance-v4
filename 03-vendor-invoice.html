@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Vendor Invoice · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+  @keyframes spinner { to { transform: rotate(360deg); } }
+  .spinner { animation: spinner 1s linear infinite; }
+</style>
+</head>
+<body>
+
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm"><span>←</span><span>Hub</span></a>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800">📄 Vendor Invoice Processor</h1>
+        <p class="text-xs text-stone-500">Module 03 · 📊 Sheet: <code>Vendor-Invoice + PO-Tracker</code> · Standalone</p>
+      </div>
+    </div>
+    <div class="text-xs text-stone-500">📅 25 พ.ค. 2569</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- KPI -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">📥 บิลรอประมวลผล</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1" id="k1">5</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">✅ จับคู่กับ PO</div>
+      <div class="text-2xl font-bold text-emerald-600 mt-1" id="k2">7</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">⚠️ มีข้อทักท้วง</div>
+      <div class="text-2xl font-bold text-amber-600 mt-1" id="k3">2</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">💰 ยอดรวมเดือนนี้</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1" id="k4">฿4.8M</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border-2 border-red-300 bg-red-50">
+      <div class="text-xs text-red-700 font-medium">🚨 ครบกำหนดใน 7 วัน</div>
+      <div class="text-2xl font-bold text-red-600 mt-1" id="k5">฿1.6M</div>
+    </div>
+  </div>
+
+  <!-- Upload area -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <div id="upload" class="border-2 border-dashed border-stone-300 rounded-xl p-6 text-center bg-white hover:border-stone-500 cursor-pointer">
+      <div class="text-4xl mb-2">📄</div>
+      <div class="font-medium text-stone-700">อัปโหลดบิล/ใบส่งของ/ใบวางบิล</div>
+      <div class="text-xs text-stone-500 mt-1">PDF, JPG, PNG · รองรับหลายไฟล์</div>
+      <button onclick="simulateUpload()" class="mt-3 bg-stone-800 hover:bg-stone-900 text-white px-4 py-2 rounded text-sm font-medium">📤 จำลองอัปโหลด</button>
+    </div>
+    <div class="bg-gradient-to-br from-stone-700 to-stone-900 rounded-xl p-5 text-white">
+      <div class="font-bold mb-2">🚀 ประมวลผลบิลทั้งหมด</div>
+      <p class="text-sm text-stone-300 mb-3">OCR แยก vendor/ยอด/VAT · match กับ PO ใน Sheet "PO-Tracker"</p>
+      <button onclick="startOCR()" id="ocr-btn" class="w-full bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold py-3 rounded-lg">
+        🔍 เริ่ม OCR บิลทั้งหมด
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b border-stone-200 mb-4 flex gap-1">
+    <button onclick="switchTab('inbox')" id="tab-inbox" class="px-4 py-2 font-medium text-sm border-b-2 border-stone-800 text-stone-800">📥 บิลเข้าใหม่ (<span id="cnt-inbox">5</span>)</button>
+    <button onclick="switchTab('matched')" id="tab-matched" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700">✅ จับคู่แล้ว (<span id="cnt-matched">0</span>)</button>
+    <button onclick="switchTab('schedule')" id="tab-schedule" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700">💵 ตารางชำระเงิน</button>
+  </div>
+
+  <!-- Tab: Inbox -->
+  <div id="pane-inbox" class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">เลขที่บิล</th>
+            <th class="text-left px-3 py-2.5">Vendor</th>
+            <th class="text-left px-3 py-2.5">รายการ</th>
+            <th class="text-right px-3 py-2.5">ยอดก่อน VAT</th>
+            <th class="text-right px-3 py-2.5">VAT 7%</th>
+            <th class="text-right px-3 py-2.5">รวมสุทธิ</th>
+            <th class="text-center px-3 py-2.5">สถานะ</th>
+            <th class="text-center px-3 py-2.5">PO Match</th>
+            <th class="text-center px-3 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody id="inbox-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Matched -->
+  <div id="pane-matched" class="hidden bg-white rounded-xl border border-stone-200 overflow-hidden">
+    <div class="p-4 text-stone-500 text-sm">กด "เริ่ม OCR" ด้านบนเพื่อประมวลผลและจับคู่บิลกับ PO ใน Sheet</div>
+  </div>
+
+  <!-- Tab: Schedule -->
+  <div id="pane-schedule" class="hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-4">
+      <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+        <div class="text-xs text-red-700 font-medium">🚨 ภายใน 7 วัน</div>
+        <div class="text-xl font-bold text-red-700 mt-1">฿1,652,300</div>
+        <div class="text-xs text-red-600 mt-1">3 บิล</div>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div class="text-xs text-amber-700 font-medium">⚠️ 8-15 วัน</div>
+        <div class="text-xl font-bold text-amber-700 mt-1">฿2,184,750</div>
+        <div class="text-xs text-amber-600 mt-1">5 บิล</div>
+      </div>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div class="text-xs text-blue-700 font-medium">📅 16-30 วัน</div>
+        <div class="text-xl font-bold text-blue-700 mt-1">฿987,000</div>
+        <div class="text-xs text-blue-600 mt-1">4 บิล</div>
+      </div>
+      <div class="bg-stone-50 border border-stone-200 rounded-xl p-4">
+        <div class="text-xs text-stone-700 font-medium">📆 > 30 วัน</div>
+        <div class="text-xl font-bold text-stone-700 mt-1">฿0</div>
+        <div class="text-xs text-stone-500 mt-1">0 บิล</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">ครบกำหนด</th>
+            <th class="text-left px-3 py-2.5">Vendor</th>
+            <th class="text-left px-3 py-2.5">เลขที่บิล</th>
+            <th class="text-left px-3 py-2.5">Credit Term</th>
+            <th class="text-right px-3 py-2.5">ยอดที่ต้องจ่าย</th>
+            <th class="text-center px-3 py-2.5">สถานะ</th>
+            <th class="text-center px-3 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody id="schedule-body"></tbody>
+      </table>
+    </div>
+
+    <div class="mt-4 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-bold text-amber-900">💡 คำแนะนำ Cash Flow</div>
+          <div class="text-sm text-amber-800 mt-1">เงินสดในมือ ฿12.4M · ต้องจ่าย 7 วันแรก ฿1.65M · <b class="text-emerald-700">ปลอดภัย ✓</b></div>
+        </div>
+        <a href="02-cash-book.html" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded font-medium text-sm">ดู Cash Book →</a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Detail modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal()">
+  <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" id="modal-content"></div>
+</div>
+
+<script>
+const fmt = (n) => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const initialInvoices = [
+  { id:'INV-2569-1142', vendor:'บจก. ปูนซีเมนต์ไทย', desc:'ปูน 5,000 ถุง · บ้าน A-12,13,14', subtotal:81729, vat:5721, total:87450, status:'pending', poId:'PO-2026-0341', credit:7, project:'One Vela' },
+  { id:'INV-2569-1145', vendor:'บจก. เหล็กสยาม', desc:'เหล็กเส้น 12mm · 200 เส้น', subtotal:60747, vat:4253, total:65000, status:'pending', poId:'PO-2026-0344', credit:15, project:'One Vela' },
+  { id:'INV-2569-1149', vendor:'หจก. ไทยฮาร์ดแวร์', desc:'อุปกรณ์ไฟฟ้า + ประปา', subtotal:22243, vat:1557, total:23800, status:'pending', poId:'PO-2026-0342', credit:7, project:'วันเวลา' },
+  { id:'INV-2569-1153', vendor:'ร้าน ก้องไฟฟ้า', desc:'สายไฟ + สวิตช์ ครบชุด', subtotal:11916, vat:834, total:12750, status:'pending', poId:'PO-2026-0343', credit:30, project:'Oxygen 3' },
+  { id:'INV-2569-1158', vendor:'บจก. กระเบื้องไทย', desc:'กระเบื้อง 60x60 · 800 ตร.ม.', subtotal:89720, vat:6280, total:96000, status:'pending', poId:null, credit:15, project:'วันเวลา' }
+];
+
+const schedule = [
+  { due:'27/05/2569', vendor:'บจก. ปูนซีเมนต์ไทย', invoice:'INV-2569-1138', credit:7, amount:387200, daysLeft:2, project:'One Vela' },
+  { due:'28/05/2569', vendor:'หจก. ไทยฮาร์ดแวร์', invoice:'INV-2569-1140', credit:7, amount:142800, daysLeft:3, project:'วันเวลา' },
+  { due:'01/06/2569', vendor:'บจก. เหล็กสยาม', invoice:'INV-2569-1141', credit:15, amount:1122300, daysLeft:7, project:'One Vela' },
+  { due:'05/06/2569', vendor:'บจก. กระเบื้องไทย', invoice:'INV-2569-1142', credit:15, amount:584250, daysLeft:11, project:'วันเวลา' },
+  { due:'07/06/2569', vendor:'บจก. ปูนซีเมนต์ไทย', invoice:'INV-2569-1145', credit:15, amount:925800, daysLeft:13, project:'One Vela' },
+  { due:'10/06/2569', vendor:'ร้าน ก้องไฟฟ้า', invoice:'INV-2569-1146', credit:15, amount:298400, daysLeft:16, project:'Oxygen 3' },
+  { due:'12/06/2569', vendor:'หจก. ไทยฮาร์ดแวร์', invoice:'INV-2569-1148', credit:30, amount:376300, daysLeft:18, project:'วันเวลา' },
+  { due:'18/06/2569', vendor:'บจก. ปูนซีเมนต์ไทย', invoice:'INV-2569-1150', credit:30, amount:312300, daysLeft:24, project:'One Vela' }
+];
+
+let invoices = JSON.parse(JSON.stringify(initialInvoices));
+let currentTab = 'inbox';
+
+function switchTab(tab) {
+  currentTab = tab;
+  ['inbox','matched','schedule'].forEach(t => {
+    document.getElementById('pane-'+t).classList.add('hidden');
+    const btn = document.getElementById('tab-'+t);
+    btn.classList.remove('border-stone-800','text-stone-800');
+    btn.classList.add('border-transparent','text-stone-500');
+  });
+  document.getElementById('pane-'+tab).classList.remove('hidden');
+  const activeBtn = document.getElementById('tab-'+tab);
+  activeBtn.classList.add('border-stone-800','text-stone-800');
+  activeBtn.classList.remove('border-transparent','text-stone-500');
+  render();
+}
+
+function render() {
+  const projBadge = { 'One Vela':'bg-amber-100 text-amber-800', 'วันเวลา':'bg-blue-100 text-blue-800', 'Oxygen 3':'bg-emerald-100 text-emerald-800' };
+
+  // Inbox
+  const inboxList = invoices.filter(i => i.status !== 'matched');
+  const matchedList = invoices.filter(i => i.status === 'matched');
+
+  document.getElementById('inbox-body').innerHTML = inboxList.map(i => {
+    const statusBadge = {
+      pending: '<span class="bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full text-xs">⏳ รอ OCR</span>',
+      scanning: '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs animate-pulse">🔄 กำลัง OCR</span>',
+      review: '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs">⚠️ ทักท้วง</span>',
+      unmatched: '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs">❌ ไม่พบ PO</span>'
+    }[i.status] || '';
+    return `
+      <tr class="border-b border-stone-100 hover:bg-stone-50">
+        <td class="px-3 py-2 font-mono text-xs">${i.id}</td>
+        <td class="px-3 py-2">
+          <div class="font-medium text-stone-800 text-sm">${i.vendor}</div>
+          <div class="text-[10px] mt-0.5"><span class="px-1.5 py-0.5 rounded ${projBadge[i.project]||''}">${i.project}</span></div>
+        </td>
+        <td class="px-3 py-2 text-stone-600 text-xs">${i.desc}</td>
+        <td class="px-3 py-2 text-right text-stone-700">${fmt(i.subtotal)}</td>
+        <td class="px-3 py-2 text-right text-stone-600 text-xs">${fmt(i.vat)}</td>
+        <td class="px-3 py-2 text-right font-bold text-stone-900">${fmt(i.total)}</td>
+        <td class="px-3 py-2 text-center">${statusBadge}</td>
+        <td class="px-3 py-2 text-center text-xs">${i.poId ? `<span class="text-emerald-700 font-mono">${i.poId}</span>` : '<span class="text-red-600">—</span>'}</td>
+        <td class="px-3 py-2 text-center">
+          <button onclick="viewInvoice('${i.id}')" class="text-blue-600 hover:underline text-xs">ดู</button>
+        </td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="9" class="px-3 py-6 text-center text-stone-500 text-sm">ไม่มีบิลรอประมวลผล</td></tr>';
+
+  // Schedule tab
+  document.getElementById('schedule-body').innerHTML = schedule.map(s => {
+    const urgentBadge = s.daysLeft <= 7 ? 'text-red-700 bg-red-100' : s.daysLeft <= 15 ? 'text-amber-700 bg-amber-100' : 'text-stone-700 bg-stone-100';
+    return `
+      <tr class="border-b border-stone-100 hover:bg-stone-50">
+        <td class="px-3 py-2">
+          <div class="font-medium">${s.due}</div>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full ${urgentBadge} font-medium">เหลือ ${s.daysLeft} วัน</span>
+        </td>
+        <td class="px-3 py-2">
+          <div class="font-medium text-sm">${s.vendor}</div>
+          <span class="text-[10px] px-1.5 py-0.5 rounded ${projBadge[s.project]||''}">${s.project}</span>
+        </td>
+        <td class="px-3 py-2 font-mono text-xs">${s.invoice}</td>
+        <td class="px-3 py-2 text-center text-sm"><span class="bg-stone-100 px-2 py-0.5 rounded">${s.credit} วัน</span></td>
+        <td class="px-3 py-2 text-right font-bold text-stone-900">${fmt(s.amount)}</td>
+        <td class="px-3 py-2 text-center">
+          ${s.daysLeft <= 7 ? '<span class="text-red-700 text-xs font-bold">🚨 เร่งจ่าย</span>' : '<span class="text-stone-500 text-xs">📅 รอกำหนด</span>'}
+        </td>
+        <td class="px-3 py-2 text-center">
+          <button onclick="paySchedule('${s.invoice}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1 rounded">💸 จ่าย</button>
+        </td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('cnt-inbox').textContent = inboxList.length;
+  document.getElementById('cnt-matched').textContent = matchedList.length;
+  document.getElementById('k1').textContent = inboxList.filter(i => i.status==='pending').length;
+  document.getElementById('k2').textContent = matchedList.length + invoices.filter(i => i.poId).length;
+}
+
+function simulateUpload() {
+  const id = 'INV-2569-' + (1200 + invoices.length);
+  invoices.unshift({
+    id, vendor:'บจก. ใหม่จำลอง', desc:'รายการทดสอบ', subtotal:50000, vat:3500, total:53500, status:'pending', poId:null, credit:15, project:'One Vela'
+  });
+  render();
+  alert(`📥 อัปโหลดบิลใหม่: ${id}\n\n• เพิ่มเข้าคิวรอ OCR\n• กดปุ่ม "เริ่ม OCR" เพื่อประมวลผล`);
+}
+
+async function startOCR() {
+  const btn = document.getElementById('ocr-btn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ กำลังประมวลผล...';
+
+  const pending = invoices.filter(i => i.status === 'pending');
+  for (const inv of pending) {
+    inv.status = 'scanning';
+    render();
+    await sleep(700);
+    if (inv.poId) {
+      inv.status = 'matched';
+    } else {
+      inv.status = 'unmatched';
+    }
+    render();
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✅ OCR เสร็จ · กดสแกนใหม่';
+
+  alert(`🎉 OCR ${pending.length} บิลเสร็จสมบูรณ์!\n\n• Match PO ใน Sheet: ${pending.filter(i=>i.poId).length}\n• ไม่พบ PO: ${pending.filter(i=>!i.poId).length}\n\nคลิก tab "จับคู่แล้ว" เพื่อยืนยัน`);
+}
+
+function viewInvoice(id) {
+  const i = invoices.find(x => x.id === id);
+  if (!i) return;
+  document.getElementById('modal-content').innerHTML = `
+    <div class="bg-gradient-to-br from-stone-700 to-stone-900 text-white p-5 rounded-t-xl flex justify-between">
+      <div>
+        <div class="text-xs text-stone-300">${i.id}</div>
+        <div class="serif text-xl font-bold mt-1">รายละเอียดบิล</div>
+      </div>
+      <button onclick="closeModal()" class="text-3xl hover:text-amber-300">×</button>
+    </div>
+    <div class="p-5">
+      <div class="bg-stone-50 rounded-lg p-4 mb-4">
+        <div class="text-xs text-stone-500">VENDOR</div>
+        <div class="font-bold text-lg">${i.vendor}</div>
+        <div class="text-sm text-stone-600 mt-1">${i.desc}</div>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+        <div><div class="text-xs text-stone-500">โครงการ</div><div class="font-medium">${i.project}</div></div>
+        <div><div class="text-xs text-stone-500">Credit Term</div><div class="font-medium">${i.credit} วัน</div></div>
+      </div>
+      <div class="border-t border-stone-200 pt-3">
+        <div class="flex justify-between text-sm py-1"><span class="text-stone-600">ยอดก่อน VAT</span><span>${fmt(i.subtotal)}</span></div>
+        <div class="flex justify-between text-sm py-1"><span class="text-stone-600">VAT 7%</span><span>${fmt(i.vat)}</span></div>
+        <div class="flex justify-between font-bold border-t border-stone-300 pt-2 mt-2"><span>รวมสุทธิ</span><span class="text-lg">${fmt(i.total)}</span></div>
+      </div>
+      ${i.poId ? `
+        <div class="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <div class="font-bold text-emerald-800 text-sm">🔗 ผูกกับ ${i.poId}</div>
+          <div class="text-xs text-emerald-700 mt-1">ราคา + จำนวน ตรงกับ PO ใน Sheet ✓</div>
+        </div>
+      ` : `
+        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div class="font-bold text-red-800 text-sm">❌ ไม่พบ PO ที่ตรงกัน</div>
+          <button onclick="alert('🔗 เปิดหน้าจับคู่เอง (Demo)')" class="text-red-700 underline text-xs mt-1">→ จับคู่เอง</button>
+        </div>
+      `}
+      <button onclick="closeModal()" class="mt-4 w-full bg-stone-100 hover:bg-stone-200 py-2 rounded font-medium">ปิด</button>
+    </div>
+  `;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+function paySchedule(inv) {
+  if (!confirm(`ดำเนินการจ่าย ${inv}?`)) return;
+  alert(`💸 อนุมัติจ่าย ${inv}\n\n• สร้าง Payment Voucher ใน Sheet\n• ลด AP ใน Sheet "PO-Tracker"\n• รอแนบสลิป (Module 01)\n• อัปเดต Cash Book (Module 02)`);
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+document.getElementById('upload').addEventListener('click', simulateUpload);
+render();
+</script>
+</body>
+</html>

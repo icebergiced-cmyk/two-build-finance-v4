@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Payroll · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+</style>
+</head>
+<body>
+
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm"><span>←</span><span>Hub</span></a>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800">💼 Payroll System</h1>
+        <p class="text-xs text-stone-500">Module 08 · 📊 Sheet: <code>Payroll-2569</code> · Standalone</p>
+      </div>
+    </div>
+    <select class="bg-stone-50 border border-stone-200 rounded px-3 py-1.5 text-sm">
+      <option>งวด พ.ค. 2569</option><option>งวด เม.ย. 2569</option>
+    </select>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- KPI -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">👥 พนักงาน</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1">24</div>
+      <div class="text-xs text-stone-500">ประจำ 18 · รายวัน 6</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">💰 รวมเงินเดือน</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1">฿1.89M</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">⏰ OT รวม</div>
+      <div class="text-2xl font-bold text-amber-600 mt-1">฿82K</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">📋 ประกันสังคม</div>
+      <div class="text-2xl font-bold text-blue-600 mt-1">฿94K</div>
+      <div class="text-xs text-stone-500">5% × 2 ฝ่าย</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border-2 border-emerald-300 bg-emerald-50">
+      <div class="text-xs text-emerald-700 font-medium">💵 ยอดสุทธิจ่าย</div>
+      <div class="text-2xl font-bold text-emerald-700 mt-1">฿1.81M</div>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="bg-gradient-to-r from-stone-700 to-stone-900 rounded-xl p-5 mb-6 flex items-center justify-between text-white flex-wrap gap-3">
+    <div>
+      <div class="font-bold">🎯 งวดเงินเดือน พ.ค. 2569</div>
+      <div class="text-xs text-stone-300 mt-0.5">สถานะ: <span class="text-amber-300">⏳ รออนุมัติ</span> · กำหนดจ่าย: 30 พ.ค. 2569</div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="generateSlips()" class="bg-white text-stone-900 hover:bg-stone-100 font-bold px-4 py-2 rounded text-sm">📄 สร้าง Slip ทั้งหมด</button>
+      <button onclick="exportBankFile()" class="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-4 py-2 rounded text-sm">🏦 Export Bank File</button>
+      <button onclick="approvePayroll()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded text-sm">✅ อนุมัติงวด</button>
+    </div>
+  </div>
+
+  <!-- Employee table -->
+  <div class="bg-white rounded-xl border border-stone-200 overflow-hidden mb-4">
+    <div class="p-3 border-b border-stone-100 flex justify-between items-center">
+      <h3 class="font-bold text-stone-800">รายชื่อพนักงาน · งวด พ.ค. 2569</h3>
+      <button onclick="openAddEmp()" class="text-sm bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-1.5 rounded font-medium">+ เพิ่มพนักงาน</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">รหัส</th>
+            <th class="text-left px-3 py-2.5">ชื่อ</th>
+            <th class="text-left px-3 py-2.5">ตำแหน่ง</th>
+            <th class="text-right px-3 py-2.5">ฐานเงินเดือน</th>
+            <th class="text-right px-3 py-2.5">OT</th>
+            <th class="text-right px-3 py-2.5">เบี้ยขยัน</th>
+            <th class="text-right px-3 py-2.5">รวมก่อนหัก</th>
+            <th class="text-right px-3 py-2.5">SSO 5%</th>
+            <th class="text-right px-3 py-2.5">ภงด.1</th>
+            <th class="text-right px-3 py-2.5">สุทธิ</th>
+            <th class="text-center px-3 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody id="emp-body"></tbody>
+        <tfoot class="bg-stone-100 font-bold border-t-2 border-stone-400" id="emp-foot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Cost breakdown by department -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl border border-stone-200 p-5">
+      <h3 class="font-bold text-stone-800 mb-3">🏢 ค่าใช้จ่ายตามแผนก</h3>
+      <div class="space-y-3">
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span>👔 บริหาร (4 คน)</span><span class="font-bold">฿380K</span>
+          </div>
+          <div class="bg-stone-100 h-2 rounded"><div class="bg-purple-500 h-2 rounded" style="width:75%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span>🏗️ วิศวกร/โฟร์แมน (6 คน)</span><span class="font-bold">฿520K</span>
+          </div>
+          <div class="bg-stone-100 h-2 rounded"><div class="bg-blue-500 h-2 rounded" style="width:90%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span>📞 ขาย/CRM (4 คน)</span><span class="font-bold">฿310K</span>
+          </div>
+          <div class="bg-stone-100 h-2 rounded"><div class="bg-pink-500 h-2 rounded" style="width:60%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span>📋 จัดซื้อ/บัญชี (4 คน)</span><span class="font-bold">฿280K</span>
+          </div>
+          <div class="bg-stone-100 h-2 rounded"><div class="bg-amber-500 h-2 rounded" style="width:55%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span>🔨 ช่างรายวัน (6 คน)</span><span class="font-bold">฿400K</span>
+          </div>
+          <div class="bg-stone-100 h-2 rounded"><div class="bg-orange-500 h-2 rounded" style="width:78%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-stone-200 p-5">
+      <h3 class="font-bold text-stone-800 mb-3">📋 ภาษีและประกันสังคม</h3>
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="border-b border-stone-100">
+            <td class="py-2">💼 ประกันสังคม (ฝ่ายลูกจ้าง)</td>
+            <td class="py-2 text-right font-bold">฿94,500</td>
+          </tr>
+          <tr class="border-b border-stone-100">
+            <td class="py-2">🏢 ประกันสังคม (ฝ่ายนายจ้าง)</td>
+            <td class="py-2 text-right font-bold">฿94,500</td>
+          </tr>
+          <tr class="border-b border-stone-100">
+            <td class="py-2">📑 ภาษีหัก ณ ที่จ่าย (ภงด.1)</td>
+            <td class="py-2 text-right font-bold">฿28,750</td>
+          </tr>
+          <tr class="border-b border-stone-100">
+            <td class="py-2">💸 กองทุนสำรองเลี้ยงชีพ</td>
+            <td class="py-2 text-right font-bold">฿56,700</td>
+          </tr>
+          <tr class="bg-stone-100 font-bold border-t-2 border-stone-300">
+            <td class="py-2">รวมเงินที่บริษัทรับผิดชอบ</td>
+            <td class="py-2 text-right text-red-700">฿274,450</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="mt-3 text-xs text-stone-500">
+        💡 กำหนดยื่น: ภงด.1 ภายใน 7 มิ.ย. · SSO ภายใน 15 มิ.ย.
+      </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200 p-5">
+      <h3 class="font-bold text-emerald-900 mb-3">📅 ปฏิทินจ่ายเงิน</h3>
+      <div class="space-y-2 text-sm">
+        <div class="bg-white rounded p-3 border-l-4 border-amber-500">
+          <div class="font-bold">15 ของเดือน</div>
+          <div class="text-xs text-stone-600">งวดที่ 1 (1-15) · 15 คน</div>
+          <div class="text-xs text-emerald-700 mt-1">฿945,000</div>
+        </div>
+        <div class="bg-white rounded p-3 border-l-4 border-emerald-500">
+          <div class="font-bold">30 ของเดือน</div>
+          <div class="text-xs text-stone-600">งวดที่ 2 (16-สิ้นเดือน) · 9 คน + รายวัน</div>
+          <div class="text-xs text-emerald-700 mt-1">฿945,000</div>
+        </div>
+        <div class="bg-white rounded p-3 border-l-4 border-blue-500">
+          <div class="font-bold">7 มิ.ย. 2569</div>
+          <div class="text-xs text-stone-600">ยื่น ภงด.1 ออนไลน์</div>
+        </div>
+        <div class="bg-white rounded p-3 border-l-4 border-purple-500">
+          <div class="font-bold">15 มิ.ย. 2569</div>
+          <div class="text-xs text-stone-600">นำส่ง SSO · ผ่าน e-payment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Slip Modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal()">
+  <div class="bg-white rounded-xl max-w-md w-full" id="modal-content"></div>
+</div>
+
+<script>
+const fmt = n => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const employees = [
+  { id:'EMP001', name:'คุณไอซ์ ดีเวลลอปเมนท์', pos:'ผู้บริหารโครงการ', dept:'บริหาร', base:120000, ot:0, bonus:5000 },
+  { id:'EMP002', name:'นายธนา วิศวกร', pos:'วิศวกรอาวุโส', dept:'วิศวกรรม', base:65000, ot:8500, bonus:3000 },
+  { id:'EMP003', name:'นางสาวแอน บัญชี', pos:'ผู้จัดการบัญชี', dept:'บัญชี', base:55000, ot:0, bonus:3000 },
+  { id:'EMP004', name:'นายนิว ก่อสร้าง', pos:'โฟร์แมน', dept:'วิศวกรรม', base:42000, ot:6800, bonus:2500 },
+  { id:'EMP005', name:'นางสาวมะปราง', pos:'ผู้ช่วยจัดซื้อ', dept:'จัดซื้อ', base:32000, ot:0, bonus:2000 },
+  { id:'EMP006', name:'นายภาคิน ขาย', pos:'พนักงานขาย', dept:'ขาย', base:28000, ot:0, bonus:8500 },
+  { id:'EMP007', name:'นางสาวพิม CRM', pos:'CRM', dept:'ขาย', base:28000, ot:0, bonus:4500 },
+  { id:'EMP008', name:'นายเอก โฟร์แมน', pos:'โฟร์แมน Site B', dept:'วิศวกรรม', base:40000, ot:5200, bonus:2500 },
+  { id:'EMP009', name:'นางสาวจิ๊บ', pos:'พนักงานต้อนรับ', dept:'ขาย', base:22000, ot:0, bonus:1500 },
+  { id:'EMP010', name:'นายต้น จัดซื้อ', pos:'จัดซื้อ', dept:'จัดซื้อ', base:35000, ot:0, bonus:2500 },
+  { id:'EMP011', name:'นางสาวอุ๋ม', pos:'พนักงานบัญชี', dept:'บัญชี', base:28000, ot:0, bonus:2000 },
+  { id:'EMP012', name:'นายแบงค์', pos:'โฟร์แมน Site C', dept:'วิศวกรรม', base:38000, ot:4200, bonus:2500 },
+  { id:'EMP013', name:'คุณปอย ขาย', pos:'พนักงานขาย', dept:'ขาย', base:25000, ot:0, bonus:6500 },
+  { id:'EMP014', name:'นางสาวเป้ บัญชี', pos:'พนักงานบัญชี', dept:'บัญชี', base:26000, ot:0, bonus:1500 },
+  { id:'EMP015', name:'นายโจ้ จัดซื้อ', pos:'จัดซื้อ', dept:'จัดซื้อ', base:30000, ot:0, bonus:2000 },
+  { id:'EMP016', name:'นางสาวฝน', pos:'ผู้ช่วยผู้บริหาร', dept:'บริหาร', base:35000, ot:0, bonus:2500 },
+  { id:'EMP017', name:'นายขวัญ วิศวกร', pos:'วิศวกร', dept:'วิศวกรรม', base:48000, ot:6500, bonus:2500 },
+  { id:'EMP018', name:'นายภพ HR', pos:'HR Manager', dept:'บริหาร', base:42000, ot:0, bonus:2500 },
+  // รายวัน
+  { id:'DLY001', name:'นายพัด ช่างปูน', pos:'ช่างปูน (รายวัน)', dept:'ก่อสร้าง', base:0, daily:850, days:22, ot:1500, bonus:0 },
+  { id:'DLY002', name:'นายแมน ช่างเหล็ก', pos:'ช่างเหล็ก (รายวัน)', dept:'ก่อสร้าง', base:0, daily:900, days:21, ot:0, bonus:0 },
+  { id:'DLY003', name:'นางสาว วิภา', pos:'ช่างปูน (รายวัน)', dept:'ก่อสร้าง', base:0, daily:750, days:19, ot:0, bonus:0 },
+  { id:'DLY004', name:'นายตุ๊ก ช่างไฟ', pos:'ช่างไฟ (รายวัน)', dept:'ก่อสร้าง', base:0, daily:1100, days:20, ot:2200, bonus:0 },
+  { id:'DLY005', name:'นายเส ช่างไม้', pos:'ช่างไม้ (รายวัน)', dept:'ก่อสร้าง', base:0, daily:850, days:22, ot:0, bonus:0 },
+  { id:'DLY006', name:'นายเก่ง ช่างประปา', pos:'ช่างประปา (รายวัน)', dept:'ก่อสร้าง', base:0, daily:950, days:21, ot:1900, bonus:0 }
+];
+
+function calcPay(e) {
+  const baseAmt = e.base || (e.daily * e.days);
+  const gross = baseAmt + (e.ot || 0) + (e.bonus || 0);
+  const sso = Math.min(baseAmt * 0.05, 750); // SSO cap 750
+  const wht = baseAmt > 50000 ? gross * 0.05 : baseAmt > 25000 ? gross * 0.02 : 0;
+  const net = gross - sso - wht;
+  return { baseAmt, gross, sso, wht, net };
+}
+
+function render() {
+  let totBase=0, totOt=0, totBonus=0, totGross=0, totSso=0, totWht=0, totNet=0;
+  document.getElementById('emp-body').innerHTML = employees.map(e => {
+    const p = calcPay(e);
+    totBase += p.baseAmt; totOt += e.ot || 0; totBonus += e.bonus || 0;
+    totGross += p.gross; totSso += p.sso; totWht += p.wht; totNet += p.net;
+    const isDaily = e.id.startsWith('DLY');
+    return `
+      <tr class="border-b border-stone-100 hover:bg-stone-50 ${isDaily ? 'bg-amber-50' : ''}">
+        <td class="px-3 py-2 font-mono text-xs">${e.id}</td>
+        <td class="px-3 py-2 text-sm">
+          <div class="font-medium">${e.name}</div>
+          <div class="text-[10px] text-stone-500">${isDaily ? '🔨 รายวัน' : '👔 ประจำ'}</div>
+        </td>
+        <td class="px-3 py-2 text-xs">
+          <div>${e.pos}</div>
+          <div class="text-[10px] text-stone-500">${e.dept}</div>
+        </td>
+        <td class="px-3 py-2 text-right font-mono">${isDaily ? `${fmt(e.daily)}/วัน × ${e.days}` : fmt(e.base)}</td>
+        <td class="px-3 py-2 text-right font-mono text-amber-700">${e.ot ? fmt(e.ot) : '—'}</td>
+        <td class="px-3 py-2 text-right font-mono text-blue-700">${e.bonus ? fmt(e.bonus) : '—'}</td>
+        <td class="px-3 py-2 text-right font-mono">${fmt(p.gross)}</td>
+        <td class="px-3 py-2 text-right font-mono text-red-700">${p.sso > 0 ? fmt(p.sso) : '—'}</td>
+        <td class="px-3 py-2 text-right font-mono text-red-700">${p.wht > 0 ? fmt(p.wht) : '—'}</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-700">${fmt(p.net)}</td>
+        <td class="px-3 py-2 text-center">
+          <button onclick="viewSlip('${e.id}')" class="text-blue-600 hover:underline text-xs">slip</button>
+        </td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('emp-foot').innerHTML = `
+    <tr>
+      <td colspan="3" class="px-3 py-3 text-right">รวม (${employees.length} คน):</td>
+      <td class="px-3 py-3 text-right">${fmt(totBase)}</td>
+      <td class="px-3 py-3 text-right text-amber-700">${fmt(totOt)}</td>
+      <td class="px-3 py-3 text-right text-blue-700">${fmt(totBonus)}</td>
+      <td class="px-3 py-3 text-right">${fmt(totGross)}</td>
+      <td class="px-3 py-3 text-right text-red-700">${fmt(totSso)}</td>
+      <td class="px-3 py-3 text-right text-red-700">${fmt(totWht)}</td>
+      <td class="px-3 py-3 text-right text-emerald-700">${fmt(totNet)}</td>
+      <td></td>
+    </tr>`;
+}
+
+function viewSlip(id) {
+  const e = employees.find(x => x.id === id);
+  const p = calcPay(e);
+  const isDaily = id.startsWith('DLY');
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="bg-gradient-to-br from-stone-800 to-stone-950 text-white p-5 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs text-stone-300">SALARY SLIP</div>
+          <div class="serif text-xl font-bold mt-1">บจก. ทู บิลด์ ดีเวลลอปเมนท์</div>
+        </div>
+        <button onclick="closeModal()" class="text-3xl hover:text-amber-300">×</button>
+      </div>
+    </div>
+    <div class="p-5">
+      <div class="bg-stone-50 rounded p-3 mb-4 grid grid-cols-2 gap-2 text-sm">
+        <div><div class="text-xs text-stone-500">รหัสพนักงาน</div><div class="font-bold font-mono">${e.id}</div></div>
+        <div><div class="text-xs text-stone-500">งวด</div><div class="font-bold">พ.ค. 2569</div></div>
+        <div class="col-span-2"><div class="text-xs text-stone-500">ชื่อ</div><div class="font-bold">${e.name}</div></div>
+        <div class="col-span-2"><div class="text-xs text-stone-500">ตำแหน่ง</div><div class="font-bold">${e.pos}</div></div>
+      </div>
+
+      <div class="space-y-1 text-sm border-t border-stone-200 pt-3">
+        <div class="font-bold text-emerald-700 mb-1">รายรับ</div>
+        ${isDaily
+          ? `<div class="flex justify-between"><span class="text-stone-600">ค่าแรงรายวัน (${e.daily} × ${e.days} วัน)</span><span>${fmt(p.baseAmt)}</span></div>`
+          : `<div class="flex justify-between"><span class="text-stone-600">เงินเดือนพื้นฐาน</span><span>${fmt(e.base)}</span></div>`}
+        ${e.ot ? `<div class="flex justify-between"><span class="text-stone-600">OT</span><span>${fmt(e.ot)}</span></div>` : ''}
+        ${e.bonus ? `<div class="flex justify-between"><span class="text-stone-600">เบี้ยขยัน/โบนัส</span><span>${fmt(e.bonus)}</span></div>` : ''}
+        <div class="flex justify-between font-bold border-t border-stone-200 pt-1">
+          <span>รวมรายรับ</span><span class="text-emerald-700">${fmt(p.gross)}</span>
+        </div>
+
+        <div class="font-bold text-red-700 mb-1 mt-3">รายการหัก</div>
+        ${p.sso > 0 ? `<div class="flex justify-between"><span class="text-stone-600">ประกันสังคม 5%</span><span class="text-red-700">(${fmt(p.sso)})</span></div>` : ''}
+        ${p.wht > 0 ? `<div class="flex justify-between"><span class="text-stone-600">ภาษีหัก ณ ที่จ่าย</span><span class="text-red-700">(${fmt(p.wht)})</span></div>` : ''}
+        <div class="flex justify-between font-bold border-t border-stone-200 pt-1">
+          <span>รวมหัก</span><span class="text-red-700">(${fmt(p.sso + p.wht)})</span>
+        </div>
+
+        <div class="flex justify-between bg-emerald-100 -mx-5 px-5 py-3 mt-3 font-bold text-lg">
+          <span>💵 ยอดสุทธิ</span><span class="text-emerald-700">${fmt(p.net)}</span>
+        </div>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button class="flex-1 bg-stone-800 text-white py-2 rounded text-sm font-medium">📥 ดาวน์โหลด PDF</button>
+        <button class="flex-1 bg-stone-100 text-stone-700 py-2 rounded text-sm font-medium">📧 ส่งอีเมล</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+function generateSlips() {
+  alert(`📄 สร้าง Slip เงินเดือน ${employees.length} ใบสำเร็จ!\n\n• บันทึก: /Drive/Payroll/2569/05-พ.ค./\n• ไฟล์: payroll-2569-05-{EMP_ID}.pdf\n• ส่งทาง LINE OA / Email อัตโนมัติ`);
+}
+
+function exportBankFile() {
+  alert(`🏦 Export Bank File\n\n• ธ.ไทยพาณิชย์ Cash Management\n• ไฟล์: SCB-Payroll-2569-05.txt\n• ${employees.length} รายการ\n• ยอดรวม ฿1,810,250\n\nUpload ไฟล์เข้าระบบธนาคาร → จ่ายเข้าบัญชีพนักงานพร้อมกัน`);
+}
+
+function approvePayroll() {
+  if (!confirm('ยืนยันอนุมัติงวดเงินเดือน พ.ค. 2569?\n\n• 24 พนักงาน\n• ยอดสุทธิ ฿1,810,250')) return;
+  alert('✅ อนุมัติงวดเงินเดือนสำเร็จ!\n\n• สถานะ → รอจ่าย ใน Sheet "Payroll-2569"\n• สร้าง Journal Entry → Sheet "Journal-2569" (Module 04)\n• ลง Cash Book → Sheet "Cash-Book" (Module 02)\n• ส่งแจ้งเตือนพนักงานทาง LINE (รอ V4)');
+}
+
+function openAddEmp() { alert('+ เพิ่มพนักงานใหม่ (Demo)'); }
+
+render();
+</script>
+</body>
+</html>

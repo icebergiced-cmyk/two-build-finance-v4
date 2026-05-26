@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Financial Reports · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+  .bar { transition: all 0.5s; }
+</style>
+</head>
+<body>
+
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm"><span>←</span><span>Hub</span></a>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800">📈 Financial Reports</h1>
+        <p class="text-xs text-stone-500">Module 06 · 📊 อ่านจากทุก Sheet · สร้างรายงาน · Standalone</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="bg-stone-50 border border-stone-200 rounded px-3 py-1.5 text-sm">
+        <option>YTD 2569 (Jan-May)</option>
+        <option>Q1 2569</option>
+        <option>Q2 2569</option>
+        <option>เม.ย. 2569</option>
+        <option>พ.ค. 2569</option>
+      </select>
+      <button onclick="alert('📥 Export รายงานทั้งหมด PDF + Excel')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded text-sm font-medium">📥 Export</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- KPI Dashboard -->
+  <div class="mb-6">
+    <h2 class="serif text-2xl text-stone-800 mb-3">📊 KPI Dashboard</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl p-4">
+        <div class="text-xs text-emerald-700 font-medium">🏠 Revenue YTD</div>
+        <div class="text-2xl font-bold text-emerald-700 mt-1">฿142.5M</div>
+        <div class="text-xs text-emerald-600 mt-1">↗ +18% YoY</div>
+      </div>
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4">
+        <div class="text-xs text-blue-700 font-medium">💰 Net Profit</div>
+        <div class="text-2xl font-bold text-blue-700 mt-1">฿43.2M</div>
+        <div class="text-xs text-blue-600 mt-1">NP Margin 30.3%</div>
+      </div>
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4">
+        <div class="text-xs text-purple-700 font-medium">📈 GP Margin</div>
+        <div class="text-2xl font-bold text-purple-700 mt-1">40.0%</div>
+        <div class="text-xs text-purple-600 mt-1">↗ +2.1% vs ปีก่อน</div>
+      </div>
+      <div class="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl p-4">
+        <div class="text-xs text-amber-700 font-medium">💎 ROE</div>
+        <div class="text-2xl font-bold text-amber-700 mt-1">31.7%</div>
+        <div class="text-xs text-amber-600 mt-1">เป้า 28%</div>
+      </div>
+      <div class="bg-white border border-stone-200 rounded-xl p-4">
+        <div class="text-xs text-stone-600 font-medium">💵 Cash & Bank</div>
+        <div class="text-2xl font-bold text-stone-800 mt-1">฿25.5M</div>
+        <div class="text-xs text-emerald-600 mt-1">↗ Liquid</div>
+      </div>
+      <div class="bg-white border border-stone-200 rounded-xl p-4">
+        <div class="text-xs text-stone-600 font-medium">📦 Inventory Days</div>
+        <div class="text-2xl font-bold text-stone-800 mt-1">182</div>
+        <div class="text-xs text-amber-600 mt-1">เป้า 150-180</div>
+      </div>
+      <div class="bg-white border border-stone-200 rounded-xl p-4">
+        <div class="text-xs text-stone-600 font-medium">⚖️ D/E Ratio</div>
+        <div class="text-2xl font-bold text-stone-800 mt-1">0.31</div>
+        <div class="text-xs text-emerald-600 mt-1">ต่ำ · ปลอดภัย</div>
+      </div>
+      <div class="bg-white border border-stone-200 rounded-xl p-4">
+        <div class="text-xs text-stone-600 font-medium">🏠 Units Sold</div>
+        <div class="text-2xl font-bold text-stone-800 mt-1">28</div>
+        <div class="text-xs text-stone-500 mt-1">เป้าปี 42</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b border-stone-200 mb-4 flex gap-1 overflow-x-auto">
+    <button onclick="switchTab('pl')" id="t-pl" class="px-4 py-2 font-medium text-sm border-b-2 border-stone-800 text-stone-800 whitespace-nowrap">📊 P&L Statement</button>
+    <button onclick="switchTab('bs')" id="t-bs" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">⚖️ Balance Sheet</button>
+    <button onclick="switchTab('cf')" id="t-cf" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">💵 Cash Flow</button>
+    <button onclick="switchTab('proj')" id="t-proj" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">🏗️ P&L รายโครงการ</button>
+    <button onclick="switchTab('trend')" id="t-trend" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">📈 Trend Analysis</button>
+  </div>
+
+  <!-- P&L -->
+  <div id="pane-pl">
+    <div class="bg-white rounded-xl border border-stone-200 p-6">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="serif text-2xl font-bold text-stone-800">งบกำไรขาดทุน (P&L)</h3>
+          <div class="text-sm text-stone-500">บจก. ทู บิลด์ ดีเวลลอปเมนท์ · YTD ม.ค.-พ.ค. 2569</div>
+        </div>
+        <div class="text-right text-xs text-stone-500">
+          <div>หน่วย: บาท</div>
+          <div>เปรียบเทียบกับปีก่อน</div>
+        </div>
+      </div>
+
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50">
+          <tr class="border-b-2 border-stone-300">
+            <th class="text-left py-2 font-semibold">รายการ</th>
+            <th class="text-right py-2 font-semibold w-32">YTD 2569</th>
+            <th class="text-right py-2 font-semibold w-32">YTD 2568</th>
+            <th class="text-right py-2 font-semibold w-24">% Δ</th>
+            <th class="text-right py-2 font-semibold w-24">% รายได้</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-stone-100 bg-emerald-50">
+            <td class="py-2 font-bold">📥 รายได้</td><td></td><td></td><td></td><td></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">รายได้จากการขายบ้าน</td>
+            <td class="py-2 text-right font-mono">142,500,000</td>
+            <td class="py-2 text-right font-mono text-stone-500">120,800,000</td>
+            <td class="py-2 text-right text-emerald-600">+18.0%</td>
+            <td class="py-2 text-right">99.4%</td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">รายได้จากค่าส่วนกลาง</td>
+            <td class="py-2 text-right font-mono">485,000</td>
+            <td class="py-2 text-right font-mono text-stone-500">320,000</td>
+            <td class="py-2 text-right text-emerald-600">+51.6%</td>
+            <td class="py-2 text-right">0.3%</td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">รายได้อื่นๆ</td>
+            <td class="py-2 text-right font-mono">342,000</td>
+            <td class="py-2 text-right font-mono text-stone-500">280,000</td>
+            <td class="py-2 text-right text-emerald-600">+22.1%</td>
+            <td class="py-2 text-right">0.2%</td>
+          </tr>
+          <tr class="border-b-2 border-stone-300 bg-stone-100 font-bold">
+            <td class="py-2.5">รายได้รวม</td>
+            <td class="py-2.5 text-right font-mono text-emerald-700">143,327,000</td>
+            <td class="py-2.5 text-right font-mono text-stone-600">121,400,000</td>
+            <td class="py-2.5 text-right text-emerald-600">+18.1%</td>
+            <td class="py-2.5 text-right">100.0%</td>
+          </tr>
+
+          <tr class="border-b border-stone-100 bg-red-50">
+            <td class="py-2 font-bold">📤 ต้นทุนขาย (COGS)</td><td></td><td></td><td></td><td></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">ต้นทุนวัสดุ</td>
+            <td class="py-2 text-right font-mono">(47,300,000)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(42,150,000)</td>
+            <td class="py-2 text-right text-red-600">+12.2%</td>
+            <td class="py-2 text-right">33.0%</td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">ค่าแรง/ผู้รับเหมา</td>
+            <td class="py-2 text-right font-mono">(28,400,000)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(25,800,000)</td>
+            <td class="py-2 text-right text-red-600">+10.1%</td>
+            <td class="py-2 text-right">19.8%</td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">ค่าโสหุ้ยการก่อสร้าง</td>
+            <td class="py-2 text-right font-mono">(10,300,000)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(8,900,000)</td>
+            <td class="py-2 text-right text-red-600">+15.7%</td>
+            <td class="py-2 text-right">7.2%</td>
+          </tr>
+          <tr class="border-b-2 border-stone-300 bg-stone-100 font-bold">
+            <td class="py-2.5">รวมต้นทุน</td>
+            <td class="py-2.5 text-right font-mono text-red-700">(86,000,000)</td>
+            <td class="py-2.5 text-right font-mono text-stone-600">(76,850,000)</td>
+            <td class="py-2.5 text-right text-red-600">+11.9%</td>
+            <td class="py-2.5 text-right">60.0%</td>
+          </tr>
+
+          <tr class="border-b-2 border-stone-400 bg-emerald-100 font-bold text-base">
+            <td class="py-3">💰 กำไรขั้นต้น (Gross Profit)</td>
+            <td class="py-3 text-right font-mono text-emerald-700">57,327,000</td>
+            <td class="py-3 text-right font-mono text-stone-600">44,550,000</td>
+            <td class="py-3 text-right text-emerald-700">+28.7%</td>
+            <td class="py-3 text-right text-emerald-700">40.0%</td>
+          </tr>
+
+          <tr class="border-b border-stone-100 bg-orange-50">
+            <td class="py-2 font-bold">⚙️ ค่าใช้จ่ายดำเนินงาน</td><td></td><td></td><td></td><td></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">เงินเดือนพนักงาน</td>
+            <td class="py-2 text-right font-mono">(9,450,000)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(8,100,000)</td>
+            <td class="py-2 text-right text-red-600">+16.7%</td>
+            <td class="py-2 text-right">6.6%</td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">ค่าโสหุ้ย (น้ำ/ไฟ/เน็ต/เช่า)</td>
+            <td class="py-2 text-right font-mono">(2,800,000)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(2,500,000)</td>
+            <td class="py-2 text-right text-red-600">+12.0%</td>
+            <td class="py-2 text-right">2.0%</td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">ค่าการตลาดและขาย</td>
+            <td class="py-2 text-right font-mono">(1,950,000)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(1,200,000)</td>
+            <td class="py-2 text-right text-red-600">+62.5%</td>
+            <td class="py-2 text-right">1.4%</td>
+          </tr>
+          <tr class="border-b-2 border-stone-300 bg-stone-100 font-bold">
+            <td class="py-2.5">รวมค่าใช้จ่ายดำเนินงาน</td>
+            <td class="py-2.5 text-right font-mono text-red-700">(14,200,000)</td>
+            <td class="py-2.5 text-right font-mono text-stone-600">(11,800,000)</td>
+            <td class="py-2.5 text-right text-red-600">+20.3%</td>
+            <td class="py-2.5 text-right">9.9%</td>
+          </tr>
+
+          <tr class="border-b-2 border-stone-400 bg-blue-100 font-bold text-base">
+            <td class="py-3">📊 กำไรก่อนหักดอกเบี้ยและภาษี (EBIT)</td>
+            <td class="py-3 text-right font-mono text-blue-700">43,127,000</td>
+            <td class="py-3 text-right font-mono text-stone-600">32,750,000</td>
+            <td class="py-3 text-right text-blue-700">+31.7%</td>
+            <td class="py-3 text-right text-blue-700">30.1%</td>
+          </tr>
+
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">ดอกเบี้ยจ่าย</td>
+            <td class="py-2 text-right font-mono">(680,000)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(720,000)</td>
+            <td class="py-2 text-right text-emerald-600">-5.6%</td>
+            <td class="py-2 text-right">0.5%</td>
+          </tr>
+          <tr class="border-b-2 border-stone-400 bg-amber-100 font-bold text-base">
+            <td class="py-3">🏛️ กำไรก่อนหักภาษี (Pre-Tax)</td>
+            <td class="py-3 text-right font-mono text-amber-700">42,447,000</td>
+            <td class="py-3 text-right font-mono text-stone-600">32,030,000</td>
+            <td class="py-3 text-right text-amber-700">+32.5%</td>
+            <td class="py-3 text-right text-amber-700">29.6%</td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="py-2 pl-4">ภาษีนิติบุคคล (20%)</td>
+            <td class="py-2 text-right font-mono">(8,489,400)</td>
+            <td class="py-2 text-right font-mono text-stone-500">(6,406,000)</td>
+            <td class="py-2 text-right text-red-600">+32.5%</td>
+            <td class="py-2 text-right">5.9%</td>
+          </tr>
+
+          <tr class="bg-emerald-100 font-bold text-lg border-t-4 border-emerald-600">
+            <td class="py-4">✨ กำไรสุทธิ (Net Profit)</td>
+            <td class="py-4 text-right font-mono text-emerald-800">33,957,600</td>
+            <td class="py-4 text-right font-mono text-stone-700">25,624,000</td>
+            <td class="py-4 text-right text-emerald-700">+32.5%</td>
+            <td class="py-4 text-right text-emerald-700">23.7%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Balance Sheet -->
+  <div id="pane-bs" class="hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- Assets -->
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <div class="flex items-center justify-between mb-3 pb-2 border-b-2 border-blue-200">
+          <div>
+            <h3 class="serif text-xl font-bold text-stone-800">💎 สินทรัพย์ (Assets)</h3>
+            <div class="text-xs text-stone-500">ณ 25 พ.ค. 2569</div>
+          </div>
+          <div class="text-2xl font-bold text-blue-700">฿178.5M</div>
+        </div>
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-b border-stone-100">
+              <td class="py-1.5 font-bold text-blue-700">สินทรัพย์หมุนเวียน</td><td></td>
+            </tr>
+            <tr class="hover:bg-stone-50"><td class="py-1 pl-4">เงินสดและธนาคาร</td><td class="py-1 text-right font-mono">25,550,000</td></tr>
+            <tr class="hover:bg-stone-50"><td class="py-1 pl-4">ลูกหนี้การค้า</td><td class="py-1 text-right font-mono">2,150,000</td></tr>
+            <tr class="hover:bg-stone-50"><td class="py-1 pl-4 bg-amber-50">🏞️ ที่ดินรอพัฒนา</td><td class="py-1 text-right font-mono bg-amber-50">45,000,000</td></tr>
+            <tr class="hover:bg-stone-50"><td class="py-1 pl-4 bg-amber-50">🏗️ งานระหว่างก่อสร้าง</td><td class="py-1 text-right font-mono bg-amber-50">78,500,000</td></tr>
+            <tr class="hover:bg-stone-50"><td class="py-1 pl-4 bg-amber-50">🏠 บ้านพร้อมขาย</td><td class="py-1 text-right font-mono bg-amber-50">24,800,000</td></tr>
+            <tr class="hover:bg-stone-50"><td class="py-1 pl-4">ภาษีซื้อรอเครดิต</td><td class="py-1 text-right font-mono">890,000</td></tr>
+            <tr class="border-t border-stone-200 font-bold"><td class="py-1.5 pl-4">รวมหมุนเวียน</td><td class="py-1.5 text-right font-mono">176,890,000</td></tr>
+            <tr class="border-b border-stone-100"><td class="py-1.5 font-bold text-blue-700">สินทรัพย์ไม่หมุนเวียน</td><td></td></tr>
+            <tr class="hover:bg-stone-50"><td class="py-1 pl-4">ยานพาหนะและอุปกรณ์</td><td class="py-1 text-right font-mono">1,610,000</td></tr>
+            <tr class="bg-blue-100 font-bold border-t-2 border-blue-400">
+              <td class="py-3">💎 รวมสินทรัพย์</td>
+              <td class="py-3 text-right font-mono text-blue-700 text-base">178,500,000</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Liabilities + Equity -->
+      <div class="space-y-4">
+        <div class="bg-white rounded-xl border border-stone-200 p-5">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b-2 border-red-200">
+            <div>
+              <h3 class="serif text-xl font-bold text-stone-800">📉 หนี้สิน (Liabilities)</h3>
+            </div>
+            <div class="text-2xl font-bold text-red-700">฿42.3M</div>
+          </div>
+          <table class="w-full text-sm">
+            <tbody>
+              <tr class="border-b border-stone-100"><td class="py-1.5 font-bold text-red-700">หนี้สินหมุนเวียน</td><td></td></tr>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4">เจ้าหนี้การค้า</td><td class="py-1 text-right font-mono">4,800,000</td></tr>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4">ค่าใช้จ่ายค้างจ่าย</td><td class="py-1 text-right font-mono">1,250,000</td></tr>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4">เงินจอง + ดาวน์รับล่วงหน้า</td><td class="py-1 text-right font-mono">12,250,000</td></tr>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4 bg-red-50">🏛️ ภาษีค้างจ่าย</td><td class="py-1 text-right font-mono bg-red-50">2,900,000</td></tr>
+              <tr class="border-b border-stone-100"><td class="py-1.5 font-bold text-red-700">หนี้สินไม่หมุนเวียน</td><td></td></tr>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4">เงินกู้ระยะยาว</td><td class="py-1 text-right font-mono">21,100,000</td></tr>
+              <tr class="bg-red-100 font-bold border-t-2 border-red-400">
+                <td class="py-2">รวมหนี้สิน</td>
+                <td class="py-2 text-right font-mono text-red-700">42,300,000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-white rounded-xl border border-stone-200 p-5">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b-2 border-purple-200">
+            <div>
+              <h3 class="serif text-xl font-bold text-stone-800">💼 ส่วนผู้ถือหุ้น (Equity)</h3>
+            </div>
+            <div class="text-2xl font-bold text-purple-700">฿136.2M</div>
+          </div>
+          <table class="w-full text-sm">
+            <tbody>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4">ทุนจดทะเบียน</td><td class="py-1 text-right font-mono">50,000,000</td></tr>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4">กำไรสะสมต้นงวด</td><td class="py-1 text-right font-mono">52,242,400</td></tr>
+              <tr class="hover:bg-stone-50"><td class="py-1 pl-4 bg-emerald-50">กำไรงวดนี้ (YTD)</td><td class="py-1 text-right font-mono bg-emerald-50 text-emerald-700 font-bold">33,957,600</td></tr>
+              <tr class="bg-purple-100 font-bold border-t-2 border-purple-400">
+                <td class="py-2">รวมส่วนผู้ถือหุ้น</td>
+                <td class="py-2 text-right font-mono text-purple-700">136,200,000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-gradient-to-r from-stone-700 to-stone-900 text-white rounded-xl p-4 text-center">
+          <div class="text-xs text-stone-300">หนี้สิน + ส่วนผู้ถือหุ้น</div>
+          <div class="text-2xl font-bold mt-1">฿178,500,000</div>
+          <div class="text-xs text-emerald-300 mt-1">✅ Balance Sheet สมดุล</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cash Flow -->
+  <div id="pane-cf" class="hidden">
+    <div class="bg-white rounded-xl border border-stone-200 p-6">
+      <h3 class="serif text-2xl font-bold text-stone-800 mb-1">งบกระแสเงินสด (Cash Flow Statement)</h3>
+      <div class="text-sm text-stone-500 mb-4">YTD ม.ค.-พ.ค. 2569 · วิธีทางอ้อม</div>
+
+      <table class="w-full text-sm">
+        <tbody>
+          <tr class="bg-blue-100 font-bold"><td class="py-2 pl-2">🔵 กระแสเงินสดจากการดำเนินงาน</td><td></td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">กำไรสุทธิ</td><td class="py-1.5 text-right font-mono">33,957,600</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">+ ค่าเสื่อมราคา</td><td class="py-1.5 text-right font-mono">320,000</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">- การเพิ่มของลูกหนี้</td><td class="py-1.5 text-right font-mono">(890,000)</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4 bg-amber-50">- การเพิ่มของ WIP/บ้านพร้อมขาย</td><td class="py-1.5 text-right font-mono bg-amber-50">(18,400,000)</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">+ การเพิ่มของเจ้าหนี้การค้า</td><td class="py-1.5 text-right font-mono">2,100,000</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">+ เงินจองและดาวน์รับล่วงหน้า</td><td class="py-1.5 text-right font-mono">8,750,000</td></tr>
+          <tr class="border-b-2 border-stone-300 font-bold bg-stone-50">
+            <td class="py-2 pl-4">เงินสดสุทธิจากการดำเนินงาน</td>
+            <td class="py-2 text-right font-mono text-blue-700">25,837,600</td>
+          </tr>
+
+          <tr class="bg-orange-100 font-bold"><td class="py-2 pl-2 pt-4">🟠 กระแสเงินสดจากการลงทุน</td><td></td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">- ซื้อยานพาหนะ</td><td class="py-1.5 text-right font-mono">(480,000)</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4 bg-amber-50">- ซื้อที่ดินรอพัฒนา</td><td class="py-1.5 text-right font-mono bg-amber-50">(8,500,000)</td></tr>
+          <tr class="border-b-2 border-stone-300 font-bold bg-stone-50">
+            <td class="py-2 pl-4">เงินสดสุทธิจากการลงทุน</td>
+            <td class="py-2 text-right font-mono text-orange-700">(8,980,000)</td>
+          </tr>
+
+          <tr class="bg-purple-100 font-bold"><td class="py-2 pl-2 pt-4">🟣 กระแสเงินสดจากการจัดหาเงิน</td><td></td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">+ กู้ระยะยาว</td><td class="py-1.5 text-right font-mono">5,000,000</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">- จ่ายดอกเบี้ย</td><td class="py-1.5 text-right font-mono">(680,000)</td></tr>
+          <tr class="border-b border-stone-100"><td class="py-1.5 pl-4">- ปันผล</td><td class="py-1.5 text-right font-mono">(2,000,000)</td></tr>
+          <tr class="border-b-2 border-stone-300 font-bold bg-stone-50">
+            <td class="py-2 pl-4">เงินสดสุทธิจากการจัดหาเงิน</td>
+            <td class="py-2 text-right font-mono text-purple-700">2,320,000</td>
+          </tr>
+
+          <tr class="bg-emerald-100 font-bold border-t-4 border-emerald-600 text-base">
+            <td class="py-3 pl-2">💰 เงินสดเพิ่มขึ้น (ลดลง) สุทธิ</td>
+            <td class="py-3 text-right font-mono text-emerald-700">19,177,600</td>
+          </tr>
+          <tr class="bg-stone-50"><td class="py-1.5 pl-2">เงินสดต้นงวด (1 ม.ค.)</td><td class="py-1.5 text-right font-mono">6,372,400</td></tr>
+          <tr class="bg-emerald-50 font-bold border-t-2 border-emerald-300 text-base">
+            <td class="py-2 pl-2">💵 เงินสดปลายงวด (25 พ.ค.)</td>
+            <td class="py-2 text-right font-mono text-emerald-700">25,550,000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Project P&L -->
+  <div id="pane-proj" class="hidden">
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">โครงการ</th>
+            <th class="text-right px-3 py-2.5">รายได้ YTD</th>
+            <th class="text-right px-3 py-2.5">ต้นทุน</th>
+            <th class="text-right px-3 py-2.5">GP</th>
+            <th class="text-right px-3 py-2.5">GPM</th>
+            <th class="text-right px-3 py-2.5">OPEX</th>
+            <th class="text-right px-3 py-2.5">EBIT</th>
+            <th class="text-right px-3 py-2.5">EBIT %</th>
+            <th class="text-center px-3 py-2.5">ดู</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold">One Vela</div>
+              <div class="text-xs text-stone-500">Amata-Chonburi · 12 หลัง</div>
+            </td>
+            <td class="px-3 py-2.5 text-right font-mono">68,400,000</td>
+            <td class="px-3 py-2.5 text-right font-mono text-red-700">(41,200,000)</td>
+            <td class="px-3 py-2.5 text-right font-mono text-emerald-700 font-bold">27,200,000</td>
+            <td class="px-3 py-2.5 text-right text-emerald-700 font-bold">39.8%</td>
+            <td class="px-3 py-2.5 text-right font-mono text-red-700">(6,700,000)</td>
+            <td class="px-3 py-2.5 text-right font-mono text-blue-700 font-bold">20,500,000</td>
+            <td class="px-3 py-2.5 text-right text-blue-700 font-bold">30.0%</td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">→</button></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold">วันเวลา</div>
+              <div class="text-xs text-stone-500">9 หลัง</div>
+            </td>
+            <td class="px-3 py-2.5 text-right font-mono">52,300,000</td>
+            <td class="px-3 py-2.5 text-right font-mono text-red-700">(31,800,000)</td>
+            <td class="px-3 py-2.5 text-right font-mono text-emerald-700 font-bold">20,500,000</td>
+            <td class="px-3 py-2.5 text-right text-emerald-700 font-bold">39.2%</td>
+            <td class="px-3 py-2.5 text-right font-mono text-red-700">(5,200,000)</td>
+            <td class="px-3 py-2.5 text-right font-mono text-blue-700 font-bold">15,300,000</td>
+            <td class="px-3 py-2.5 text-right text-blue-700 font-bold">29.3%</td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">→</button></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold">Oxygen 3</div>
+              <div class="text-xs text-stone-500">7 หลัง</div>
+            </td>
+            <td class="px-3 py-2.5 text-right font-mono">21,800,000</td>
+            <td class="px-3 py-2.5 text-right font-mono text-red-700">(13,000,000)</td>
+            <td class="px-3 py-2.5 text-right font-mono text-emerald-700 font-bold">8,800,000</td>
+            <td class="px-3 py-2.5 text-right text-emerald-700 font-bold">40.4%</td>
+            <td class="px-3 py-2.5 text-right font-mono text-red-700">(2,300,000)</td>
+            <td class="px-3 py-2.5 text-right font-mono text-blue-700 font-bold">6,500,000</td>
+            <td class="px-3 py-2.5 text-right text-blue-700 font-bold">29.8%</td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">→</button></td>
+          </tr>
+          <tr class="bg-stone-100 font-bold border-t-2 border-stone-400">
+            <td class="px-3 py-3">รวมทั้งหมด</td>
+            <td class="px-3 py-3 text-right font-mono">142,500,000</td>
+            <td class="px-3 py-3 text-right font-mono text-red-700">(86,000,000)</td>
+            <td class="px-3 py-3 text-right font-mono text-emerald-700">56,500,000</td>
+            <td class="px-3 py-3 text-right text-emerald-700">39.6%</td>
+            <td class="px-3 py-3 text-right font-mono text-red-700">(14,200,000)</td>
+            <td class="px-3 py-3 text-right font-mono text-blue-700">42,300,000</td>
+            <td class="px-3 py-3 text-right text-blue-700">29.7%</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Trend -->
+  <div id="pane-trend" class="hidden">
+    <div class="bg-white rounded-xl border border-stone-200 p-5">
+      <h3 class="font-bold text-stone-800 mb-4">📈 รายได้และกำไรย้อนหลัง 5 เดือน</h3>
+      <div class="space-y-3" id="trend-chart"></div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <h3 class="font-bold text-stone-800 mb-3">📊 GPM แต่ละเดือน</h3>
+        <div class="space-y-2">
+          <div><div class="flex justify-between text-sm"><span>ม.ค.</span><span class="font-bold">38.2%</span></div><div class="bg-stone-100 h-2 rounded mt-1"><div class="bg-emerald-500 h-2 rounded" style="width:38.2%"></div></div></div>
+          <div><div class="flex justify-between text-sm"><span>ก.พ.</span><span class="font-bold">39.5%</span></div><div class="bg-stone-100 h-2 rounded mt-1"><div class="bg-emerald-500 h-2 rounded" style="width:39.5%"></div></div></div>
+          <div><div class="flex justify-between text-sm"><span>มี.ค.</span><span class="font-bold">40.1%</span></div><div class="bg-stone-100 h-2 rounded mt-1"><div class="bg-emerald-500 h-2 rounded" style="width:40.1%"></div></div></div>
+          <div><div class="flex justify-between text-sm"><span>เม.ย.</span><span class="font-bold">41.3%</span></div><div class="bg-stone-100 h-2 rounded mt-1"><div class="bg-emerald-500 h-2 rounded" style="width:41.3%"></div></div></div>
+          <div><div class="flex justify-between text-sm"><span>พ.ค.</span><span class="font-bold text-emerald-700">42.0%</span></div><div class="bg-stone-100 h-2 rounded mt-1"><div class="bg-emerald-600 h-2 rounded" style="width:42%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <h3 class="font-bold text-stone-800 mb-3">🏠 หลังที่โอนแต่ละเดือน</h3>
+        <div class="grid grid-cols-5 gap-2 text-center">
+          <div class="bg-stone-50 rounded p-2"><div class="text-xs text-stone-500">ม.ค.</div><div class="text-2xl font-bold mt-1">4</div></div>
+          <div class="bg-stone-50 rounded p-2"><div class="text-xs text-stone-500">ก.พ.</div><div class="text-2xl font-bold mt-1">5</div></div>
+          <div class="bg-stone-50 rounded p-2"><div class="text-xs text-stone-500">มี.ค.</div><div class="text-2xl font-bold mt-1">6</div></div>
+          <div class="bg-stone-50 rounded p-2"><div class="text-xs text-stone-500">เม.ย.</div><div class="text-2xl font-bold mt-1">8</div></div>
+          <div class="bg-emerald-100 rounded p-2"><div class="text-xs text-emerald-700">พ.ค.</div><div class="text-2xl font-bold mt-1 text-emerald-700">5</div></div>
+        </div>
+        <div class="mt-3 text-xs text-stone-500 text-center">YTD: 28 หลัง · Q3-Q4 เป้า 14 หลัง</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function switchTab(tab) {
+  ['pl','bs','cf','proj','trend'].forEach(t => {
+    document.getElementById('pane-'+t).classList.add('hidden');
+    document.getElementById('t-'+t).classList.remove('border-stone-800','text-stone-800');
+    document.getElementById('t-'+t).classList.add('border-transparent','text-stone-500');
+  });
+  document.getElementById('pane-'+tab).classList.remove('hidden');
+  document.getElementById('t-'+tab).classList.add('border-stone-800','text-stone-800');
+  document.getElementById('t-'+tab).classList.remove('border-transparent','text-stone-500');
+  if (tab === 'trend') renderTrend();
+}
+
+function renderTrend() {
+  const months = [
+    { m:'ม.ค.', rev:22, profit:5.2 },
+    { m:'ก.พ.', rev:27, profit:6.8 },
+    { m:'มี.ค.', rev:31, profit:8.1 },
+    { m:'เม.ย.', rev:34, profit:9.4 },
+    { m:'พ.ค.', rev:28.5, profit:7.9 }
+  ];
+  const max = 40;
+  document.getElementById('trend-chart').innerHTML = months.map(m => `
+    <div>
+      <div class="flex justify-between text-sm mb-1">
+        <span class="font-medium w-12">${m.m}</span>
+        <span class="text-emerald-700 font-bold">฿${m.rev}M</span>
+      </div>
+      <div class="flex gap-1 items-end h-6">
+        <div class="bg-emerald-500 bar rounded" style="width:${m.rev/max*100}%; height:24px" title="รายได้"></div>
+        <div class="bg-blue-500 bar rounded" style="width:${m.profit/max*100}%; height:24px" title="กำไร"></div>
+      </div>
+      <div class="text-xs text-blue-700 ml-12 mt-0.5">กำไร: ฿${m.profit}M</div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

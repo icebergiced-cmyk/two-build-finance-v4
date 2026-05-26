@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Two Build Finance V4 · Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+  .card-hover { transition: all 0.25s; }
+  .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  .float { animation: float 3s ease-in-out infinite; }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.6); }
+    70% { box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+  }
+  .pulse-ring { animation: pulse-ring 2s infinite; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-white">
+  <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <img src="assets/brand/logo-horizontal.png"
+           alt="One Vela" class="h-12 w-auto bg-white p-2 rounded"
+           onerror="this.style.display='none'">
+      <div>
+        <div class="text-xs text-amber-400 font-medium tracking-widest">TWO BUILD DEVELOPMENT</div>
+        <h1 class="serif text-3xl font-bold">Finance V4</h1>
+        <div class="text-xs text-stone-400 mt-0.5 flex items-center gap-2">
+          <span>ระบบบัญชี · การเงิน · ภาษี ครบวงจร</span>
+          <span class="bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded text-[10px] font-medium">🌐 Live · Google Sheet</span>
+        </div>
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="text-xs text-stone-400">วันนี้</div>
+      <div class="text-lg font-bold" id="today-date">-</div>
+      <div class="text-xs text-amber-300 mt-1">👤 คุณไอซ์ · ผู้บริหาร</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- KPI Strip -->
+  <div class="mb-8">
+    <h2 class="serif text-2xl text-stone-800 mb-3">📊 สรุปภาพรวมการเงิน</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="text-xs text-stone-500">💰 เงินสดในมือ</div>
+        <div class="text-2xl font-bold text-emerald-600 mt-1">฿12.4M</div>
+        <div class="text-xs text-emerald-600 mt-1">↗ +2.1M เดือนนี้</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="text-xs text-stone-500">📥 รายได้ MTD</div>
+        <div class="text-2xl font-bold text-blue-600 mt-1">฿28.5M</div>
+        <div class="text-xs text-stone-500 mt-1">4 หลังโอน</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="text-xs text-stone-500">📤 รายจ่าย MTD</div>
+        <div class="text-2xl font-bold text-orange-600 mt-1">฿18.9M</div>
+        <div class="text-xs text-stone-500 mt-1">3 โครงการ</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="text-xs text-stone-500">⏳ AP รอจ่าย</div>
+        <div class="text-2xl font-bold text-amber-600 mt-1">฿4.8M</div>
+        <div class="text-xs text-amber-600 mt-1">8 บิล · 15 วัน</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="text-xs text-stone-500">📑 ภาษี Q2</div>
+        <div class="text-2xl font-bold text-red-600 mt-1">฿2.3M</div>
+        <div class="text-xs text-red-600 mt-1">⚠️ ครบ 15 ก.ค.</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="text-xs text-stone-500">📈 GP Margin</div>
+        <div class="text-2xl font-bold text-purple-600 mt-1">28.5%</div>
+        <div class="text-xs text-purple-600 mt-1">เป้า 30%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture Banner -->
+  <div class="mb-6 bg-gradient-to-r from-emerald-50 via-blue-50 to-purple-50 rounded-2xl p-5 border border-emerald-200">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <div class="font-bold text-stone-800 flex items-center gap-2">
+          🏠 Standalone Architecture
+          <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">ระบบภายใน</span>
+        </div>
+        <div class="text-xs text-stone-600 mt-1">
+          ไม่เชื่อมต่อระบบภายนอก · ใช้ Google Drive (สลิป) + Google Sheet (บัญชี) เท่านั้น · ปลอดภัย · เร็ว · ง่ายต่อการดูแล
+        </div>
+      </div>
+      <div class="flex items-center gap-4 text-xs">
+        <div class="text-center">
+          <div class="text-2xl">📁</div>
+          <div class="text-stone-600 font-medium">Drive</div>
+          <div class="text-[10px] text-stone-400">เก็บสลิป</div>
+        </div>
+        <div class="text-xl text-stone-400">→</div>
+        <div class="text-center bg-white border-2 border-emerald-300 rounded-lg px-3 py-2 shadow-sm">
+          <div class="text-2xl">📊</div>
+          <div class="text-emerald-700 font-bold">Finance-Master-2569.xlsx</div>
+          <div class="text-[10px] text-emerald-600">11 tabs · single source of truth</div>
+        </div>
+        <div class="text-xl text-stone-400">→</div>
+        <div class="text-center">
+          <div class="text-2xl">🧩</div>
+          <div class="text-stone-600 font-medium">9 Modules</div>
+          <div class="text-[10px] text-stone-400">อ่าน/เขียน Sheet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modules grid -->
+  <div class="mb-8">
+    <div class="flex items-end justify-between mb-4">
+      <div>
+        <h2 class="serif text-2xl text-stone-800">🧩 ฟังก์ชั่นทั้งหมด</h2>
+        <p class="text-sm text-stone-500">คลิกที่การ์ดเพื่อเข้าสู่ module · 📊 = Sheet Tab ที่ใช้</p>
+      </div>
+      <div class="text-xs text-stone-500">10 modules · Cloud Mode · พ.ค. 2569</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+      <!-- Module 10: Vendor Billing (3-Way Match) -->
+      <a href="10-vendor-billing.html" class="card-hover bg-gradient-to-br from-amber-50 to-white rounded-2xl border-2 border-amber-300 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-amber-400 font-bold">10</div>
+          <span class="bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded-full pulse-ring">⭐ ใหม่ Live</span>
+        </div>
+        <div class="text-3xl mb-2">📦</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Vendor Billing</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Vendor-Billing-Packets · Cheque · Discrepancy</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">รับ Packet วันที่ 5 · 3-Way Match · ตารางเช็ค · AP Aging</p>
+        <div class="flex items-center justify-between pt-3 border-t border-amber-100 text-xs">
+          <span class="text-stone-500" id="vb-summary">- packets</span>
+          <span class="text-amber-600 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 1: Slip Scanner -->
+      <a href="01-slip-scanner.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">01</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">🧾</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Slip Inbox Scanner</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Slip-Log</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">อ่านสลิป OCR · memo อัตโนมัติ · Review ก่อนบันทึก · Drive + Sheet</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">5 รอ scan วันนี้</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 2: Cash Book -->
+      <a href="02-cash-book.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">02</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">📒</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Cash Book</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Cash-Book</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">สมุดเงินสดรายวัน · รายงานเดือน · P&L mini · แยกตามโครงการ</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">฿18.9M เดือนนี้</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 3: Vendor Invoice -->
+      <a href="03-vendor-invoice.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">03</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">📄</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Vendor Invoice</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Vendor-Invoice + PO-Tracker</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">อ่านใบส่งของ/วางบิล · match PO · ตารางชำระเงิน · credit term</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">12 บิลค้าง</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 4: RE Accounting -->
+      <a href="04-accounting.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">04</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">📚</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">RE Accounting</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Journal-2569 + COA</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">บัญชีอสังหาฯ เต็มรูปแบบ · Chart of Accounts · GL · Trial Balance</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">42 บัญชี · 156 รายการ</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 5: Sales + Tax -->
+      <a href="05-sales-tax.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">05</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">🏛️</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Sales + Tax</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Sales-Pipeline + Tax-Tracker</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">รายรับจากการขาย · ภาษีอสังหาฯ · SBT · ค่าโอน · CIT · forecast</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-red-600 font-medium">⚠️ ภาษี Q2: ฿2.3M</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 6: Financial Reports -->
+      <a href="06-financial-reports.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">06</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">📈</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Financial Reports</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 อ่านทุก tab · สร้างรายงาน</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">P&L · Balance Sheet · Cash Flow Statement · KPI Dashboard</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">5 รายงาน · YTD</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 7: Feasibility -->
+      <a href="07-feasibility.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">07</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">🎯</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Feasibility Study</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Feasibility-Save</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">วิเคราะห์โครงการใหม่ · IRR · NPV · Payback · Sensitivity</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">2 โครงการพิจารณา</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 8: Payroll -->
+      <a href="08-payroll.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">08</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">💼</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Payroll</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Payroll-2569</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">เงินเดือน · OT · ประกันสังคม · ภงด.1 · slip + bank file</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">24 คน · งวด พ.ค.</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+      <!-- Module 9: Contractor Payment -->
+      <a href="09-contractor-payment.html" class="card-hover bg-white rounded-2xl border border-stone-200 p-5 block">
+        <div class="flex items-start justify-between mb-3">
+          <div class="serif text-5xl text-stone-300 font-bold">09</div>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">✅ พร้อมใช้</span>
+        </div>
+        <div class="text-3xl mb-2">🔨</div>
+        <h3 class="font-bold text-stone-800 text-lg mb-1">Contractor Payment</h3>
+        <div class="text-[10px] text-emerald-600 font-mono mb-1.5">📊 Contractor-Master + PO-Tracker</div>
+        <p class="text-xs text-stone-500 mb-3 leading-relaxed">งวดงาน · โฟร์แมนตรวจ QC · หักประกัน · WHT · approval flow</p>
+        <div class="flex items-center justify-between pt-3 border-t border-stone-100 text-xs">
+          <span class="text-stone-500">5 งวดรออนุมัติ</span>
+          <span class="text-amber-500 font-bold">เปิด →</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Bottom: Recent Activity + Quick Actions -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Quick Actions -->
+    <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-5 border border-amber-200">
+      <h3 class="font-bold text-amber-900 mb-3">⚡ Quick Actions</h3>
+      <div class="space-y-2">
+        <a href="01-slip-scanner.html" class="block bg-white hover:bg-amber-50 rounded-lg p-3 text-sm font-medium text-stone-700 transition-colors">
+          🧾 สแกนสลิปวันนี้ <span class="text-xs text-stone-500">(5 รูป)</span>
+        </a>
+        <a href="03-vendor-invoice.html" class="block bg-white hover:bg-amber-50 rounded-lg p-3 text-sm font-medium text-stone-700 transition-colors">
+          📄 จัดการบิลค้างจ่าย <span class="text-xs text-stone-500">(12 บิล)</span>
+        </a>
+        <a href="09-contractor-payment.html" class="block bg-white hover:bg-amber-50 rounded-lg p-3 text-sm font-medium text-stone-700 transition-colors">
+          🔨 อนุมัติงวดผู้รับเหมา <span class="text-xs text-stone-500">(5 งวด)</span>
+        </a>
+        <a href="08-payroll.html" class="block bg-white hover:bg-amber-50 rounded-lg p-3 text-sm font-medium text-stone-700 transition-colors">
+          💼 ปิดเงินเดือนเดือนนี้
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="lg:col-span-2 bg-white rounded-2xl p-5 border border-stone-200">
+      <h3 class="font-bold text-stone-800 mb-3">🕓 กิจกรรมล่าสุด</h3>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-start gap-3 p-2 rounded hover:bg-stone-50">
+          <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">✅</div>
+          <div class="flex-1">
+            <div class="text-stone-800">จับคู่สลิป SCB ฿87,450 ↔ PO-2026-0341 (ปูนซีเมนต์ไทย)</div>
+            <div class="text-xs text-stone-400">09:15 · โดย แอน · Module 01</div>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-2 rounded hover:bg-stone-50">
+          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">📥</div>
+          <div class="flex-1">
+            <div class="text-stone-800">รับโอน A-12 · นายธนา ฉัตร · ฿4,250,000</div>
+            <div class="text-xs text-stone-400">08:30 · กรมที่ดิน · Module 05</div>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-2 rounded hover:bg-stone-50">
+          <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">🔨</div>
+          <div class="flex-1">
+            <div class="text-stone-800">โฟร์แมนนิว approve งวด 3/5 · นายสมชาย ก่ออิฐ A-15,16</div>
+            <div class="text-xs text-stone-400">เมื่อวาน · Module 09</div>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-2 rounded hover:bg-stone-50">
+          <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">⚠️</div>
+          <div class="flex-1">
+            <div class="text-stone-800">เตือน: ภาษีธุรกิจเฉพาะ Q2 ฿2.3M · ครบกำหนด 15 ก.ค. 2569</div>
+            <div class="text-xs text-stone-400">เมื่อ 2 วัน · Module 05</div>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 p-2 rounded hover:bg-stone-50">
+          <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">📊</div>
+          <div class="flex-1">
+            <div class="text-stone-800">รายงาน P&L เม.ย. 2569 · GP Margin 28.5% (เป้า 30%)</div>
+            <div class="text-xs text-stone-400">3 วันก่อน · Module 06</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-12 pt-6 border-t border-stone-200 text-center text-xs text-stone-400">
+    <div class="font-medium text-stone-600">Two Build Development Co., Ltd. — Finance V4 Hub</div>
+    <div class="mt-1">3 โครงการ · One Vela (Amata-Chonburi) · วันเวลา · The Oxygen 3</div>
+    <div class="mt-2">
+      <a id="sheet-link" target="_blank" class="text-amber-600 hover:underline">📊 เปิด Google Sheet (Finance-Master-2569)</a>
+      <span class="mx-2 text-stone-300">|</span>
+      <span class="text-stone-500" id="api-status">⏳ กำลังเช็ค API...</span>
+    </div>
+  </div>
+</main>
+
+<!-- API integration -->
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script>
+(async () => {
+  // Set today's date (Buddhist year)
+  const today = new Date();
+  const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  document.getElementById('today-date').textContent = days[today.getDay()] + ' ' + today.getDate() + ' ' + months[today.getMonth()] + ' ' + (today.getFullYear() + 543);
+  document.getElementById('sheet-link').href = FINANCE_SHEET_URL;
+
+  // Health check + load KPIs
+  try {
+    const ping = await API.ping();
+    if (ping.ok) {
+      document.getElementById('api-status').innerHTML = '<span class="text-emerald-600">● API online · v' + ping.version + '</span>';
+    }
+
+    const dash = await API.getDashboard();
+    if (dash.ok) {
+      // Update KPI cards
+      const k = dash.kpis;
+      const updateKpi = (selector, value, sub) => {
+        const els = document.querySelectorAll(selector);
+        if (els[0]) els[0].textContent = value;
+        if (els[1] && sub) els[1].textContent = sub;
+      };
+      // Cash KPI
+      const cashCard = document.querySelectorAll('.bg-white.rounded-xl.p-4.border.border-stone-200')[0];
+      if (cashCard) {
+        cashCard.querySelector('.text-2xl').textContent = fmt.money(k.cashOnHand).replace('.00', '');
+        cashCard.querySelector('.text-xs.text-emerald-600.mt-1').textContent = '↗ จาก Cash-Book';
+      }
+      // Update other cards by index
+      const cards = document.querySelectorAll('.grid.grid-cols-2 > .bg-white');
+      if (cards[1]) cards[1].querySelector('.text-2xl').textContent = fmt.money(k.salesYTD).replace('.00', '');
+      if (cards[2]) cards[2].querySelector('.text-2xl').textContent = fmt.money(k.expenseYTD).replace('.00', '');
+      if (cards[3]) cards[3].querySelector('.text-2xl').textContent = fmt.money(k.apPending).replace('.00', '');
+      if (cards[4]) cards[4].querySelector('.text-2xl').textContent = fmt.money(k.taxPending).replace('.00', '');
+
+      // Vendor Billing summary
+      document.getElementById('vb-summary').textContent = (k.packetCount || 0) + ' packets · ' + (k.reviewCount || 0) + ' review';
+    }
+  } catch (err) {
+    document.getElementById('api-status').innerHTML = '<span class="text-red-500">⚠️ API offline — ' + err.message + '</span>';
+    console.error('API error:', err);
+  }
+})();
+</script>
+
+</body>
+</html>

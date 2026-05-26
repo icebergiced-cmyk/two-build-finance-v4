@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Sales + Tax · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+</style>
+</head>
+<body>
+
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm"><span>←</span><span>Hub</span></a>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800">🏛️ Sales Revenue + Tax Forecast</h1>
+        <p class="text-xs text-stone-500">Module 05 · 📊 Sheet: <code>Sales-Pipeline + Tax-Tracker</code> · Standalone</p>
+      </div>
+    </div>
+    <div class="text-xs text-stone-500">งวดภาษี Q2/2569</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- Tax Alert -->
+  <div class="bg-gradient-to-r from-red-50 to-amber-50 border border-red-300 rounded-xl p-4 mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="text-4xl">⚠️</div>
+      <div>
+        <div class="font-bold text-red-800">ภาษีต้องชำระภายใน 30 วัน</div>
+        <div class="text-sm text-red-700">SBT Q2 · ฿2,300,000 · ครบ 15 ก.ค. 2569 · เหลือ 51 วัน</div>
+      </div>
+    </div>
+    <button onclick="alert('📝 สร้างแบบ ภ.ธ.40 · ส่งกรมสรรพากร')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm">📝 สร้างแบบ ภ.ธ.40</button>
+  </div>
+
+  <!-- Sales KPI -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">🏠 ยอดขาย YTD</div>
+      <div class="text-2xl font-bold text-emerald-600 mt-1">฿142.5M</div>
+      <div class="text-xs text-emerald-600">28 หลัง</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">📥 รับโอนแล้ว</div>
+      <div class="text-2xl font-bold text-blue-600 mt-1">฿98.4M</div>
+      <div class="text-xs text-stone-500">22 หลัง</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">⏳ รอโอน</div>
+      <div class="text-2xl font-bold text-amber-600 mt-1">฿44.1M</div>
+      <div class="text-xs text-stone-500">6 หลัง</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border-2 border-red-300 bg-red-50">
+      <div class="text-xs text-red-700 font-medium">🏛️ ภาษีรวมต้องจ่าย</div>
+      <div class="text-2xl font-bold text-red-700 mt-1">฿8.9M</div>
+      <div class="text-xs text-red-600">5 ประเภท</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b border-stone-200 mb-4 flex gap-1 overflow-x-auto">
+    <button onclick="switchTab('sales')" id="t-sales" class="px-4 py-2 font-medium text-sm border-b-2 border-stone-800 text-stone-800 whitespace-nowrap">🏠 รายรับจากการขาย</button>
+    <button onclick="switchTab('calc')" id="t-calc" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700 whitespace-nowrap">🧮 คำนวณภาษีต่อรายการ</button>
+    <button onclick="switchTab('forecast')" id="t-forecast" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700 whitespace-nowrap">📊 ภาษีทั้งปี (Forecast)</button>
+    <button onclick="switchTab('calendar')" id="t-calendar" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700 whitespace-nowrap">📅 ปฏิทินยื่นภาษี</button>
+  </div>
+
+  <!-- Tab: Sales -->
+  <div id="pane-sales">
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">แปลง</th>
+            <th class="text-left px-3 py-2.5">ลูกค้า</th>
+            <th class="text-left px-3 py-2.5">วันโอน</th>
+            <th class="text-right px-3 py-2.5">ราคาขาย</th>
+            <th class="text-right px-3 py-2.5">ราคาประเมิน</th>
+            <th class="text-right px-3 py-2.5">SBT 3.3%</th>
+            <th class="text-right px-3 py-2.5">ค่าโอน 2%</th>
+            <th class="text-right px-3 py-2.5">ภาษีรวม</th>
+            <th class="text-center px-3 py-2.5">สถานะ</th>
+          </tr>
+        </thead>
+        <tbody id="sales-body"></tbody>
+        <tfoot class="bg-stone-100 font-bold border-t-2 border-stone-400" id="sales-foot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Calculator -->
+  <div id="pane-calc" class="hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <!-- Input -->
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <h3 class="serif text-xl font-bold mb-3">🧮 คำนวณภาษีโอนบ้าน</h3>
+        <p class="text-xs text-stone-500 mb-4">กรอกข้อมูลเพื่อคำนวณภาษีและค่าใช้จ่ายในการโอน</p>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-medium text-stone-600">ราคาขาย (บาท)</label>
+            <input type="number" id="price-sell" value="4250000" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded font-bold text-lg">
+          </div>
+          <div>
+            <label class="text-xs font-medium text-stone-600">ราคาประเมินกรมที่ดิน (บาท)</label>
+            <input type="number" id="price-assess" value="3800000" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded font-bold text-lg">
+          </div>
+          <div>
+            <label class="text-xs font-medium text-stone-600">ลูกค้ากู้ธนาคารหรือไม่?</label>
+            <select id="loan" onchange="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded">
+              <option value="yes">กู้ (มีค่าจดจำนอง 1%)</option>
+              <option value="no">เงินสด (ไม่มีจดจำนอง)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-stone-600">ขายในรอบกี่ปีหลังได้กรรมสิทธิ์?</label>
+            <select id="years" onchange="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded">
+              <option value="lt5">น้อยกว่า 5 ปี (เสีย SBT 3.3%)</option>
+              <option value="gt5">เกิน 5 ปี (เสียอากรแสตมป์ 0.5% แทน)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-stone-600">ผู้ขายเป็น</label>
+            <select id="seller" onchange="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded">
+              <option value="company">นิติบุคคล (เสีย WHT 1%)</option>
+              <option value="person">บุคคลธรรมดา (คำนวณ WHT ตามอัตรา)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="bg-gradient-to-br from-stone-700 to-stone-900 text-white rounded-xl p-5">
+        <h3 class="serif text-xl font-bold mb-3">💰 ภาษี + ค่าใช้จ่าย</h3>
+        <p class="text-xs text-stone-300 mb-4">รายละเอียดที่จะเกิดขึ้นในวันโอน</p>
+
+        <div id="calc-result" class="space-y-2"></div>
+
+        <div class="mt-4 pt-4 border-t border-stone-600">
+          <div class="bg-amber-400 text-stone-900 rounded-lg p-4">
+            <div class="text-xs font-bold">รวมภาษี + ค่าใช้จ่ายโอน</div>
+            <div class="text-3xl font-bold mt-1" id="calc-total">฿0</div>
+            <div class="text-xs mt-1" id="calc-pct">0% ของราคาขาย</div>
+          </div>
+        </div>
+
+        <div class="mt-4 text-xs text-stone-300">
+          💡 <b>คำแนะนำ:</b> <span id="calc-tip">กรอกข้อมูลเพื่อรับคำแนะนำ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Forecast -->
+  <div id="pane-forecast" class="hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-red-600 font-bold">🏛️ SBT 3.3%</div>
+            <div class="text-xs text-stone-500">ภาษีธุรกิจเฉพาะ</div>
+          </div>
+          <div class="text-2xl">📑</div>
+        </div>
+        <div class="text-2xl font-bold text-red-700 mt-2">฿4,702,500</div>
+        <div class="text-xs text-stone-500 mt-1">142.5M × 3.3%</div>
+        <div class="mt-2 pt-2 border-t border-stone-100 text-xs text-stone-600">
+          ยื่น ภ.ธ.40 ภายใน 15 ของเดือนถัดไป
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-amber-600 font-bold">💰 ค่าโอน 2%</div>
+            <div class="text-xs text-stone-500">กรมที่ดินเก็บ</div>
+          </div>
+          <div class="text-2xl">🏛️</div>
+        </div>
+        <div class="text-2xl font-bold text-amber-700 mt-2">฿2,565,000</div>
+        <div class="text-xs text-stone-500 mt-1">ของราคาประเมิน 128.25M</div>
+        <div class="mt-2 pt-2 border-t border-stone-100 text-xs text-stone-600">
+          จ่ายวันโอน · บางส่วนตกลงแบ่ง 50/50 กับลูกค้า
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-blue-600 font-bold">📋 จดจำนอง 1%</div>
+            <div class="text-xs text-stone-500">เฉพาะกรณีลูกค้ากู้</div>
+          </div>
+          <div class="text-2xl">🏦</div>
+        </div>
+        <div class="text-2xl font-bold text-blue-700 mt-2">฿1,026,000</div>
+        <div class="text-xs text-stone-500 mt-1">80% ของยอดขาย กู้</div>
+        <div class="mt-2 pt-2 border-t border-stone-100 text-xs text-stone-600">
+          ลูกค้าจ่าย แต่ต้องช่วยประสานงาน
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-cyan-600 font-bold">💸 WHT 1%</div>
+            <div class="text-xs text-stone-500">หัก ณ ที่จ่าย</div>
+          </div>
+          <div class="text-2xl">📃</div>
+        </div>
+        <div class="text-2xl font-bold text-cyan-700 mt-2">฿1,425,000</div>
+        <div class="text-xs text-stone-500 mt-1">ลูกค้าหัก · เครดิตคืน</div>
+        <div class="mt-2 pt-2 border-t border-stone-100 text-xs text-stone-600">
+          ใช้เป็นเครดิตในการคำนวณ ภงด.50
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 border border-stone-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-purple-600 font-bold">🏢 CIT 20%</div>
+            <div class="text-xs text-stone-500">ภาษีนิติบุคคล</div>
+          </div>
+          <div class="text-2xl">🧾</div>
+        </div>
+        <div class="text-2xl font-bold text-purple-700 mt-2">฿8,640,000</div>
+        <div class="text-xs text-stone-500 mt-1">กำไรประมาณ 43.2M × 20%</div>
+        <div class="mt-2 pt-2 border-t border-stone-100 text-xs text-stone-600">
+          ภงด.50 · 150 วันหลังปิดงวด
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border-2 border-red-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-xs text-red-700 font-bold">🚨 รวมภาษีทั้งหมด</div>
+            <div class="text-xs text-red-600">บริษัทรับผิดชอบ</div>
+          </div>
+          <div class="text-2xl">⚠️</div>
+        </div>
+        <div class="text-3xl font-bold text-red-700 mt-2">฿14.9M</div>
+        <div class="text-xs text-red-600 mt-1">10.5% ของยอดขาย</div>
+        <div class="mt-2 pt-2 border-t border-red-200 text-xs text-red-700">
+          ⚠️ ตั้งสำรอง 12-15% ในกระแสเงินสด
+        </div>
+      </div>
+    </div>
+
+    <!-- Scenario -->
+    <div class="bg-white rounded-xl border border-stone-200 p-5">
+      <h3 class="font-bold text-stone-800 mb-3">🎲 จำลอง Scenario สิ้นปี</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div class="text-xs text-red-700 font-bold">😟 ขายช้า · 35 หลัง</div>
+          <div class="text-xl font-bold text-stone-800 mt-1">ยอด ฿178M</div>
+          <div class="text-sm text-stone-700 mt-2">ภาษีรวม <b>฿18.7M</b></div>
+          <div class="text-xs text-stone-500 mt-1">กำไรสุทธิ ฿42M</div>
+        </div>
+        <div class="bg-emerald-50 border-2 border-emerald-300 rounded-lg p-4">
+          <div class="text-xs text-emerald-700 font-bold">😊 ตามเป้า · 42 หลัง</div>
+          <div class="text-xl font-bold text-stone-800 mt-1">ยอด ฿213M</div>
+          <div class="text-sm text-stone-700 mt-2">ภาษีรวม <b>฿22.4M</b></div>
+          <div class="text-xs text-stone-500 mt-1">กำไรสุทธิ ฿58M</div>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div class="text-xs text-amber-700 font-bold">🚀 ดีเกินคาด · 50 หลัง</div>
+          <div class="text-xl font-bold text-stone-800 mt-1">ยอด ฿254M</div>
+          <div class="text-sm text-stone-700 mt-2">ภาษีรวม <b>฿26.7M</b></div>
+          <div class="text-xs text-stone-500 mt-1">กำไรสุทธิ ฿74M</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Calendar -->
+  <div id="pane-calendar" class="hidden">
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">กำหนดยื่น</th>
+            <th class="text-left px-3 py-2.5">แบบ</th>
+            <th class="text-left px-3 py-2.5">ประเภทภาษี</th>
+            <th class="text-left px-3 py-2.5">งวด</th>
+            <th class="text-right px-3 py-2.5">ยอดที่ต้องจ่าย</th>
+            <th class="text-center px-3 py-2.5">สถานะ</th>
+            <th class="text-center px-3 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-stone-100 hover:bg-stone-50 bg-red-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold text-red-700">15 มิ.ย. 2569</div>
+              <div class="text-xs text-red-600">เหลือ 21 วัน</div>
+            </td>
+            <td class="px-3 py-2.5"><span class="font-mono text-xs bg-stone-100 px-2 py-0.5 rounded">ภ.พ.30</span></td>
+            <td class="px-3 py-2.5">VAT พ.ค. 2569</td>
+            <td class="px-3 py-2.5">เดือน พ.ค.</td>
+            <td class="px-3 py-2.5 text-right font-bold">฿420,000</td>
+            <td class="px-3 py-2.5 text-center"><span class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded font-medium">⏳ รอยื่น</span></td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">เปิด →</button></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50 bg-red-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold text-red-700">15 ก.ค. 2569</div>
+              <div class="text-xs text-red-600">เหลือ 51 วัน</div>
+            </td>
+            <td class="px-3 py-2.5"><span class="font-mono text-xs bg-stone-100 px-2 py-0.5 rounded">ภ.ธ.40</span></td>
+            <td class="px-3 py-2.5">ภาษีธุรกิจเฉพาะ Q2</td>
+            <td class="px-3 py-2.5">Q2/2569</td>
+            <td class="px-3 py-2.5 text-right font-bold text-red-700">฿2,300,000</td>
+            <td class="px-3 py-2.5 text-center"><span class="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded font-medium">🚨 สำคัญ</span></td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">เปิด →</button></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold">31 ส.ค. 2569</div>
+              <div class="text-xs text-stone-500">เหลือ 98 วัน</div>
+            </td>
+            <td class="px-3 py-2.5"><span class="font-mono text-xs bg-stone-100 px-2 py-0.5 rounded">ภ.ง.ด.51</span></td>
+            <td class="px-3 py-2.5">ภาษีนิติบุคคลครึ่งปี</td>
+            <td class="px-3 py-2.5">ครึ่งปีแรก 2569</td>
+            <td class="px-3 py-2.5 text-right font-bold">฿4,200,000</td>
+            <td class="px-3 py-2.5 text-center"><span class="bg-stone-100 text-stone-700 text-xs px-2 py-0.5 rounded font-medium">📅 รอเตรียม</span></td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">เปิด →</button></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold">15 ม.ค. 2570</div>
+              <div class="text-xs text-stone-500">เหลือ 235 วัน</div>
+            </td>
+            <td class="px-3 py-2.5"><span class="font-mono text-xs bg-stone-100 px-2 py-0.5 rounded">ภ.ง.ด.1ก</span></td>
+            <td class="px-3 py-2.5">สรุปหัก ณ ที่จ่ายพนักงาน</td>
+            <td class="px-3 py-2.5">ปี 2569</td>
+            <td class="px-3 py-2.5 text-right font-bold">฿345,000</td>
+            <td class="px-3 py-2.5 text-center"><span class="bg-stone-100 text-stone-700 text-xs px-2 py-0.5 rounded font-medium">📅 รอเตรียม</span></td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">เปิด →</button></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2.5">
+              <div class="font-bold">29 พ.ค. 2570</div>
+              <div class="text-xs text-stone-500">เหลือ 369 วัน</div>
+            </td>
+            <td class="px-3 py-2.5"><span class="font-mono text-xs bg-stone-100 px-2 py-0.5 rounded">ภ.ง.ด.50</span></td>
+            <td class="px-3 py-2.5">ภาษีนิติบุคคลทั้งปี</td>
+            <td class="px-3 py-2.5">ปี 2569</td>
+            <td class="px-3 py-2.5 text-right font-bold">฿8,640,000</td>
+            <td class="px-3 py-2.5 text-center"><span class="bg-stone-100 text-stone-700 text-xs px-2 py-0.5 rounded font-medium">📅 รอเตรียม</span></td>
+            <td class="px-3 py-2.5 text-center"><button class="text-blue-600 text-xs hover:underline">เปิด →</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const fmt = n => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtRound = n => '฿' + Math.round(n).toLocaleString('th-TH');
+
+const sales = [
+  { plot:'A-08', cust:'นายวีรศักดิ์ พรหมมา', date:'02/05/2569', sell:4150000, assess:3700000, status:'transferred' },
+  { plot:'B-23', cust:'นางสาวภัสรา ทรงพล', date:'21/05/2569', sell:5450000, assess:4800000, status:'transferred' },
+  { plot:'C-15', cust:'นายธีรพล ศักดิ์ดา', date:'14/05/2569', sell:6900000, assess:6200000, status:'transferred' },
+  { plot:'A-12', cust:'นายธนา ฉัตร', date:'25/05/2569', sell:4250000, assess:3800000, status:'transferred' },
+  { plot:'A-16', cust:'คุณวรากรณ์ มณีโชติ', date:'25/05/2569', sell:4500000, assess:3950000, status:'transferred' },
+  { plot:'B-25', cust:'คุณวันชัย พรสวัสดิ์', date:'05/06/2569 (รอ)', sell:5200000, assess:4600000, status:'pending' },
+  { plot:'A-18', cust:'นางสาวจิราภรณ์', date:'10/06/2569 (รอ)', sell:4800000, assess:4300000, status:'pending' },
+  { plot:'C-08', cust:'นายอภิสิทธิ์', date:'15/06/2569 (รอ)', sell:7100000, assess:6500000, status:'pending' }
+];
+
+function renderSales() {
+  let totalSell = 0, totalAssess = 0, totalSBT = 0, totalTransfer = 0, totalTax = 0;
+  document.getElementById('sales-body').innerHTML = sales.map(s => {
+    const sbt = s.sell * 0.033;
+    const transfer = s.assess * 0.02;
+    const tax = sbt + transfer;
+    totalSell += s.sell; totalAssess += s.assess; totalSBT += sbt; totalTransfer += transfer; totalTax += tax;
+    return `
+      <tr class="border-b border-stone-100 hover:bg-stone-50 ${s.status === 'pending' ? 'bg-amber-50' : ''}">
+        <td class="px-3 py-2 font-bold">${s.plot}</td>
+        <td class="px-3 py-2 text-sm">${s.cust}</td>
+        <td class="px-3 py-2 text-xs ${s.status === 'pending' ? 'text-amber-700 font-medium' : 'text-stone-600'}">${s.date}</td>
+        <td class="px-3 py-2 text-right font-bold text-emerald-700">${fmtRound(s.sell)}</td>
+        <td class="px-3 py-2 text-right text-stone-600">${fmtRound(s.assess)}</td>
+        <td class="px-3 py-2 text-right text-red-700">${fmtRound(sbt)}</td>
+        <td class="px-3 py-2 text-right text-amber-700">${fmtRound(transfer)}</td>
+        <td class="px-3 py-2 text-right font-bold">${fmtRound(tax)}</td>
+        <td class="px-3 py-2 text-center">${s.status === 'transferred'
+          ? '<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-medium">✅ โอนแล้ว</span>'
+          : '<span class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded font-medium">⏳ รอโอน</span>'}</td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('sales-foot').innerHTML = `
+    <tr>
+      <td colspan="3" class="px-3 py-3 text-right">รวม:</td>
+      <td class="px-3 py-3 text-right text-emerald-700">${fmtRound(totalSell)}</td>
+      <td class="px-3 py-3 text-right text-stone-700">${fmtRound(totalAssess)}</td>
+      <td class="px-3 py-3 text-right text-red-700">${fmtRound(totalSBT)}</td>
+      <td class="px-3 py-3 text-right text-amber-700">${fmtRound(totalTransfer)}</td>
+      <td class="px-3 py-3 text-right">${fmtRound(totalTax)}</td>
+      <td></td>
+    </tr>`;
+}
+
+function calculate() {
+  const sell = parseFloat(document.getElementById('price-sell').value) || 0;
+  const assess = parseFloat(document.getElementById('price-assess').value) || 0;
+  const loan = document.getElementById('loan').value;
+  const years = document.getElementById('years').value;
+  const seller = document.getElementById('seller').value;
+
+  const base = Math.max(sell, assess);
+  const sbt = years === 'lt5' ? sell * 0.033 : 0;
+  const stamp = years === 'gt5' ? sell * 0.005 : 0;
+  const transfer = assess * 0.02;
+  const mortgage = loan === 'yes' ? (sell * 0.8) * 0.01 : 0;
+  const wht = seller === 'company' ? sell * 0.01 : sell * 0.05;
+
+  const total = sbt + stamp + transfer + mortgage + wht;
+  const pct = sell > 0 ? (total / sell * 100).toFixed(2) : 0;
+
+  document.getElementById('calc-result').innerHTML = `
+    <div class="flex justify-between p-2 bg-white/10 rounded">
+      <span class="text-sm">🏛️ SBT 3.3%</span>
+      <span class="font-bold">${sbt > 0 ? fmtRound(sbt) : '— ไม่ต้องเสีย'}</span>
+    </div>
+    <div class="flex justify-between p-2 bg-white/10 rounded">
+      <span class="text-sm">📃 อากรแสตมป์ 0.5%</span>
+      <span class="font-bold">${stamp > 0 ? fmtRound(stamp) : '— ไม่ต้องเสีย'}</span>
+    </div>
+    <div class="flex justify-between p-2 bg-white/10 rounded">
+      <span class="text-sm">💰 ค่าโอน 2% (ราคาประเมิน)</span>
+      <span class="font-bold">${fmtRound(transfer)}</span>
+    </div>
+    <div class="flex justify-between p-2 bg-white/10 rounded">
+      <span class="text-sm">📋 ค่าจดจำนอง 1%</span>
+      <span class="font-bold">${mortgage > 0 ? fmtRound(mortgage) : '— ไม่กู้'}</span>
+    </div>
+    <div class="flex justify-between p-2 bg-white/10 rounded">
+      <span class="text-sm">💸 WHT ${seller === 'company' ? '1%' : '5%'}</span>
+      <span class="font-bold">${fmtRound(wht)}</span>
+    </div>
+  `;
+  document.getElementById('calc-total').textContent = fmtRound(total);
+  document.getElementById('calc-pct').textContent = `${pct}% ของราคาขาย`;
+
+  let tip = '';
+  if (years === 'lt5') tip = 'SBT 3.3% เสียบนราคาขาย ไม่ใช่ราคาประเมิน · คิดเงินก้อนใหญ่ที่สุด';
+  else tip = 'ถือเกิน 5 ปี ประหยัด SBT มาก · จ่ายแค่อากรแสตมป์ 0.5%';
+  if (loan === 'yes') tip += ' · ค่าจดจำนองลูกค้าจ่าย แต่บางบริษัทช่วยจ่ายให้';
+  document.getElementById('calc-tip').textContent = tip;
+}
+
+function switchTab(tab) {
+  ['sales','calc','forecast','calendar'].forEach(t => {
+    document.getElementById('pane-'+t).classList.add('hidden');
+    document.getElementById('t-'+t).classList.remove('border-stone-800','text-stone-800');
+    document.getElementById('t-'+t).classList.add('border-transparent','text-stone-500');
+  });
+  document.getElementById('pane-'+tab).classList.remove('hidden');
+  document.getElementById('t-'+tab).classList.add('border-stone-800','text-stone-800');
+  document.getElementById('t-'+tab).classList.remove('border-transparent','text-stone-500');
+  if (tab === 'calc') calculate();
+}
+
+renderSales();
+</script>
+</body>
+</html>

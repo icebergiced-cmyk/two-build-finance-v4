@@ -1,0 +1,8 @@
+*.py
+__pycache__/
+.DS_Store
+~$*.xlsx
+_build_*.py
+_add_*.py
+_import_*.py
+node_modules/

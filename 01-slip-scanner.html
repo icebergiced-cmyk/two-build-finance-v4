@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Slip Inbox Scanner · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+  @keyframes spinner { to { transform: rotate(360deg); } }
+  .spinner { animation: spinner 1s linear infinite; }
+  @keyframes slide-in { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .slide-in { animation: slide-in 0.3s ease-out; }
+  .dragging { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b !important; }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Header -->
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <img src="one vela main file/dashboard-online/assets/brand/logo-horizontal.png"
+           alt="One Vela" class="h-10 w-auto"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <div style="display:none" class="w-10 h-10 bg-stone-700 rounded items-center justify-center text-white serif font-bold text-xl">V</div>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800 text-base">Slip Inbox Scanner</h1>
+        <p class="text-xs text-stone-500">Two Build Finance V4 · Module 1</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-sm">
+      <div class="hidden md:flex items-center gap-2 text-stone-600">
+        <span>📅</span>
+        <span>จันทร์ 25 พ.ค. 2569</span>
+      </div>
+      <div class="w-px h-6 bg-stone-200"></div>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-stone-700 to-stone-900 rounded-full flex items-center justify-center text-white text-sm font-bold">ไ</div>
+        <span class="text-stone-700 font-medium">คุณไอซ์</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- Title section -->
+  <div class="mb-4">
+    <h2 class="serif text-3xl text-stone-800 mb-1">ระบบอ่านสลิปและจับคู่ค่าใช้จ่าย</h2>
+    <p class="text-stone-500 text-sm">ทีมโยนสลิปลง Drive · กดปุ่ม scan · บันทึกบัญชีอัตโนมัติด้วย memo จากสลิป</p>
+  </div>
+
+  <!-- Internal System Status -->
+  <div class="mb-3 bg-white border border-stone-200 rounded-xl p-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+        <div class="absolute inset-0 w-3 h-3 bg-emerald-500 rounded-full animate-ping opacity-75"></div>
+      </div>
+      <div>
+        <div class="font-bold text-stone-800 text-sm">🏠 ระบบบัญชีภายใน — Two Build</div>
+        <div class="text-xs text-stone-500">
+          Google Drive (สลิป) + Google Sheet (บัญชี) · ไม่เชื่อมต่อระบบภายนอก ·
+          อัปเดตล่าสุด <span id="last-sync">09:00 น.</span>
+        </div>
+      </div>
+    </div>
+    <div class="text-xs text-stone-500 italic">📍 Standalone Mode</div>
+  </div>
+
+  <!-- Data Sources -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+    <button onclick="openDriveFolder()" class="bg-white border border-stone-200 hover:border-blue-400 hover:shadow-md rounded-xl p-4 text-left transition-all">
+      <div class="flex items-start justify-between mb-2">
+        <div class="text-2xl">📁</div>
+        <div class="text-xs text-blue-600 font-medium">→ เปิด Drive</div>
+      </div>
+      <div class="font-bold text-stone-800 text-sm">โฟลเดอร์เก็บสลิป</div>
+      <div class="text-[10px] text-stone-500 font-mono mt-1 truncate" id="drive-path">/Finance/Slips/2569/03-มี.ค./</div>
+    </button>
+    <button onclick="openSheet()" class="bg-white border border-stone-200 hover:border-emerald-400 hover:shadow-md rounded-xl p-4 text-left transition-all">
+      <div class="flex items-start justify-between mb-2">
+        <div class="text-2xl">📊</div>
+        <div class="text-xs text-emerald-600 font-medium">→ เปิด Sheet</div>
+      </div>
+      <div class="font-bold text-stone-800 text-sm">Finance-Master-2569 (ฐานข้อมูลหลัก)</div>
+      <div class="text-[10px] text-stone-500 font-mono mt-1">Sheet "Slip-Log" + "PO-Tracker" + "Cash-Book"</div>
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-xl">📥</div>
+        <div class="text-xs text-stone-500">รอประมวลผล</div>
+      </div>
+      <div class="text-2xl font-bold text-stone-800" id="stat-pending">5</div>
+      <div class="text-xs text-amber-600 mt-1">ใน Drive Inbox</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-xl">✅</div>
+        <div class="text-xs text-stone-500">จับคู่สำเร็จ</div>
+      </div>
+      <div class="text-2xl font-bold text-emerald-600" id="stat-matched">0</div>
+      <div class="text-xs text-stone-500 mt-1">วันนี้</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-xl">⚠️</div>
+        <div class="text-xs text-stone-500">ต้องตรวจ</div>
+      </div>
+      <div class="text-2xl font-bold text-amber-600" id="stat-review">0</div>
+      <div class="text-xs text-stone-500 mt-1">ไม่ตรงเป๊ะ</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-xl">💰</div>
+        <div class="text-xs text-stone-500">ยอดรวมวันนี้</div>
+      </div>
+      <div class="text-2xl font-bold text-stone-800" id="stat-total">฿0</div>
+      <div class="text-xs text-stone-500 mt-1">ที่จ่ายแล้ว</div>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div id="action-bar" class="bg-gradient-to-r from-stone-700 to-stone-900 rounded-xl p-6 mb-6 text-white shadow-lg">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <h3 class="text-xl font-bold mb-1">🔍 พร้อมประมวลผลสลิป</h3>
+        <p class="text-stone-300 text-sm">
+          มี <span id="queue-count" class="font-bold text-amber-300 text-lg">5</span> รูปรอ scan
+          <span class="text-stone-400">·</span>
+          สลิปจริงจาก SCB · KBANK (มี.ค. 2569)
+        </p>
+      </div>
+      <button onclick="startScan()" id="scan-btn"
+        class="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-8 py-4 rounded-lg shadow-lg transition-all hover:scale-105 text-lg flex items-center gap-2">
+        <span>🚀</span>
+        <span>สแกนทั้งหมด</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Upload area + Progress -->
+  <div class="grid grid-cols-12 gap-4 mb-6">
+    <!-- Upload area -->
+    <div id="upload-zone" class="col-span-12 md:col-span-5 border-2 border-dashed border-stone-300 rounded-xl p-6 text-center bg-white hover:border-stone-500 transition-colors cursor-pointer">
+      <div class="text-4xl mb-2">📁</div>
+      <div class="font-medium text-stone-700">ลากไฟล์รูปสลิปมาที่นี่</div>
+      <div class="text-xs text-stone-500 mt-1">หรือคลิกเพื่อจำลองการอัปโหลด</div>
+      <div class="text-xs text-stone-400 mt-2">Path: <code>/Finance/Slips/2569/03-มี.ค./</code></div>
+    </div>
+
+    <!-- Progress -->
+    <div id="progress-section" class="hidden col-span-12 md:col-span-7 bg-white rounded-xl p-6 border border-stone-200">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 border-4 border-stone-200 border-t-amber-500 rounded-full spinner"></div>
+        <div class="flex-1">
+          <div class="font-bold text-stone-800">กำลังประมวลผล...</div>
+          <div class="text-sm text-stone-500" id="progress-text">เริ่มต้น...</div>
+          <div class="mt-2 bg-stone-100 rounded-full h-2 overflow-hidden">
+            <div id="progress-bar" class="bg-gradient-to-r from-amber-400 to-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- After scan: REVIEW MODE -->
+    <div id="review-section" class="hidden col-span-12 md:col-span-7 bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-5 border border-amber-300">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1">
+          <div class="font-bold text-amber-900 text-lg flex items-center gap-2">
+            👁️ ตรวจสอบก่อน Sync
+            <span class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full font-medium" id="review-count">0 รายการ</span>
+          </div>
+          <div class="text-sm text-amber-800 mt-1">
+            กรุณาตรวจสอบข้อมูล OCR ก่อนกดยืนยัน · แก้ไข/ลบ/เพิ่มโน้ตได้
+          </div>
+          <div class="text-xs text-amber-700 mt-2 flex items-center gap-3 flex-wrap">
+            <span>✏️ คลิกแก้ไข</span>
+            <span>📝 เพิ่มโน้ต</span>
+            <span>🗑️ ลบ</span>
+            <span>+ เพิ่มแมนนวล</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- After confirm: DONE -->
+    <div id="complete-section" class="hidden col-span-12 md:col-span-7 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5 border border-emerald-200">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex-1">
+          <div class="font-bold text-emerald-800 text-lg">✅ บันทึกเสร็จสมบูรณ์</div>
+          <div class="text-sm text-emerald-700 mt-1">สลิปขึ้น Drive (จัดโฟลเดอร์ตามวันที่) · บันทึก Sheet แล้ว</div>
+          <div class="text-xs text-emerald-600 mt-1 font-mono" id="complete-path">/Finance/Slips/2569/03-มี.ค./</div>
+        </div>
+        <button onclick="exportToDrive()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-sm whitespace-nowrap">
+          📊 Export รายงาน
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two columns: Slips + Expenses -->
+  <div class="grid grid-cols-12 gap-6">
+
+    <!-- Left: Slip queue -->
+    <div class="col-span-12 lg:col-span-7">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-stone-800">📥 สลิปในกล่อง <span class="text-stone-400 text-sm font-normal">(Drive folder)</span></h3>
+        <div class="flex items-center gap-2">
+          <button onclick="openManualEntryModal()" id="manual-entry-btn" class="hidden text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded font-medium">+ เพิ่มแมนนวล</button>
+          <button onclick="addRandomSlip()" class="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-1.5 rounded font-medium">+ สลิปจำลอง</button>
+          <button onclick="resetDemo()" class="text-xs text-stone-500 hover:underline">🔄 รีเซ็ต</button>
+        </div>
+      </div>
+      <div id="slip-list" class="space-y-3"></div>
+    </div>
+
+    <!-- Right: Pending expenses -->
+    <div class="col-span-12 lg:col-span-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-bold text-stone-800">📋 รายการรอจ่าย</h3>
+          <div class="text-[10px] text-stone-400">จาก Sheet · กรอกล่วงหน้าหรือสร้างจาก Module 03/09</div>
+        </div>
+        <span class="text-xs text-stone-500" id="expense-count">8 รายการ</span>
+      </div>
+      <div id="expense-list" class="space-y-2 max-h-[800px] overflow-y-auto scrollbar-thin pr-1"></div>
+    </div>
+  </div>
+
+  <!-- Sticky confirm bar (review mode) -->
+  <div id="confirm-bar" class="hidden sticky bottom-4 mt-6 bg-gradient-to-r from-stone-800 to-stone-900 rounded-xl p-4 shadow-2xl border-2 border-amber-400">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+      <div class="text-white">
+        <div class="font-bold text-base flex items-center gap-2">
+          <span class="text-amber-400">⚠️</span>
+          พร้อมบันทึก — ตรวจสอบเรียบร้อยหรือยัง?
+        </div>
+        <div class="text-xs text-stone-300 mt-1">
+          <span id="confirm-summary">จะอัปไฟล์ขึ้น Drive (จัดวันที่) · บันทึก Sheet · ส่งต่อ Module 02 (Cash Book)</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="cancelReview()" class="bg-stone-700 hover:bg-stone-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm">
+          ❌ ยกเลิก
+        </button>
+        <button onclick="confirmSync()" id="confirm-btn" class="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-6 py-2.5 rounded-lg shadow-lg text-sm flex items-center gap-2">
+          <span>✅</span>
+          <span>ยืนยันบันทึกทั้งหมด</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity log -->
+  <div class="mt-6 bg-stone-900 text-stone-200 rounded-xl p-4 font-mono text-xs">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-stone-400 font-bold">📋 Activity Log</div>
+      <button onclick="document.getElementById('log').innerHTML=''" class="text-stone-500 hover:text-stone-300 text-xs">Clear</button>
+    </div>
+    <div id="log" class="space-y-1 max-h-48 overflow-y-auto scrollbar-thin"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-8 text-center text-xs text-stone-400 pb-6">
+    Two Build Development Co., Ltd. · Finance V4 Module 1/9 · Demo · {{ Slip Inbox Scanner }}
+  </div>
+</main>
+
+<!-- Slip detail modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal()">
+  <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" id="modal-content"></div>
+</div>
+
+<script>
+// =================== MOCK DATA ===================
+
+const initialSlips = [
+  { id:'S001', filename:'IMG_2401.jpg', uploadedAt:'09:05', uploadedBy:'แอน', bank:'SCB',
+    ocr:{ bank:'SCB', date:'28/03/2569 09:49', ref:'202603288QZdLiLc6dewNeyMV', amount:3500.00,
+      fromAcc:'xxx-xxx499-7', fromName:'น.ส. กมลชนก สิมมาลา (SCB)',
+      toAcc:'x-3186', toName:'นาย โกวิท ราษีทอง', toBank:'ธ.ก.ส.', fee:0,
+      memo:'น้ำมัน', txType:'transfer', category:'⛽ ค่าน้ำมัน/พาหนะ' } },
+  { id:'S002', filename:'slip-2569-0327-1338.jpg', uploadedAt:'13:40', uploadedBy:'คุณไอซ์', bank:'KBANK',
+    ocr:{ bank:'KBANK', date:'27/03/2569 13:38', ref:'016086133835APM13635', amount:157914.00,
+      fromAcc:'xxx-x-x1615-x', fromName:'น.ส. กมลชนก ส (KBANK)',
+      toAcc:'BillerID 0107544...', toName:'สำนักงานที่ดินจังหวัด ชลบุรี', toBank:'Bill Payment', fee:0,
+      memo:'ค่าโอนแปลง 89-158', txType:'bill',
+      ref1:'000000801727 0369', ref2:'0000000000247213',
+      category:'🏛️ ค่าธรรมเนียมโอน (กรมที่ดิน)' } },
+  { id:'S003', filename:'slip-2569-0320-1704.jpg', uploadedAt:'17:06', uploadedBy:'คุณไอซ์', bank:'SCB',
+    ocr:{ bank:'SCB', date:'20/03/2569 17:04', ref:'202603202KrljXhWNizvYQJkz', amount:12896.34,
+      fromAcc:'xxx-xxx499-7', fromName:'น.ส. กมลชนก สิมมาลา (SCB)',
+      toAcc:'x-6666', toName:'นาย วิเศษศักดิ์ เวียงโสม', toBank:'ธ.ก.ส.', fee:0,
+      memo:'ค่าติดตั้งงานหลังคา', txType:'transfer', category:'🔨 ค่าผู้รับเหมา · หลังคา' } },
+  { id:'S004', filename:'slip-2569-0320-1705.jpg', uploadedAt:'17:07', uploadedBy:'คุณไอซ์', bank:'SCB',
+    ocr:{ bank:'SCB', date:'20/03/2569 17:05', ref:'202603203MXcua9LadPTzvCMv', amount:3974.86,
+      fromAcc:'xxx-xxx499-7', fromName:'น.ส. กมลชนก สิมมาลา (SCB)',
+      toAcc:'x-6666', toName:'นาย วิเศษศักดิ์ เวียงโสม', toBank:'ธ.ก.ส.', fee:0,
+      memo:'ติดตั้งหลังคา', txType:'transfer', category:'🔨 ค่าผู้รับเหมา · หลังคา',
+      relatedTo:'S003' } },
+  { id:'S005', filename:'slip-2569-0320-1218.jpg', uploadedAt:'12:20', uploadedBy:'คุณไอซ์', bank:'SCB',
+    ocr:{ bank:'SCB', date:'20/03/2569 12:18', ref:'202603203OhEP6hN8nYDJt3vZ', amount:4644.36,
+      fromAcc:'xxx-xxx499-7', fromName:'น.ส. กมลชนก สิมมาลา (SCB)',
+      toAcc:'BillerID 010754400004305', toName:'HOMEPRO', toBank:'Bill Payment', fee:0,
+      memo:'MEGA Home', txType:'bill',
+      ref1:'000002213228828', ref2:'47130684XT6L18000000', ref3:'47130684',
+      category:'🧱 ค่าวัสดุ (Home Center)' } }
+];
+
+// ⭐ Expenses ที่ตรงกับสลิปจริง 5 ใบ (มี.ค. 2569)
+const initialExpenses = [
+  { id:'CTR-2569-0042', type:'งวดงาน', project:'One Vela', vendor:'นาย วิเศษศักดิ์ เวียงโสม',
+    desc:'ติดตั้งหลังคา · บ้าน A-12 (ค่าวัสดุ)', amount:12896.34, accLast4:'6666',
+    dueDate:'20/03/2569', bank:'ธ.ก.ส.' },
+  { id:'CTR-2569-0042B', type:'งวดงาน', project:'One Vela', vendor:'นาย วิเศษศักดิ์ เวียงโสม',
+    desc:'ติดตั้งหลังคา · บ้าน A-12 (ค่าแรง)', amount:3974.86, accLast4:'6666',
+    dueDate:'20/03/2569', bank:'ธ.ก.ส.' },
+  { id:'PO-2569-0089', type:'PO', project:'One Vela', vendor:'HomePro · สาขา MEGA Home',
+    desc:'วัสดุก่อสร้าง · ใบ MEGA Home Ref 47130684', amount:4644.36, accLast4:'4305',
+    dueDate:'20/03/2569', bank:'Bill Payment' },
+  { id:'GOV-2569-0015', type:'ค่าธรรมเนียม', project:'One Vela', vendor:'สำนักงานที่ดินจังหวัด ชลบุรี',
+    desc:'ค่าโอนกรรมสิทธิ์ แปลง 89-158 · 2% ราคาประเมิน', amount:157914.00, accLast4:'4305',
+    dueDate:'27/03/2569', bank:'Bill Payment' },
+  { id:'EXP-2569-0234', type:'ค่าน้ำมัน', project:'ส่วนกลาง', vendor:'นาย โกวิท ราษีทอง',
+    desc:'ค่าน้ำมันรถส่วนกลาง · มี.ค. 2569', amount:3500.00, accLast4:'3186',
+    dueDate:'28/03/2569', bank:'ธ.ก.ส.' },
+  // รายการอื่นที่รอจ่าย (ยังไม่มีสลิป)
+  { id:'PO-2569-0090', type:'PO', project:'วันเวลา', vendor:'บจก. กระเบื้องไทย',
+    desc:'กระเบื้อง 60x60 · 800 ตร.ม.', amount:96000.00, accLast4:'7531',
+    dueDate:'30/03/2569', bank:'SCB' },
+  { id:'CTR-2569-0043', type:'งวดงาน', project:'Oxygen 3', vendor:'นาย ประยุทธ์ ช่างก่อ',
+    desc:'งวด 2/3 ก่อผนัง บ้าน C-01,02', amount:78000.00, accLast4:'9513',
+    dueDate:'02/04/2569', bank:'KBANK' },
+  { id:'PAY-2569-0156', type:'ค่าแรง', project:'One Vela', vendor:'นางสาว วิภา ช่างปูน',
+    desc:'ค่าแรง 19 วัน @ 1,500', amount:28500.00, accLast4:'3691',
+    dueDate:'31/03/2569', bank:'SCB' }
+];
+
+// ⭐ Auto-categorize จาก memo (หัวใจของระบบ!)
+const memoPatterns = [
+  { pattern:/น้ำมัน|gasoline|fuel/i,                    cat:'⛽ ค่าน้ำมัน/พาหนะ',     suggestType:'ค่าน้ำมัน' },
+  { pattern:/ค่าโอน|โอนแปลง|กรมที่ดิน/i,                 cat:'🏛️ ค่าธรรมเนียมโอน',     suggestType:'ค่าธรรมเนียม' },
+  { pattern:/หลังคา|มุงหลังคา|roof/i,                   cat:'🔨 ผู้รับเหมา · หลังคา', suggestType:'งวดงาน' },
+  { pattern:/ก่ออิฐ|ฉาบ|ก่อผนัง/i,                       cat:'🔨 ผู้รับเหมา · ก่อสร้าง', suggestType:'งวดงาน' },
+  { pattern:/Mega Home|HomePro|ไทยวัสดุ|Global House/i, cat:'🧱 ค่าวัสดุ Home Center',  suggestType:'PO' },
+  { pattern:/ปูน|เหล็ก|กระเบื้อง|สี|วัสดุ/i,             cat:'🧱 ค่าวัสดุก่อสร้าง',       suggestType:'PO' },
+  { pattern:/เงินเดือน|payroll/i,                       cat:'💼 เงินเดือนพนักงาน',     suggestType:'ค่าแรง' },
+  { pattern:/ค่าไฟ|ไฟฟ้า/i,                              cat:'⚡ ค่าไฟฟ้า',              suggestType:'ค่าโสหุ้ย' },
+  { pattern:/ค่าน้ำ|ประปา/i,                             cat:'💧 ค่าน้ำประปา',          suggestType:'ค่าโสหุ้ย' }
+];
+
+function categorizeMemo(memo) {
+  if (!memo) return null;
+  for (const p of memoPatterns) {
+    if (p.pattern.test(memo)) return p;
+  }
+  return null;
+}
+
+let slips = JSON.parse(JSON.stringify(initialSlips));
+let expenses = JSON.parse(JSON.stringify(initialExpenses));
+let inReviewMode = false;
+
+// =================== HELPERS ===================
+
+const fmt = (n) => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const bankStyles = {
+  SCB:   { bg:'bg-purple-100',  text:'text-purple-700',  border:'border-purple-300',  fullName:'ไทยพาณิชย์' },
+  KBANK: { bg:'bg-green-100',   text:'text-green-700',   border:'border-green-300',   fullName:'กสิกรไทย' },
+  BBL:   { bg:'bg-blue-100',    text:'text-blue-700',    border:'border-blue-300',    fullName:'กรุงเทพ' },
+  KTB:   { bg:'bg-cyan-100',    text:'text-cyan-700',    border:'border-cyan-300',    fullName:'กรุงไทย' },
+  GSB:   { bg:'bg-pink-100',    text:'text-pink-700',    border:'border-pink-300',    fullName:'ออมสิน' },
+  BAY:   { bg:'bg-yellow-100',  text:'text-yellow-700',  border:'border-yellow-300',  fullName:'กรุงศรี' }
+};
+
+const typeBadge = {
+  'PO':       'bg-blue-100 text-blue-700',
+  'งวดงาน':   'bg-orange-100 text-orange-700',
+  'ค่าแรง':   'bg-pink-100 text-pink-700'
+};
+
+function log(msg, type='info') {
+  const time = new Date().toLocaleTimeString('th-TH', { hour12: false });
+  const colors = { info:'text-stone-200', success:'text-emerald-300', warn:'text-amber-300', error:'text-red-300' };
+  const div = document.createElement('div');
+  div.className = colors[type] + ' slide-in';
+  div.innerHTML = `<span class="text-stone-500">[${time}]</span> ${msg}`;
+  document.getElementById('log').prepend(div);
+}
+
+// =================== RENDER ===================
+
+function renderSlips() {
+  const html = slips.map(s => {
+    const bs = bankStyles[s.bank] || bankStyles.SCB;
+    const statusBadges = {
+      pending:   '<span class="bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full text-xs">⏳ รอ scan</span>',
+      scanning:  '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs animate-pulse">🔄 กำลัง scan...</span>',
+      matched:   '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-bold">✅ จับคู่สำเร็จ</span>',
+      unmatched: '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">❌ ไม่พบคู่</span>',
+      review:    '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs font-bold">⚠️ ต้องตรวจ</span>'
+    };
+    const status = s.status || 'pending';
+    const showInfo = status !== 'pending';
+
+    let matchBlock = '';
+    if (s.matchedExpense) {
+      const e = s.matchedExpense;
+      const isReview = status === 'review';
+      matchBlock = `
+        <div class="mt-2 p-3 ${isReview ? 'bg-amber-50 border-amber-300' : 'bg-emerald-50 border-emerald-300'} border rounded-lg text-xs">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex-1 min-w-0">
+              <div class="font-bold ${isReview ? 'text-amber-800' : 'text-emerald-800'}">
+                ${isReview ? '⚠️ ตรงยอด แต่บัญชี/ชื่อไม่ตรงเป๊ะ' : '✅ ผูกกับ:'} ${e.id}
+              </div>
+              <div class="text-stone-700 mt-0.5">${e.vendor}</div>
+              <div class="text-stone-500">${e.desc}</div>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] px-1.5 py-0.5 rounded ${typeBadge[e.type]}">${e.type}</span>
+              <div class="text-stone-700 font-bold mt-1">${fmt(e.amount)}</div>
+            </div>
+          </div>
+        </div>`;
+    } else if (status === 'unmatched') {
+      matchBlock = `
+        <div class="mt-2 p-3 bg-red-50 border border-red-300 rounded-lg text-xs">
+          <div class="font-bold text-red-700">❌ ไม่พบรายการที่ตรงกัน</div>
+          <div class="text-stone-600 mt-0.5">ยอด ${fmt(s.ocr.amount)} ไม่ตรงกับ PO/งวดงาน/ค่าแรงใดๆ</div>
+          <button onclick="manualMatch('${s.id}')" class="mt-1 text-red-700 underline">🔗 จับคู่เอง</button>
+        </div>`;
+    }
+
+    const reviewActions = inReviewMode ? `
+      <div class="mt-2 pt-2 border-t border-stone-100 flex items-center gap-1 flex-wrap">
+        <button onclick="editSlip('${s.id}')" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded font-medium">✏️ แก้ไข OCR</button>
+        <button onclick="editNote('${s.id}')" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-2 py-1 rounded font-medium">📝 ${s.note ? 'แก้โน้ต' : 'เพิ่มโน้ต'}</button>
+        ${status === 'unmatched' || status === 'review' ? `<button onclick="manualMatch('${s.id}')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-700 px-2 py-1 rounded font-medium">🔗 จับคู่เอง</button>` : ''}
+        <button onclick="deleteSlip('${s.id}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-700 px-2 py-1 rounded font-medium ml-auto">🗑️ ลบ</button>
+      </div>
+    ` : '';
+
+    const noteBlock = s.note ? `
+      <div class="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-xs flex items-start gap-2">
+        <span class="text-purple-600">📝</span>
+        <span class="text-purple-900 flex-1">${s.note}</span>
+      </div>
+    ` : '';
+
+    const editedBadge = s.edited ? '<span class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded ml-1">✏️ แก้แล้ว</span>' : '';
+    const manualBadge = s.isManual ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded ml-1">📝 แมนนวล</span>' : '';
+
+    return `
+      <div class="bg-white rounded-lg border ${status==='matched'?'border-emerald-200':status==='review'?'border-amber-200':status==='unmatched'?'border-red-200':'border-stone-200'} p-4 hover:shadow-sm transition-all">
+        <div class="flex items-start gap-4">
+          <!-- Slip thumbnail -->
+          <div class="w-20 h-28 rounded-lg ${bs.bg} ${bs.border} border-2 flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+               onclick="showSlipDetail('${s.id}')">
+            <div class="text-[10px] font-bold ${bs.text}">${s.bank}</div>
+            <div class="text-3xl my-1">🧾</div>
+            <div class="text-[9px] ${bs.text} opacity-70 px-1">${s.filename.split('.')[0]}</div>
+          </div>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between mb-1 gap-2">
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-sm text-stone-800 truncate">${s.filename}${editedBadge}${manualBadge}</div>
+                <div class="text-xs text-stone-500">อัปโดย ${s.uploadedBy} · ${s.uploadedAt} · ธ.${bs.fullName}</div>
+                ${s.ocr.memo ? `
+                  <div class="mt-1.5 inline-flex items-center gap-1.5 bg-amber-100 border border-amber-300 px-2 py-1 rounded-md">
+                    <span class="text-amber-700 text-xs">📝</span>
+                    <span class="font-bold text-amber-900 text-sm">${s.ocr.memo}</span>
+                  </div>
+                ` : ''}
+              </div>
+              ${statusBadges[status]}
+            </div>
+            ${showInfo ? `
+              <div class="mt-2 bg-stone-50 p-2 rounded border border-stone-200 text-xs space-y-1">
+                <div class="grid grid-cols-2 gap-x-3">
+                  <div><span class="text-stone-500">วันที่:</span> ${s.ocr.date}</div>
+                  <div><span class="text-stone-500">Ref:</span> <span class="font-mono text-[10px]">${s.ocr.ref}</span></div>
+                </div>
+                <div><span class="text-stone-500">โอนให้:</span> <span class="font-medium">${s.ocr.toName}</span> ${s.ocr.toBank ? `<span class="text-[10px] text-stone-400">(${s.ocr.toBank})</span>` : ''}</div>
+                <div class="flex justify-between items-center">
+                  <div><span class="text-stone-500">บัญชี:</span> <span class="font-mono">${s.ocr.toAcc}</span></div>
+                  <div class="font-bold text-stone-800 text-base">${fmt(s.ocr.amount)}</div>
+                </div>
+                ${s.ocr.memo ? `
+                  <div class="mt-1 pt-1 border-t border-stone-200 bg-amber-50 -m-2 mt-1 px-2 py-1.5 rounded-b">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex-1">
+                        <span class="text-amber-700 font-medium">📝 บันทึกช่วยจำ:</span>
+                        <span class="font-medium text-amber-900">${s.ocr.memo}</span>
+                      </div>
+                      ${s.ocr.category ? `<span class="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">${s.ocr.category}</span>` : ''}
+                    </div>
+                  </div>
+                ` : ''}
+                ${s.ocr.ref1 ? `<div class="text-[10px] text-stone-400 font-mono">ref1: ${s.ocr.ref1}${s.ocr.ref2 ? ` · ref2: ${s.ocr.ref2}` : ''}${s.ocr.ref3 ? ` · ref3: ${s.ocr.ref3}` : ''}</div>` : ''}
+                ${s.ocr.relatedTo ? `<div class="text-[10px] text-blue-600">🔗 เกี่ยวข้องกับ ${s.ocr.relatedTo} (โอนติดกันภายใน 1 นาที)</div>` : ''}
+              </div>
+            ` : ''}
+            ${matchBlock}
+            ${noteBlock}
+            ${reviewActions}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('slip-list').innerHTML = html;
+}
+
+function renderExpenses() {
+  const html = expenses.map(e => {
+    const bs = bankStyles[e.bank] || bankStyles.SCB;
+    return `
+      <div class="bg-white rounded-lg border ${e.matched ? 'border-emerald-300 bg-emerald-50' : 'border-stone-200'} p-3 text-sm transition-all">
+        <div class="flex items-center justify-between mb-1">
+          <span class="px-2 py-0.5 rounded text-xs font-medium ${typeBadge[e.type]}">${e.type}</span>
+          ${e.matched
+            ? '<span class="text-emerald-700 text-xs font-bold">✓ จ่ายแล้ว</span>'
+            : `<span class="text-xs text-stone-500">📅 ${e.dueDate}</span>`}
+        </div>
+        <div class="font-medium text-stone-800 text-sm">${e.id}</div>
+        <div class="text-xs text-stone-600 truncate font-medium">${e.vendor}</div>
+        <div class="text-xs text-stone-500 truncate">${e.desc}</div>
+        <div class="text-[10px] text-stone-400 mt-0.5">${e.project}</div>
+        <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-stone-100">
+          <span class="text-xs text-stone-400">บ.${bs.fullName} ...${e.accLast4}</span>
+          <span class="font-bold text-stone-800">${fmt(e.amount)}</span>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('expense-list').innerHTML = html;
+  document.getElementById('expense-count').textContent = `${expenses.length} รายการ`;
+}
+
+// =================== SCAN LOGIC ===================
+
+async function startScan() {
+  const pending = slips.filter(s => !s.status || s.status === 'pending');
+  if (pending.length === 0) {
+    log('⚠️ ไม่มีสลิปที่รอประมวลผล', 'warn');
+    return;
+  }
+
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ กำลังประมวลผล...';
+  btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+  document.getElementById('progress-section').classList.remove('hidden');
+  document.getElementById('complete-section').classList.add('hidden');
+
+  log(`🚀 เริ่มการ scan สลิปทั้งหมด · จำนวน ${pending.length} รูป`, 'info');
+  log('🔌 เชื่อมต่อ OCR API (Google Document AI)...', 'info');
+  await sleep(400);
+  log('✅ เชื่อมต่อสำเร็จ', 'success');
+
+  for (let i = 0; i < pending.length; i++) {
+    const s = pending[i];
+    s.status = 'scanning';
+    renderSlips();
+
+    const progress = ((i + 1) / pending.length) * 100;
+    document.getElementById('progress-bar').style.width = progress + '%';
+    document.getElementById('progress-text').textContent = `กำลัง OCR ${s.filename} (${i+1}/${pending.length})`;
+    log(`📷 OCR · ${s.filename} (ธนาคาร ${s.bank}, ผู้อัปโหลด: ${s.uploadedBy})`, 'info');
+
+    await sleep(700 + Math.random() * 400);
+
+    // 🎯 Smart match — 3 signals: amount + account + memo
+    // Signal 1: Exact amount + account match (high confidence)
+    let match = expenses.find(e => !e.matched
+      && Math.abs(e.amount - s.ocr.amount) < 1
+      && s.ocr.toAcc.includes(e.accLast4));
+
+    // Signal 2: Bill payment by BillerID
+    if (!match && s.ocr.txType === 'bill') {
+      match = expenses.find(e => !e.matched
+        && Math.abs(e.amount - s.ocr.amount) < 1
+        && (e.bank === 'Bill Payment' || s.ocr.toAcc.includes(e.accLast4)));
+    }
+
+    // Signal 3: Memo-based category match (NEW! ใช้ "บันทึกช่วยจำ")
+    if (!match && s.ocr.memo) {
+      const memoCat = categorizeMemo(s.ocr.memo);
+      if (memoCat) {
+        match = expenses.find(e => !e.matched
+          && Math.abs(e.amount - s.ocr.amount) < 1
+          && (e.type === memoCat.suggestType || e.desc.includes(s.ocr.memo)));
+      }
+    }
+
+    if (match) {
+      s.status = 'matched';
+      s.matchedExpense = match;
+      match.matched = true;
+      log(`✅ จับคู่: ${s.filename} ↔ ${match.id} (${match.vendor})${s.ocr.memo ? ` · memo: "${s.ocr.memo}"` : ''}`, 'success');
+    } else {
+      // Fuzzy: amount only
+      const fuzzy = expenses.find(e => !e.matched && Math.abs(e.amount - s.ocr.amount) < 1);
+      if (fuzzy) {
+        s.status = 'review';
+        s.matchedExpense = fuzzy;
+        log(`⚠️ ตรงยอด แต่บัญชีไม่ตรง: ${s.filename} ~ ${fuzzy.id}`, 'warn');
+      } else {
+        s.status = 'unmatched';
+        log(`❌ ไม่พบคู่: ${s.filename} (${fmt(s.ocr.amount)})${s.ocr.memo ? ` · ลอง check memo: "${s.ocr.memo}"` : ''}`, 'error');
+      }
+    }
+
+    renderSlips();
+    renderExpenses();
+    updateStats();
+  }
+
+  document.getElementById('progress-text').textContent = 'เสร็จสิ้น!';
+  document.getElementById('progress-bar').style.width = '100%';
+  await sleep(300);
+
+  document.getElementById('progress-section').classList.add('hidden');
+
+  // Enter REVIEW MODE
+  enterReviewMode();
+
+  const stats = getStats();
+  log(`🎉 OCR เสร็จ! ✅ ${stats.matched} · ⚠️ ${stats.review} · ❌ ${stats.unmatched}`, 'success');
+  log(`👁️ เข้าสู่โหมดตรวจสอบ — กรุณาตรวจข้อมูลก่อนยืนยันบันทึก`, 'warn');
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>🔄</span><span>สแกนใหม่</span>';
+  btn.classList.remove('opacity-50', 'cursor-not-allowed');
+}
+
+function enterReviewMode() {
+  inReviewMode = true;
+  document.getElementById('review-section').classList.remove('hidden');
+  document.getElementById('confirm-bar').classList.remove('hidden');
+  document.getElementById('manual-entry-btn').classList.remove('hidden');
+
+  const reviewable = slips.filter(s => s.status && s.status !== 'pending').length;
+  document.getElementById('review-count').textContent = `${reviewable} รายการพร้อมตรวจ`;
+  updateConfirmSummary();
+  renderSlips();
+}
+
+function updateConfirmSummary() {
+  const stats = getStats();
+  const total = stats.matched + stats.review;
+  const totalAmount = slips
+    .filter(s => (s.status === 'matched' || s.status === 'review') && !s.deleted)
+    .reduce((sum, s) => sum + s.ocr.amount, 0);
+  document.getElementById('confirm-summary').innerHTML =
+    `จะบันทึก <b class="text-amber-300">${total} รายการ</b> · ยอดรวม <b class="text-amber-300">${fmt(totalAmount)}</b> · อัป Drive + Sheet (ระบบภายใน)`;
+}
+
+function getStats() {
+  return {
+    pending: slips.filter(s => !s.status || s.status === 'pending').length,
+    matched: slips.filter(s => s.status === 'matched').length,
+    review: slips.filter(s => s.status === 'review').length,
+    unmatched: slips.filter(s => s.status === 'unmatched').length,
+    total: slips.filter(s => s.status === 'matched' || s.status === 'review').reduce((sum, s) => sum + s.ocr.amount, 0)
+  };
+}
+
+function updateStats() {
+  const s = getStats();
+  document.getElementById('stat-pending').textContent = s.pending;
+  document.getElementById('stat-matched').textContent = s.matched;
+  document.getElementById('stat-review').textContent = s.review;
+  document.getElementById('stat-total').textContent = fmt(s.total);
+  document.getElementById('queue-count').textContent = s.pending;
+}
+
+// =================== INTERACTIONS ===================
+
+function showSlipDetail(id) {
+  const s = slips.find(x => x.id === id);
+  if (!s) return;
+  const bs = bankStyles[s.bank];
+  const status = s.status || 'pending';
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="bg-gradient-to-br from-stone-700 to-stone-900 text-white p-6 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm text-stone-300">${s.filename}</div>
+          <div class="text-2xl serif font-bold mt-1">รายละเอียดสลิป</div>
+        </div>
+        <button onclick="closeModal()" class="text-3xl hover:text-amber-300">×</button>
+      </div>
+    </div>
+    <div class="p-6">
+      <!-- Fake slip preview -->
+      <div class="${bs.bg} ${bs.border} border-2 rounded-xl p-6 mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <div class="font-bold ${bs.text} text-xl">${bs.fullName}</div>
+          <div class="text-3xl">🧾</div>
+        </div>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between border-b border-stone-300/30 pb-1">
+            <span class="text-stone-600">วันที่/เวลา</span>
+            <span class="font-medium">${s.ocr.date}</span>
+          </div>
+          <div class="flex justify-between border-b border-stone-300/30 pb-1">
+            <span class="text-stone-600">เลขที่อ้างอิง</span>
+            <span class="font-mono text-xs">${s.ocr.ref}</span>
+          </div>
+          <div class="flex justify-between border-b border-stone-300/30 pb-1">
+            <span class="text-stone-600">จาก</span>
+            <span class="font-medium text-right">${s.ocr.fromName}<br><span class="text-xs text-stone-500">${s.ocr.fromAcc}</span></span>
+          </div>
+          <div class="flex justify-between border-b border-stone-300/30 pb-1">
+            <span class="text-stone-600">ไปยัง</span>
+            <span class="font-medium text-right">${s.ocr.toName}<br><span class="text-xs text-stone-500">${s.ocr.toAcc}</span></span>
+          </div>
+          <div class="flex justify-between pt-2">
+            <span class="text-stone-600 text-base">จำนวนเงิน</span>
+            <span class="font-bold text-2xl ${bs.text}">${fmt(s.ocr.amount)}</span>
+          </div>
+          ${s.ocr.fee > 0 ? `<div class="text-xs text-stone-500 text-right">+ ค่าธรรมเนียม ${fmt(s.ocr.fee)}</div>` : ''}
+          ${s.ocr.memo ? `
+            <div class="mt-3 pt-3 border-t-2 border-stone-400/30">
+              <div class="text-xs text-stone-600 mb-1">📝 บันทึกช่วยจำ</div>
+              <div class="font-bold text-lg ${bs.text}">${s.ocr.memo}</div>
+              ${s.ocr.category ? `<div class="mt-1 inline-block bg-white/70 px-2 py-0.5 rounded text-xs font-medium">${s.ocr.category}</div>` : ''}
+            </div>
+          ` : ''}
+          ${(s.ocr.ref1 || s.ocr.ref2 || s.ocr.ref3) ? `
+            <div class="mt-2 pt-2 border-t border-stone-300/30 text-xs space-y-0.5">
+              <div class="text-stone-600 font-medium">เลขอ้างอิง (Bill Payment):</div>
+              ${s.ocr.ref1 ? `<div class="font-mono text-stone-700">Ref 1: ${s.ocr.ref1}</div>` : ''}
+              ${s.ocr.ref2 ? `<div class="font-mono text-stone-700">Ref 2: ${s.ocr.ref2}</div>` : ''}
+              ${s.ocr.ref3 ? `<div class="font-mono text-stone-700">Ref 3: ${s.ocr.ref3}</div>` : ''}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="bg-stone-50 rounded-lg p-3">
+          <div class="text-xs text-stone-500">อัปโหลดโดย</div>
+          <div class="font-medium">${s.uploadedBy}</div>
+        </div>
+        <div class="bg-stone-50 rounded-lg p-3">
+          <div class="text-xs text-stone-500">เวลาอัป</div>
+          <div class="font-medium">${s.uploadedAt} น.</div>
+        </div>
+      </div>
+
+      ${s.matchedExpense ? `
+        <div class="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <div class="font-bold text-emerald-800 mb-2">🔗 ผูกกับรายการ</div>
+          <div class="text-sm">
+            <div class="font-medium">${s.matchedExpense.id} · ${s.matchedExpense.vendor}</div>
+            <div class="text-stone-600">${s.matchedExpense.desc}</div>
+            <div class="text-stone-500 text-xs mt-1">โครงการ: ${s.matchedExpense.project}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="mt-4 flex gap-2">
+        <button class="flex-1 bg-stone-700 hover:bg-stone-800 text-white py-2 rounded-lg font-medium">📥 ดาวน์โหลด</button>
+        <button onclick="closeModal()" class="px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2 rounded-lg">ปิด</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+}
+
+function manualMatch(slipId) {
+  const s = slips.find(x => x.id === slipId);
+  if (!s) return;
+  const available = expenses.filter(e => !e.matched);
+  if (available.length === 0) { alert('ไม่มีรายการให้จับคู่'); return; }
+
+  const options = available.map((e, i) => `${i+1}. ${e.id} · ${e.vendor} · ${fmt(e.amount)}`).join('\n');
+  const choice = prompt(`เลือกหมายเลขรายการที่จะผูก:\n\n${options}\n\nสลิปนี้: ${fmt(s.ocr.amount)}`);
+  const idx = parseInt(choice) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= available.length) return;
+
+  const e = available[idx];
+  if (s.matchedExpense) s.matchedExpense.matched = false;
+  s.matchedExpense = e;
+  s.status = 'matched';
+  e.matched = true;
+  log(`🔗 จับคู่เอง: ${s.filename} ↔ ${e.id}`, 'success');
+  renderSlips();
+  renderExpenses();
+  updateStats();
+  updateConfirmSummary();
+}
+
+function editSlip(id) {
+  const s = slips.find(x => x.id === id);
+  if (!s) return;
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm text-blue-200">${s.filename}</div>
+          <div class="text-2xl serif font-bold mt-1">✏️ แก้ไขข้อมูล OCR</div>
+        </div>
+        <button onclick="closeModal()" class="text-3xl hover:text-amber-300">×</button>
+      </div>
+    </div>
+    <form onsubmit="saveSlipEdit(event, '${id}')" class="p-6 space-y-3">
+      <div class="bg-amber-50 border border-amber-200 rounded p-2 text-xs text-amber-800">
+        ⚠️ ถ้า OCR อ่านผิด แก้ที่นี่ได้ — ระบบจะ re-match อัตโนมัติหลังบันทึก
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-stone-600 font-medium">วันที่/เวลา</label>
+          <input name="date" value="${s.ocr.date}" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+        </div>
+        <div>
+          <label class="text-xs text-stone-600 font-medium">เลขอ้างอิง</label>
+          <input name="ref" value="${s.ocr.ref}" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm font-mono">
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-stone-600 font-medium">ชื่อผู้รับ</label>
+        <input name="toName" value="${s.ocr.toName}" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-stone-600 font-medium">เลขบัญชี (โอนไป)</label>
+          <input name="toAcc" value="${s.ocr.toAcc}" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm font-mono">
+        </div>
+        <div>
+          <label class="text-xs text-stone-600 font-medium">จำนวนเงิน (บาท)</label>
+          <input name="amount" type="number" step="0.01" value="${s.ocr.amount}" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm font-bold">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-4 border-t border-stone-200">
+        <button type="button" onclick="closeModal()" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg font-medium">ยกเลิก</button>
+        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold">💾 บันทึก + Re-match</button>
+      </div>
+    </form>
+  `;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function saveSlipEdit(ev, id) {
+  ev.preventDefault();
+  const s = slips.find(x => x.id === id);
+  if (!s) return;
+  const f = new FormData(ev.target);
+  s.ocr.date = f.get('date');
+  s.ocr.ref = f.get('ref');
+  s.ocr.toName = f.get('toName');
+  s.ocr.toAcc = f.get('toAcc');
+  s.ocr.amount = parseFloat(f.get('amount'));
+  s.edited = true;
+
+  // Unmatch and re-match
+  if (s.matchedExpense) { s.matchedExpense.matched = false; s.matchedExpense = null; }
+  const match = expenses.find(e => !e.matched && Math.abs(e.amount - s.ocr.amount) < 1 && s.ocr.toAcc.includes(e.accLast4));
+  if (match) {
+    s.status = 'matched'; s.matchedExpense = match; match.matched = true;
+    log(`✏️ แก้ไข ${s.filename} → re-match สำเร็จ: ${match.id}`, 'success');
+  } else {
+    const fuzzy = expenses.find(e => !e.matched && Math.abs(e.amount - s.ocr.amount) < 1);
+    if (fuzzy) { s.status = 'review'; s.matchedExpense = fuzzy; log(`✏️ แก้ไข ${s.filename} → ตรงยอดแต่บัญชีไม่ตรง`, 'warn'); }
+    else { s.status = 'unmatched'; log(`✏️ แก้ไข ${s.filename} → ยังไม่พบคู่`, 'warn'); }
+  }
+  closeModal();
+  renderSlips(); renderExpenses(); updateStats(); updateConfirmSummary();
+}
+
+function editNote(id) {
+  const s = slips.find(x => x.id === id);
+  if (!s) return;
+  const note = prompt(`📝 เพิ่มโน้ตสำหรับ ${s.filename}:\n(เช่น "โอนแทน พ่อบุญ เนื่องจากไม่มีบัญชี")`, s.note || '');
+  if (note === null) return;
+  s.note = note.trim();
+  log(`📝 ${s.note ? 'เพิ่ม' : 'ลบ'}โน้ต: ${s.filename}`, 'info');
+  renderSlips();
+}
+
+function deleteSlip(id) {
+  const s = slips.find(x => x.id === id);
+  if (!s) return;
+  if (!confirm(`ลบ ${s.filename} ออกจากรอบนี้?\n(ไฟล์ใน Box ยังอยู่ — แค่ไม่ sync รอบนี้)`)) return;
+  if (s.matchedExpense) s.matchedExpense.matched = false;
+  slips = slips.filter(x => x.id !== id);
+  log(`🗑️ ลบ ${s.filename} ออกจากรอบ sync`, 'warn');
+  renderSlips(); renderExpenses(); updateStats(); updateConfirmSummary();
+}
+
+function openManualEntryModal() {
+  const available = expenses.filter(e => !e.matched);
+  const options = available.map(e => `<option value="${e.id}">${e.id} · ${e.vendor} · ${fmt(e.amount)}</option>`).join('');
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-6 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm text-indigo-200">Manual Entry</div>
+          <div class="text-2xl serif font-bold mt-1">📝 เพิ่มรายการแมนนวล</div>
+        </div>
+        <button onclick="closeModal()" class="text-3xl hover:text-amber-300">×</button>
+      </div>
+    </div>
+    <form onsubmit="saveManualEntry(event)" class="p-6 space-y-3">
+      <div class="bg-indigo-50 border border-indigo-200 rounded p-2 text-xs text-indigo-800">
+        💡 ใช้กรณี: จ่ายเงินสด · โอนผ่านช่องทางอื่น · ไม่มีสลิป (เก็บใบเสร็จกระดาษ)
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs text-stone-600 font-medium">วันที่</label>
+          <input name="date" value="25/05/2569" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+        </div>
+        <div>
+          <label class="text-xs text-stone-600 font-medium">ช่องทาง</label>
+          <select name="method" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            <option>เงินสด</option><option>เช็ค</option><option>โอนผ่านธนาคารอื่น</option><option>อื่นๆ</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs text-stone-600 font-medium">รายละเอียด</label>
+        <input name="desc" placeholder="เช่น จ่ายค่าเดินทางทีมจัดซื้อ" required class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+      </div>
+      <div>
+        <label class="text-xs text-stone-600 font-medium">ผูกกับ PO/รายการรอจ่าย (ถ้ามี)</label>
+        <select name="linkTo" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+          <option value="">— ไม่ผูก (รายการอิสระ) —</option>
+          ${options}
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-stone-600 font-medium">จำนวนเงิน (บาท)</label>
+        <input name="amount" type="number" step="0.01" required placeholder="0.00" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm font-bold">
+      </div>
+      <div>
+        <label class="text-xs text-stone-600 font-medium">โน้ต (optional)</label>
+        <textarea name="note" rows="2" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm"></textarea>
+      </div>
+      <div class="flex gap-2 pt-4 border-t border-stone-200">
+        <button type="button" onclick="closeModal()" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded-lg font-medium">ยกเลิก</button>
+        <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold">➕ เพิ่มรายการ</button>
+      </div>
+    </form>
+  `;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function saveManualEntry(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  const amount = parseFloat(f.get('amount'));
+  const newId = 'M' + String(slips.filter(s => s.isManual).length + 1).padStart(3, '0');
+  const linkedExpense = expenses.find(e => e.id === f.get('linkTo'));
+
+  const s = {
+    id: newId,
+    filename: `MANUAL-${newId}.txt`,
+    uploadedAt: new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' }),
+    uploadedBy: 'คุณไอซ์',
+    bank: 'GSB',
+    isManual: true,
+    note: f.get('note') || '',
+    status: linkedExpense ? 'matched' : 'unmatched',
+    matchedExpense: linkedExpense || null,
+    ocr: {
+      bank: f.get('method'),
+      date: f.get('date'),
+      ref: `MANUAL-${Date.now()}`,
+      amount: amount,
+      fromAcc: '—',
+      fromName: 'บจก. ทู บิลด์ ดีเวลลอปเมนท์',
+      toAcc: '—',
+      toName: f.get('desc'),
+      fee: 0
+    }
+  };
+
+  if (linkedExpense) linkedExpense.matched = true;
+  slips.unshift(s);
+  log(`➕ เพิ่มแมนนวล: ${f.get('desc')} · ${fmt(amount)}`, 'info');
+  closeModal();
+  renderSlips(); renderExpenses(); updateStats(); updateConfirmSummary();
+}
+
+function cancelReview() {
+  if (!confirm('ยกเลิก review รอบนี้?\nสลิปทั้งหมดจะกลับสู่สถานะ "รอ scan"')) return;
+  inReviewMode = false;
+  slips.forEach(s => {
+    if (s.isManual) return;
+    if (s.matchedExpense) s.matchedExpense.matched = false;
+    s.status = 'pending';
+    s.matchedExpense = null;
+    s.edited = false;
+    s.note = '';
+  });
+  slips = slips.filter(s => !s.isManual);
+  document.getElementById('review-section').classList.add('hidden');
+  document.getElementById('confirm-bar').classList.add('hidden');
+  document.getElementById('manual-entry-btn').classList.add('hidden');
+  log('❌ ยกเลิก review · สลิปกลับสู่คิวรอ scan', 'warn');
+  renderSlips(); renderExpenses(); updateStats();
+}
+
+async function confirmSync() {
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ กำลังบันทึก...';
+  btn.classList.add('opacity-60', 'cursor-not-allowed');
+
+  const toSync = slips.filter(s => s.status === 'matched' || s.status === 'review');
+  log(`🚀 ยืนยันบันทึก — ${toSync.length} รายการ`, 'info');
+
+  // Helper: สร้างชื่อไฟล์ที่สะท้อน memo (ทำให้หาง่ายใน Drive)
+  const buildFilename = (s) => {
+    const dateStr = s.ocr.date.split(' ')[0].replaceAll('/', '');
+    const memo = (s.ocr.memo || 'ไม่ระบุ').replaceAll(/[^฀-๿a-zA-Z0-9-]/g, '_').slice(0, 30);
+    return `${dateStr}_${s.ocr.bank}_${Math.round(s.ocr.amount).toLocaleString()}_${memo}.jpg`;
+  };
+
+  // Step 1: Upload to Drive (จัดโฟลเดอร์ตามเดือนของสลิป + ใช้ชื่อไฟล์ที่มี memo)
+  log('📁 [1/2] อัปไฟล์ขึ้น Google Drive (ชื่อไฟล์มี memo · จัดตามวันที่)...', 'info');
+  await sleep(500);
+  const datePath = '/Two Build/Finance/Slips/2569/03-มีนาคม/';
+  for (const s of toSync) {
+    if (s.isManual) continue;
+    await sleep(200);
+    const newName = buildFilename(s);
+    log(`   ↑ ${datePath}${newName}`, 'success');
+  }
+
+  // Step 2: บันทึกลง Sheet (ฐานข้อมูลหลัก!)
+  log('📊 [2/2] บันทึกลง Google Sheet "Finance-Master-2569"...', 'info');
+  await sleep(400);
+  log(`   ✓ Sheet "Slip-Log" — เพิ่ม ${toSync.length} แถวใหม่`, 'success');
+  for (const s of toSync) {
+    await sleep(150);
+    const matchInfo = s.matchedExpense ? ` ↔ ${s.matchedExpense.id}` : '';
+    log(`     • ${s.ocr.date.split(' ')[0]} · ${fmt(s.ocr.amount)} · "${s.ocr.memo || '—'}" → ${s.ocr.category || 'ไม่จัดหมวด'}${matchInfo}`, 'success');
+  }
+  await sleep(200);
+  log(`   ✓ Sheet "Cash-Book" — บันทึกค่าใช้จ่าย ${toSync.length} รายการ (Module 02 ใช้ต่อ)`, 'success');
+  log(`   ✓ Sheet "PO-Tracker" — อัปเดตสถานะ "ชำระแล้ว" ${toSync.filter(s => s.matchedExpense).length} รายการ`, 'success');
+
+  await sleep(300);
+  log('🎉 บันทึกเสร็จสมบูรณ์! · ระบบบัญชีภายในอัปเดตทั้งหมด', 'success');
+
+  // Hide review, show complete
+  document.getElementById('review-section').classList.add('hidden');
+  document.getElementById('confirm-bar').classList.add('hidden');
+  document.getElementById('complete-section').classList.remove('hidden');
+  document.getElementById('complete-path').textContent = datePath;
+  inReviewMode = false;
+  renderSlips();
+}
+
+function openDriveFolder() {
+  log('📁 เปิด Google Drive: /Two Build/Finance/Slips/2569/', 'info');
+  alert('📁 เปิดโฟลเดอร์ Drive\n\nPath: /Two Build/Finance/Slips/2569/\n\nโครงสร้าง:\n├── Slip-Inbox/  ← ทีมโยนใหม่ที่นี่\n├── 2569/\n│   ├── 01-ม.ค./\n│   ├── 02-ก.พ./\n│   └── 03-มี.ค./  ← เดือนปัจจุบัน\n│       ├── 28032569_SCB_3500_น้ำมัน.jpg\n│       ├── 27032569_KBANK_157914_ค่าโอนแปลง_89-158.jpg\n│       └── ...\n\n(Demo — ในระบบจริงจะเปิดแท็บใหม่)');
+}
+
+function openSheet() {
+  log('📊 เปิด Sheet: Finance-Master-2569.xlsx (Tab: Slip-Log)', 'info');
+  alert('📊 เปิด Google Sheet\n\nไฟล์: Finance-Master-2569.xlsx\nTab: Slip-Log\n\nคอลัมน์ (memo เป็นคอลัมน์หลัก!):\n• A: วันที่\n• B: เวลา\n• C: ผู้อัปโหลด\n• D: ธนาคารต้นทาง\n• E: เลข Ref\n• F: ชื่อผู้รับ\n• G: ธนาคารปลายทาง\n• H: เลขบัญชี (4 ตัวท้าย)\n• I: 💰 จำนวนเงิน\n• J: 📝 บันทึกช่วยจำ ⭐ (memo จากสลิป)\n• K: 🏷️ หมวดอัตโนมัติ (จาก memo)\n• L: PO/CTR ที่ผูก\n• M: โครงการ\n• N: URL สลิป (Drive link)\n• O: สถานะ (รอตรวจ/อนุมัติ/ชำระแล้ว)\n• P: ผู้บันทึก\n• Q: วันที่บันทึก');
+}
+
+// ลบ openEcount() ออกแล้ว
+
+function addRandomSlip() {
+  const newId = 'S' + String(slips.length + 1).padStart(3, '0');
+  const banks = ['SCB', 'KBANK', 'BBL', 'KTB'];
+  const bank = banks[Math.floor(Math.random() * banks.length)];
+  const amount = Math.round((10000 + Math.random() * 90000) * 100) / 100;
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+  slips.unshift({
+    id: newId,
+    filename: `IMG_${2407 + slips.length}.jpg`,
+    uploadedAt: timeStr,
+    uploadedBy: ['แอน', 'มะปราง', 'นิว'][Math.floor(Math.random() * 3)],
+    bank: bank,
+    ocr: {
+      bank: bank,
+      date: `25/05/2569 ${timeStr}`,
+      ref: bank[0] + Date.now(),
+      amount: amount,
+      fromAcc: 'XXX-X-9876-X',
+      fromName: 'บจก. ทู บิลด์ ดีเวลลอปเมนท์',
+      toAcc: `XXX-X-${Math.floor(Math.random() * 9000) + 1000}-X`,
+      toName: 'ผู้รับจำลอง (ทดสอบ)',
+      fee: 0
+    }
+  });
+
+  log(`📁 พบไฟล์ใหม่ใน Box: ${slips[0].filename} (${fmt(amount)})`, 'info');
+  updateStats();
+  renderSlips();
+}
+
+function resetDemo() {
+  if (!confirm('รีเซ็ตข้อมูลกลับสู่ค่าเริ่มต้น?')) return;
+  slips = JSON.parse(JSON.stringify(initialSlips));
+  expenses = JSON.parse(JSON.stringify(initialExpenses));
+  inReviewMode = false;
+  document.getElementById('progress-section').classList.add('hidden');
+  document.getElementById('review-section').classList.add('hidden');
+  document.getElementById('confirm-bar').classList.add('hidden');
+  document.getElementById('complete-section').classList.add('hidden');
+  document.getElementById('manual-entry-btn').classList.add('hidden');
+  const btn = document.getElementById('scan-btn');
+  btn.innerHTML = '<span>🚀</span><span>สแกนทั้งหมด</span>';
+  btn.disabled = false;
+  const confirmBtn = document.getElementById('confirm-btn');
+  confirmBtn.disabled = false;
+  confirmBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+  confirmBtn.innerHTML = '<span>✅</span><span>ยืนยัน Sync ทั้งหมด</span>';
+  document.getElementById('log').innerHTML = '';
+  renderSlips();
+  renderExpenses();
+  updateStats();
+  log('🔄 รีเซ็ตระบบเรียบร้อย · พร้อมใช้งานใหม่', 'success');
+}
+
+function exportToDrive() {
+  alert('📊 Export รายงานสำเร็จ!\n\nบันทึกเป็น:\n• Slip-Report-2026-05-25.xlsx\n• ลิงก์ใน Google Drive\n\n(Demo — ในระบบจริงจะเปิด Drive โดยอัตโนมัติ)');
+  log('📊 Export รายงาน Slip-Report-2026-05-25.xlsx ไปยัง Drive', 'success');
+}
+
+// ลบ Ecount integration ออกแล้ว — เป็นระบบบัญชีภายในล้วนๆ
+
+// Drag & drop simulation
+const uploadZone = document.getElementById('upload-zone');
+uploadZone.addEventListener('click', addRandomSlip);
+uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragging'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragging'));
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragging');
+  const count = e.dataTransfer.files.length || 1;
+  for (let i = 0; i < count; i++) addRandomSlip();
+});
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// =================== INIT ===================
+
+renderSlips();
+renderExpenses();
+updateStats();
+log('✅ ระบบ Slip Inbox Scanner พร้อมใช้งาน (Standalone Mode)', 'success');
+log('🏠 ระบบบัญชีภายใน · ไม่เชื่อมต่อภายนอก · ใช้ Google Drive + Sheet เท่านั้น', 'info');
+log(`📥 พบสลิป ${slips.length} รูปใน /Two Build/Finance/Slip-Inbox/`, 'info');
+log(`📋 มี ${expenses.length} รายการรอจ่ายใน Sheet "PO-Tracker"`, 'info');
+log('💡 กดปุ่ม "สแกนทั้งหมด" เพื่อเริ่มประมวลผล', 'info');
+</script>
+</body>
+</html>

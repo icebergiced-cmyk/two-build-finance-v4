@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Feasibility Study · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+</style>
+</head>
+<body>
+
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm"><span>←</span><span>Hub</span></a>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800">🎯 Feasibility Study</h1>
+        <p class="text-xs text-stone-500">Module 07 · 📊 Sheet: <code>Feasibility-Save</code> · Standalone</p>
+      </div>
+    </div>
+    <button onclick="saveAnalysis()" class="bg-stone-800 hover:bg-stone-900 text-white px-4 py-1.5 rounded text-sm font-medium">💾 บันทึก Analysis</button>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- INPUT (Left) -->
+    <div class="lg:col-span-1 space-y-4">
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <h2 class="serif text-xl font-bold text-stone-800 mb-1">📝 ข้อมูลโครงการ</h2>
+        <p class="text-xs text-stone-500 mb-4">กรอก/แก้ไขเพื่อคำนวณใหม่ทันที</p>
+
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-medium text-stone-600">ชื่อโครงการ</label>
+            <input id="i-name" value="One Vela Phase 2" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm font-medium">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-medium text-stone-600">ที่ดิน (ไร่)</label>
+              <input id="i-rai" type="number" value="18" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-medium text-stone-600">ราคา/ไร่ (บาท)</label>
+              <input id="i-rai-price" type="number" value="2800000" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-medium text-stone-600">จำนวนแปลง</label>
+              <input id="i-units" type="number" value="60" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-medium text-stone-600">ราคาขาย/แปลง</label>
+              <input id="i-price" type="number" value="4500000" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-medium text-stone-600">ต้นทุน/หลัง</label>
+              <input id="i-cost" type="number" value="2700000" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-medium text-stone-600">สาธารณูปโภค (บาท)</label>
+              <input id="i-infra" type="number" value="12000000" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-medium text-stone-600">ระยะเวลาขาย (ปี)</label>
+              <input id="i-years" type="number" value="3" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-medium text-stone-600">Discount Rate (%)</label>
+              <input id="i-dr" type="number" value="8" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-stone-600">OPEX/ปี (บาท)</label>
+            <input id="i-opex" type="number" value="4500000" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-stone-600">Marketing & Sales (% ของรายได้)</label>
+            <input id="i-mkt" type="number" value="2.5" oninput="calculate()" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved analyses -->
+      <div class="bg-white rounded-xl border border-stone-200 p-4">
+        <div class="font-bold text-stone-800 mb-2 text-sm">📁 Analysis ที่บันทึก</div>
+        <div class="space-y-1">
+          <button onclick="loadAnalysis('a1')" class="w-full text-left p-2 hover:bg-stone-50 rounded text-sm">
+            <div class="font-medium">One Vela Phase 2</div>
+            <div class="text-xs text-stone-500">บันทึก 20 พ.ค. 2569 · IRR 22.4%</div>
+          </button>
+          <button onclick="loadAnalysis('a2')" class="w-full text-left p-2 hover:bg-stone-50 rounded text-sm">
+            <div class="font-medium">Oxygen Phase 4</div>
+            <div class="text-xs text-stone-500">บันทึก 15 พ.ค. 2569 · IRR 18.2%</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS (Right) -->
+    <div class="lg:col-span-2 space-y-4">
+
+      <!-- Verdict -->
+      <div id="verdict" class="rounded-xl p-6 text-white"></div>
+
+      <!-- Key Metrics -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-white rounded-xl border border-stone-200 p-4">
+          <div class="text-xs text-stone-500">📈 IRR</div>
+          <div class="text-3xl font-bold text-emerald-600 mt-1" id="m-irr">0%</div>
+          <div class="text-xs text-stone-500 mt-1">เป้า > 15%</div>
+        </div>
+        <div class="bg-white rounded-xl border border-stone-200 p-4">
+          <div class="text-xs text-stone-500">💎 NPV</div>
+          <div class="text-3xl font-bold text-blue-600 mt-1" id="m-npv">฿0</div>
+          <div class="text-xs text-stone-500 mt-1">@8% discount</div>
+        </div>
+        <div class="bg-white rounded-xl border border-stone-200 p-4">
+          <div class="text-xs text-stone-500">⏱️ Payback</div>
+          <div class="text-3xl font-bold text-amber-600 mt-1" id="m-payback">0 ปี</div>
+          <div class="text-xs text-stone-500 mt-1">เป้า < 3 ปี</div>
+        </div>
+        <div class="bg-white rounded-xl border border-stone-200 p-4">
+          <div class="text-xs text-stone-500">📊 NP Margin</div>
+          <div class="text-3xl font-bold text-purple-600 mt-1" id="m-npm">0%</div>
+          <div class="text-xs text-stone-500 mt-1">เป้า > 22%</div>
+        </div>
+      </div>
+
+      <!-- Investment Summary -->
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <h3 class="font-bold text-stone-800 mb-3">💰 สรุปการลงทุน</h3>
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-b border-stone-100">
+              <td class="py-2 text-stone-600">🏞️ ค่าที่ดิน</td>
+              <td class="py-2 text-right font-mono" id="s-land">฿0</td>
+            </tr>
+            <tr class="border-b border-stone-100">
+              <td class="py-2 text-stone-600">🛣️ สาธารณูปโภค (Infrastructure)</td>
+              <td class="py-2 text-right font-mono" id="s-infra">฿0</td>
+            </tr>
+            <tr class="border-b border-stone-100">
+              <td class="py-2 text-stone-600">🏗️ ต้นทุนก่อสร้าง</td>
+              <td class="py-2 text-right font-mono" id="s-cost">฿0</td>
+            </tr>
+            <tr class="border-b border-stone-100">
+              <td class="py-2 text-stone-600">⚙️ OPEX รวม (3 ปี)</td>
+              <td class="py-2 text-right font-mono" id="s-opex">฿0</td>
+            </tr>
+            <tr class="border-b border-stone-100">
+              <td class="py-2 text-stone-600">📣 การตลาด</td>
+              <td class="py-2 text-right font-mono" id="s-mkt">฿0</td>
+            </tr>
+            <tr class="border-b-2 border-stone-300 bg-stone-50 font-bold">
+              <td class="py-2.5">เงินลงทุนรวม</td>
+              <td class="py-2.5 text-right font-mono text-red-700" id="s-total-cost">฿0</td>
+            </tr>
+            <tr class="border-b border-stone-100">
+              <td class="py-2 text-stone-600">📥 รายได้รวม (60 หลัง × ฿4.5M)</td>
+              <td class="py-2 text-right font-mono text-emerald-700" id="s-revenue">฿0</td>
+            </tr>
+            <tr class="border-b-2 border-stone-400 bg-emerald-50 font-bold">
+              <td class="py-2.5">🎯 กำไรก่อนภาษี</td>
+              <td class="py-2.5 text-right font-mono text-emerald-700" id="s-profit">฿0</td>
+            </tr>
+            <tr class="bg-amber-50">
+              <td class="py-2.5 text-stone-700">🏛️ ภาษีรวม (CIT + SBT)</td>
+              <td class="py-2.5 text-right font-mono text-amber-700" id="s-tax">฿0</td>
+            </tr>
+            <tr class="bg-emerald-100 font-bold text-base border-t-2 border-emerald-300">
+              <td class="py-3">✨ กำไรสุทธิ</td>
+              <td class="py-3 text-right font-mono text-emerald-800" id="s-net">฿0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Cash Flow Projection -->
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <h3 class="font-bold text-stone-800 mb-3">📊 Cash Flow Projection</h3>
+        <table class="w-full text-sm">
+          <thead class="bg-stone-50">
+            <tr class="border-b-2 border-stone-300">
+              <th class="text-left py-2 px-3">ปี</th>
+              <th class="text-right py-2 px-3">เงินเข้า</th>
+              <th class="text-right py-2 px-3">เงินออก</th>
+              <th class="text-right py-2 px-3">Net CF</th>
+              <th class="text-right py-2 px-3">Cumulative</th>
+              <th class="text-right py-2 px-3">PV (Discount)</th>
+            </tr>
+          </thead>
+          <tbody id="cf-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Sensitivity -->
+      <div class="bg-white rounded-xl border border-stone-200 p-5">
+        <h3 class="font-bold text-stone-800 mb-1">🎲 Sensitivity Analysis</h3>
+        <p class="text-xs text-stone-500 mb-3">จำลองเมื่อตัวแปรเปลี่ยน — IRR จะเปลี่ยนอย่างไร?</p>
+        <table class="w-full text-sm">
+          <thead class="bg-stone-50">
+            <tr class="border-b border-stone-200">
+              <th class="text-left py-2 px-3">Scenario</th>
+              <th class="text-right py-2 px-3">การเปลี่ยนแปลง</th>
+              <th class="text-right py-2 px-3">IRR ใหม่</th>
+              <th class="text-right py-2 px-3">NPV ใหม่</th>
+              <th class="text-center py-2 px-3">ผลกระทบ</th>
+            </tr>
+          </thead>
+          <tbody id="sens-body"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+const fmt = n => '฿' + Math.round(n).toLocaleString('th-TH');
+const fmtM = n => '฿' + (n / 1000000).toFixed(1) + 'M';
+
+function calculate() {
+  const rai = +document.getElementById('i-rai').value || 0;
+  const raiPrice = +document.getElementById('i-rai-price').value || 0;
+  const units = +document.getElementById('i-units').value || 0;
+  const price = +document.getElementById('i-price').value || 0;
+  const cost = +document.getElementById('i-cost').value || 0;
+  const infra = +document.getElementById('i-infra').value || 0;
+  const years = +document.getElementById('i-years').value || 1;
+  const dr = (+document.getElementById('i-dr').value || 0) / 100;
+  const opex = +document.getElementById('i-opex').value || 0;
+  const mkt = (+document.getElementById('i-mkt').value || 0) / 100;
+
+  const land = rai * raiPrice;
+  const totalCost = units * cost;
+  const totalOpex = opex * years;
+  const revenue = units * price;
+  const mktSpend = revenue * mkt;
+  const totalInvest = land + infra + totalCost + totalOpex + mktSpend;
+  const grossProfit = revenue - totalInvest;
+  const sbt = revenue * 0.033;
+  const cit = Math.max(0, grossProfit) * 0.20;
+  const totalTax = sbt + cit;
+  const netProfit = grossProfit - totalTax;
+  const npm = revenue > 0 ? (netProfit / revenue * 100) : 0;
+
+  // Update summary
+  document.getElementById('s-land').textContent = fmt(land);
+  document.getElementById('s-infra').textContent = fmt(infra);
+  document.getElementById('s-cost').textContent = fmt(totalCost);
+  document.getElementById('s-opex').textContent = fmt(totalOpex);
+  document.getElementById('s-mkt').textContent = fmt(mktSpend);
+  document.getElementById('s-total-cost').textContent = fmt(totalInvest);
+  document.getElementById('s-revenue').textContent = fmt(revenue);
+  document.getElementById('s-profit').textContent = fmt(grossProfit);
+  document.getElementById('s-tax').textContent = '(' + fmt(totalTax) + ')';
+  document.getElementById('s-net').textContent = fmt(netProfit);
+
+  // Build cash flow
+  const cf = [];
+  // Year 0: land + infra + 20% construction
+  cf.push({ y:0, inflow:0, outflow:land + infra + totalCost*0.20 + opex });
+  // Year 1-years: distribute sales + remaining costs
+  const salesPerYear = Math.floor(units / years);
+  const costPerYear = (totalCost * 0.80) / years;
+  for (let y = 1; y <= years; y++) {
+    const salesY = (y === years) ? (units - salesPerYear * (years-1)) : salesPerYear;
+    const inflow = salesY * price;
+    const outflow = costPerYear + opex + (mktSpend / years) + (y === years ? totalTax : 0);
+    cf.push({ y, inflow, outflow });
+  }
+
+  let cumulative = 0;
+  let cfRows = '';
+  let irrCF = [];
+  let npv = 0;
+  let paybackYear = -1;
+  cf.forEach(c => {
+    const net = c.inflow - c.outflow;
+    cumulative += net;
+    const pv = net / Math.pow(1 + dr, c.y);
+    npv += pv;
+    irrCF.push(net);
+    if (paybackYear === -1 && cumulative > 0) paybackYear = c.y;
+    cfRows += `
+      <tr class="border-b border-stone-100 hover:bg-stone-50">
+        <td class="py-2 px-3 font-bold">ปีที่ ${c.y}</td>
+        <td class="py-2 px-3 text-right text-emerald-700">${c.inflow > 0 ? fmt(c.inflow) : '—'}</td>
+        <td class="py-2 px-3 text-right text-red-700">${c.outflow > 0 ? '(' + fmt(c.outflow) + ')' : '—'}</td>
+        <td class="py-2 px-3 text-right font-bold ${net >= 0 ? 'text-emerald-700' : 'text-red-700'}">${fmt(net)}</td>
+        <td class="py-2 px-3 text-right font-mono ${cumulative >= 0 ? 'text-stone-800' : 'text-red-700'}">${fmt(cumulative)}</td>
+        <td class="py-2 px-3 text-right font-mono text-blue-700">${fmt(pv)}</td>
+      </tr>`;
+  });
+  document.getElementById('cf-body').innerHTML = cfRows;
+
+  // IRR Calculation (Newton-Raphson)
+  const irr = calcIRR(irrCF);
+
+  // Update metrics
+  document.getElementById('m-irr').textContent = isFinite(irr) ? (irr * 100).toFixed(1) + '%' : '—';
+  document.getElementById('m-npv').textContent = fmtM(npv);
+  document.getElementById('m-payback').textContent = paybackYear > 0 ? paybackYear + ' ปี' : '> ' + years + ' ปี';
+  document.getElementById('m-npm').textContent = npm.toFixed(1) + '%';
+
+  // Verdict
+  let verdict, color;
+  if (irr >= 0.18 && npv > 0 && npm > 22) { verdict='✅ Go!'; color='from-emerald-600 to-emerald-800'; }
+  else if (irr >= 0.12 && npv > 0) { verdict='⚠️ Marginal · พิจารณา'; color='from-amber-600 to-amber-800'; }
+  else { verdict='❌ No-Go · ผลตอบแทนต่ำ'; color='from-red-600 to-red-800'; }
+
+  document.getElementById('verdict').className = `rounded-xl p-6 text-white bg-gradient-to-br ${color}`;
+  document.getElementById('verdict').innerHTML = `
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="text-xs uppercase tracking-widest opacity-80">การประเมิน</div>
+        <div class="serif text-4xl font-bold mt-1">${verdict}</div>
+        <div class="text-sm opacity-90 mt-2">${document.getElementById('i-name').value} · IRR ${(irr*100).toFixed(1)}% · NPV ${fmtM(npv)}</div>
+      </div>
+      <div class="text-6xl opacity-50">🎯</div>
+    </div>`;
+
+  // Sensitivity
+  renderSensitivity(irrCF, dr, revenue, price, units, totalCost, cost);
+}
+
+function calcIRR(cf, guess = 0.1) {
+  let r = guess;
+  for (let i = 0; i < 100; i++) {
+    let npv = 0, deriv = 0;
+    for (let t = 0; t < cf.length; t++) {
+      npv += cf[t] / Math.pow(1 + r, t);
+      deriv -= t * cf[t] / Math.pow(1 + r, t + 1);
+    }
+    if (Math.abs(npv) < 1) return r;
+    if (deriv === 0) break;
+    r = r - npv / deriv;
+    if (r < -0.99) r = -0.99;
+  }
+  return r;
+}
+
+function renderSensitivity(baseCF, dr, baseRev, basePrice, units, baseCost, costPerUnit) {
+  const scenarios = [
+    { label:'ขายช้า 6 เดือน', delta:'+6 เดือน', modify: () => simulateDelay(baseCF, 1) },
+    { label:'ราคาวัสดุ +10%', delta:'+10%', modify: () => simulateCostUp(baseCF, units, costPerUnit, 0.10) },
+    { label:'ราคาขาย -5%', delta:'-5%', modify: () => simulatePriceDown(baseCF, units, basePrice, 0.05) },
+    { label:'ขายช้า + วัสดุ +10%', delta:'Worst', modify: () => simulateBoth(baseCF, units, basePrice, costPerUnit) },
+    { label:'ขายดีกว่าคาด 10%', delta:'Best', modify: () => simulateBest(baseCF, units, basePrice) }
+  ];
+
+  let html = '';
+  scenarios.forEach(s => {
+    const newCF = s.modify();
+    const irr = calcIRR(newCF) * 100;
+    let npv = 0;
+    newCF.forEach((c, t) => npv += c / Math.pow(1 + dr, t));
+    const baseIrr = calcIRR(baseCF) * 100;
+    const diff = irr - baseIrr;
+    const impactColor = diff < -3 ? 'text-red-700' : diff < 0 ? 'text-amber-700' : 'text-emerald-700';
+    const impact = diff < -3 ? '⚠️ สูง' : diff < 0 ? '👀 ปานกลาง' : '✅ บวก';
+
+    html += `
+      <tr class="border-b border-stone-100 hover:bg-stone-50">
+        <td class="py-2 px-3 font-medium">${s.label}</td>
+        <td class="py-2 px-3 text-right text-xs">${s.delta}</td>
+        <td class="py-2 px-3 text-right font-bold ${impactColor}">${irr.toFixed(1)}%</td>
+        <td class="py-2 px-3 text-right font-mono ${npv >= 0 ? 'text-blue-700' : 'text-red-700'}">${fmtM(npv)}</td>
+        <td class="py-2 px-3 text-center text-xs ${impactColor}">${impact}</td>
+      </tr>`;
+  });
+  document.getElementById('sens-body').innerHTML = html;
+}
+
+function simulateDelay(cf, delayYears) {
+  const newCF = new Array(cf.length + delayYears).fill(0);
+  newCF[0] = cf[0];
+  for (let i = 1; i < cf.length; i++) newCF[i + delayYears] = cf[i];
+  return newCF;
+}
+
+function simulateCostUp(cf, units, costPerUnit, pct) {
+  const extra = units * costPerUnit * pct / (cf.length - 1);
+  return cf.map((c, i) => i === 0 ? c : c - extra);
+}
+
+function simulatePriceDown(cf, units, price, pct) {
+  const loss = units * price * pct / (cf.length - 1);
+  return cf.map((c, i) => i === 0 ? c : c - loss);
+}
+
+function simulateBoth(cf, units, price, costPerUnit) {
+  const delayed = simulateDelay(cf, 1);
+  const adjusted = simulateCostUp(delayed, units, costPerUnit, 0.10);
+  return simulatePriceDown(adjusted, units, price, 0.03);
+}
+
+function simulateBest(cf, units, price) {
+  const bonus = units * price * 0.10 / (cf.length - 1);
+  return cf.map((c, i) => i === 0 ? c : c + bonus);
+}
+
+function saveAnalysis() {
+  alert('💾 บันทึก Analysis สำเร็จ!\n\n• ชื่อโครงการ: ' + document.getElementById('i-name').value + '\n• IRR: ' + document.getElementById('m-irr').textContent + '\n• NPV: ' + document.getElementById('m-npv').textContent + '\n• Payback: ' + document.getElementById('m-payback').textContent + '\n\nบันทึกไว้ใน Drive: /Two Build/Feasibility/');
+}
+
+function loadAnalysis(id) {
+  if (id === 'a1') {
+    document.getElementById('i-name').value = 'One Vela Phase 2';
+    document.getElementById('i-rai').value = 18;
+    document.getElementById('i-rai-price').value = 2800000;
+    document.getElementById('i-units').value = 60;
+    document.getElementById('i-price').value = 4500000;
+    document.getElementById('i-cost').value = 2700000;
+  } else {
+    document.getElementById('i-name').value = 'Oxygen Phase 4';
+    document.getElementById('i-rai').value = 22;
+    document.getElementById('i-rai-price').value = 2400000;
+    document.getElementById('i-units').value = 50;
+    document.getElementById('i-price').value = 5800000;
+    document.getElementById('i-cost').value = 3500000;
+  }
+  calculate();
+}
+
+calculate();
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+{
+  "packets": [
+    {
+      "packet_id": "VB-25690505-001",
+      "billing_date": "2569-05-05",
+      "vendor_id": "V-001",
+      "vendor_name": "บ.ส.เจริญชัยค้าวัสดุก่อสร้าง",
+      "vendor_tax_id": "0105541000123",
+      "invoice_count": 5,
+      "total_before_vat": 322803.00,
+      "vat_7": 22596.21,
+      "total_amount": 345399.21,
+      "wht_3": 9684.09,
+      "net_payable": 335715.12,
+      "po_match_count": 5,
+      "unmatched_count": 0,
+      "status": "approved",
+      "cheque_due_date": "2569-06-05",
+      "invoices": [
+        {"inv_no": "INV-SJC-2569-088", "date": "2569-04-15", "po_ref": "PO-2569-0138", "amount": 87420.00, "items": "เหล็กเส้น 12mm × 174 ท่อน", "match": true},
+        {"inv_no": "INV-SJC-2569-091", "date": "2569-04-22", "po_ref": "PO-2569-0142", "amount": 35200.00, "items": "เหล็กเส้น 12mm × 70 ท่อน", "match": true},
+        {"inv_no": "INV-SJC-2569-095", "date": "2569-04-28", "po_ref": "PO-2569-0148", "amount": 99135.00, "items": "เหล็กเส้น 10mm + 16mm + ปูน 50 ถุง", "match": true},
+        {"inv_no": "INV-SJC-2569-102", "date": "2569-05-02", "po_ref": "PO-2569-0156", "amount": 56892.00, "items": "ลวดผูกเหล็ก + อิฐมอญ 3000 ก้อน", "match": true},
+        {"inv_no": "INV-SJC-2569-104", "date": "2569-05-04", "po_ref": "PO-2569-0159", "amount": 66752.21, "items": "ปูนซีเมนต์ 80 ถุง + ทรายหยาบ 6 คิว", "match": true}
+      ]
+    },
+    {
+      "packet_id": "VB-25690505-002",
+      "billing_date": "2569-05-05",
+      "vendor_id": "V-002",
+      "vendor_name": "บ.สุทธิพงศ์ค้าวัสดุก่อสร้าง",
+      "vendor_tax_id": "0205541003421",
+      "invoice_count": 3,
+      "total_before_vat": 185700.00,
+      "vat_7": 12999.00,
+      "total_amount": 198699.00,
+      "wht_3": 5571.00,
+      "net_payable": 193128.00,
+      "po_match_count": 3,
+      "unmatched_count": 0,
+      "status": "approved",
+      "cheque_due_date": "2569-06-05",
+      "invoices": [
+        {"inv_no": "INV-STP-2569-045", "date": "2569-04-18", "po_ref": "PO-2569-0140", "amount": 78800.00, "items": "ท่อ PVC + ข้อต่อ + กาวประปา", "match": true},
+        {"inv_no": "INV-STP-2569-051", "date": "2569-04-25", "po_ref": "PO-2569-0146", "amount": 56400.00, "items": "สายไฟ + ท่อ EMT + กล่องไฟฟ้า", "match": true},
+        {"inv_no": "INV-STP-2569-058", "date": "2569-05-01", "po_ref": "PO-2569-0153", "amount": 63499.00, "items": "สุขภัณฑ์ห้องน้ำ 2 ชุด", "match": true}
+      ]
+    },
+    {
+      "packet_id": "VB-25690505-003",
+      "billing_date": "2569-05-05",
+      "vendor_id": "V-005",
+      "vendor_name": "บ.ชลบุรีอึ้งย่งล้ง จำกัด",
+      "vendor_tax_id": "0205541004567",
+      "invoice_count": 2,
+      "total_before_vat": 198618.20,
+      "vat_7": 13903.27,
+      "total_amount": 212521.47,
+      "wht_3": 5958.55,
+      "net_payable": 206562.92,
+      "po_match_count": 2,
+      "unmatched_count": 0,
+      "status": "approved",
+      "cheque_due_date": "2569-06-05",
+      "invoices": [
+        {"inv_no": "INV-CLB-2569-022", "date": "2569-04-20", "po_ref": "PO-2569-0144", "amount": 125800.20, "items": "ไม้แบบ 200 แผ่น + ค้ำยัน", "match": true},
+        {"inv_no": "INV-CLB-2569-028", "date": "2569-04-30", "po_ref": "PO-2569-0151", "amount": 86721.27, "items": "ไม้โครง + ตะปู + น็อต", "match": true}
+      ]
+    },
+    {
+      "packet_id": "VB-25690505-004",
+      "billing_date": "2569-05-05",
+      "vendor_id": "V-008",
+      "vendor_name": "หจก.พี.เจ.ฮาร์ดแวร์ (2008)",
+      "vendor_tax_id": "0205541005678",
+      "invoice_count": 4,
+      "total_before_vat": 165000.00,
+      "vat_7": 11550.00,
+      "total_amount": 176550.00,
+      "wht_3": 4950.00,
+      "net_payable": 171600.00,
+      "po_match_count": 3,
+      "unmatched_count": 1,
+      "status": "review",
+      "cheque_due_date": "2569-06-05",
+      "invoices": [
+        {"inv_no": "INV-PJ-2569-097", "date": "2569-04-19", "po_ref": "PO-2569-0141", "amount": 42000.00, "items": "อุปกรณ์ฮาร์ดแวร์ 28 รายการ", "match": true},
+        {"inv_no": "INV-PJ-2569-101", "date": "2569-04-26", "po_ref": "PO-2569-0149", "amount": 38000.00, "items": "บานพับ + กลอน + ลูกบิด", "match": true},
+        {"inv_no": "INV-PJ-2569-104", "date": "2569-05-01", "po_ref": "PO-2569-0154", "amount": 54499.00, "items": "เหล็กกล่อง 1.5\" × 100 ท่อน", "match": false, "issue": "บิล 100 ท่อน แต่ GR รับ 98 ท่อน — ต่าง 2 ท่อน × ฿535 = ฿1,070"},
+        {"inv_no": "INV-PJ-2569-108", "date": "2569-05-03", "po_ref": "PO-2569-0157", "amount": 42051.00, "items": "อุปกรณ์ติดตั้งหลังคา", "match": true}
+      ]
+    },
+    {
+      "packet_id": "VB-25690505-005",
+      "billing_date": "2569-05-05",
+      "vendor_id": "V-011",
+      "vendor_name": "บ.คุงเจริญโลหะกิจ จำกัด",
+      "vendor_tax_id": "0205541006789",
+      "invoice_count": 1,
+      "total_before_vat": 99149.58,
+      "vat_7": 6940.47,
+      "total_amount": 106090.05,
+      "wht_3": 2974.49,
+      "net_payable": 103115.56,
+      "po_match_count": 1,
+      "unmatched_count": 0,
+      "status": "approved",
+      "cheque_due_date": "2569-06-05",
+      "invoices": [
+        {"inv_no": "INV-KJ-2569-031", "date": "2569-04-23", "po_ref": "PO-2569-0145", "amount": 106090.05, "items": "เหล็กรูปพรรณ + Profile โครงหลังคา", "match": true}
+      ]
+    }
+  ],
+  "vendors": [
+    {"id": "V-001", "name": "บ.ส.เจริญชัยค้าวัสดุก่อสร้าง", "specialty": "วัสดุก่อสร้าง", "credit_term": 30, "tax_id": "0105541000123", "bank": "SCB-xxx-1234"},
+    {"id": "V-002", "name": "บ.สุทธิพงศ์ค้าวัสดุก่อสร้าง", "specialty": "วัสดุก่อสร้าง", "credit_term": 30, "tax_id": "0205541003421", "bank": "K+-xxx-5678"},
+    {"id": "V-003", "name": "MegaHome", "specialty": "วัสดุครบครัน", "credit_term": 15, "tax_id": "0205541001111", "bank": "บัตรเครดิต"},
+    {"id": "V-004", "name": "บ.กังสดาล ค้าไม้ จำกัด", "specialty": "ไม้แปรรูป", "credit_term": 15, "tax_id": "0205541002222", "bank": "BBL-xxx-9012"},
+    {"id": "V-005", "name": "บ.ชลบุรีอึ้งย่งล้ง จำกัด", "specialty": "ไม้แบบ + โครง", "credit_term": 30, "tax_id": "0205541004567", "bank": "SCB-xxx-3456"},
+    {"id": "V-006", "name": "ศรีพโลค้าวัสดุ", "specialty": "วัสดุปลีกย่อย", "credit_term": 0, "tax_id": "0205541004001", "bank": "เงินสด"},
+    {"id": "V-007", "name": "CCA. (081-577-6613)", "specialty": "วัสดุก่อสร้าง", "credit_term": 30, "tax_id": "0205541004788", "bank": "SCB-xxx-7777"},
+    {"id": "V-008", "name": "หจก.พี.เจ.ฮาร์ดแวร์ (2008)", "specialty": "ฮาร์ดแวร์", "credit_term": 30, "tax_id": "0205541005678", "bank": "SCB-xxx-1111"},
+    {"id": "V-009", "name": "บ.ดับเบิ้ลยู พีเอ็นจิเนียริ่ง จำกัด", "specialty": "งานประปา", "credit_term": 30, "tax_id": "0205541008888", "bank": "K+-xxx-2222"},
+    {"id": "V-010", "name": "บ.เคลิ่อ ดี้เคิ่ล กรุ๊ป จำกัด", "specialty": "ตกแต่งภายใน", "credit_term": 30, "tax_id": "0205541009999", "bank": "BBL-xxx-3333"},
+    {"id": "V-011", "name": "บ.คุงเจริญโลหะกิจ จำกัด", "specialty": "เหล็กรูปพรรณ", "credit_term": 30, "tax_id": "0205541006789", "bank": "SCB-xxx-9988"}
+  ],
+  "discrepancies": [
+    {
+      "date_found": "2569-05-05",
+      "packet_id": "VB-25690505-004",
+      "vendor_name": "หจก.พี.เจ.ฮาร์ดแวร์ (2008)",
+      "document_type": "Invoice",
+      "ref_no": "INV-PJ-2569-104",
+      "issue_type": "qty_mismatch",
+      "description": "บิล 100 ท่อน แต่ GR รับจริง 98 ท่อน — vendor ลืมหัก 2 ท่อน",
+      "amount_impact": -1070.00,
+      "resolved": false
+    }
+  ]
+}

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vendor Billing · Finance V4</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+  .drop-zone.active { background: #fef3c7; border-color: #f59e0b; }
+</style>
+</head>
+<body class="text-stone-800">
+
+<!-- Header -->
+<header class="bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-stone-100">
+  <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="bg-white p-2 rounded-lg hover:scale-105 transition-transform">
+        <img src="assets/brand/logo-horizontal.png" alt="One Vela" class="h-10 w-auto"/>
+      </a>
+      <div>
+        <div class="text-[11px] uppercase tracking-[0.2em] text-amber-400">TWO BUILD · FINANCE V4 · MODULE 10</div>
+        <h1 class="serif text-2xl font-bold">📦 Vendor Billing</h1>
+        <div class="text-xs text-stone-400 mt-0.5">รับ Packet วันที่ 5 · 3-Way Match · ตารางเช็ค</div>
+      </div>
+    </div>
+    <nav class="flex items-center gap-1 text-xs">
+      <a href="index.html" class="px-3 py-1.5 rounded hover:bg-stone-800">🏠 Hub</a>
+      <button class="px-3 py-1.5 rounded bg-amber-600 text-white" onclick="switchView('packets')">📦 Packets</button>
+      <button class="px-3 py-1.5 rounded hover:bg-stone-800" onclick="switchView('cheque')">📋 ตารางเช็ค</button>
+      <button class="px-3 py-1.5 rounded hover:bg-stone-800" onclick="switchView('review')">⚠️ Review</button>
+      <button class="px-3 py-1.5 rounded hover:bg-stone-800" onclick="switchView('aging')">📊 Aging</button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- KPI Strip -->
+  <div class="grid grid-cols-4 gap-3 mb-6">
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">📥 Packet</div>
+      <div class="text-2xl font-bold text-amber-600 mt-1" id="k-packets">-</div>
+      <div class="text-[10px] text-stone-400" id="k-packets-sub">-</div>
+    </div>
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">💰 เช็คครบกำหนด</div>
+      <div class="text-2xl font-bold text-emerald-600 mt-1" id="k-cheque">-</div>
+      <div class="text-[10px] text-stone-400" id="k-cheque-sub">-</div>
+    </div>
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">⚠️ ติด Review</div>
+      <div class="text-2xl font-bold text-amber-700 mt-1" id="k-review">-</div>
+      <div class="text-[10px] text-stone-400" id="k-review-sub">-</div>
+    </div>
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">🏪 Vendors</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1" id="k-vendors">-</div>
+      <div class="text-[10px] text-stone-400" id="k-vendors-sub">-</div>
+    </div>
+  </div>
+
+  <!-- VIEW 1: Packets -->
+  <section id="view-packets" class="view">
+    <div class="bg-white border border-stone-200 rounded-2xl p-5 mb-5">
+      <div class="flex items-end justify-between mb-4">
+        <h2 class="serif text-xl text-stone-800">📦 Packets ทั้งหมด</h2>
+        <button onclick="openUpload()" class="px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700">+ รับ Packet ใหม่</button>
+      </div>
+      <div id="packets-table">⏳ กำลังโหลด...</div>
+    </div>
+  </section>
+
+  <!-- VIEW 2: Cheque Schedule -->
+  <section id="view-cheque" class="view hidden">
+    <div class="bg-white border border-stone-200 rounded-2xl p-5">
+      <h2 class="serif text-xl text-stone-800 mb-4">📋 ตารางเช็คที่ต้องออก</h2>
+      <div id="cheque-table">⏳ กำลังโหลด...</div>
+    </div>
+  </section>
+
+  <!-- VIEW 3: Discrepancy Review -->
+  <section id="view-review" class="view hidden">
+    <div class="bg-white border border-stone-200 rounded-2xl p-5">
+      <h2 class="serif text-xl text-stone-800 mb-4">⚠️ Discrepancy Review</h2>
+      <div id="disc-list">⏳ กำลังโหลด...</div>
+    </div>
+  </section>
+
+  <!-- VIEW 4: AP Aging -->
+  <section id="view-aging" class="view hidden">
+    <div class="grid grid-cols-5 gap-3 mb-5" id="aging-buckets">⏳ กำลังโหลด...</div>
+    <div class="bg-white border border-stone-200 rounded-2xl p-5">
+      <h2 class="serif text-xl text-stone-800 mb-4">📊 AP Aging — รายราย Vendor</h2>
+      <div id="aging-table">⏳ กำลังโหลด...</div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Upload Modal -->
+<div id="upload-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="serif text-xl font-bold">📥 รับ Packet ใหม่</h3>
+      <button onclick="closeUpload()" class="text-stone-400 hover:text-stone-700">✕</button>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div>
+        <label class="text-xs text-stone-500 mb-1 block">Vendor</label>
+        <select id="upload-vendor" class="w-full px-3 py-2 border border-stone-300 rounded text-sm"></select>
+      </div>
+      <div>
+        <label class="text-xs text-stone-500 mb-1 block">วันที่วางบิล (พ.ศ.)</label>
+        <input type="text" id="upload-date" placeholder="2569-06-05" class="w-full px-3 py-2 border border-stone-300 rounded text-sm"/>
+      </div>
+    </div>
+    <div id="upload-drop" class="drop-zone border-2 border-dashed border-stone-300 rounded-xl p-8 text-center cursor-pointer hover:bg-stone-50">
+      <div class="text-4xl mb-2">📄</div>
+      <div class="text-sm text-stone-700 font-semibold">ลากไฟล์ PO+GR+Invoice ที่นี่</div>
+      <div class="text-xs text-stone-500 mt-1">รองรับ PDF, JPG, PNG · ระบบ OCR + 3-way match อัตโนมัติ</div>
+    </div>
+    <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800">
+      🧪 <strong>Demo:</strong> กดปุ่ม
+      <button onclick="simulateDemo()" class="mx-1 px-2 py-1 bg-blue-600 text-white rounded font-semibold">จำลอง packet ส.เจริญชัย</button>
+      เพื่อดู flow
+    </div>
+    <div class="mt-5 flex justify-end gap-2">
+      <button onclick="closeUpload()" class="px-4 py-2 text-sm text-stone-600">ยกเลิก</button>
+      <button onclick="savePacket()" class="px-5 py-2 bg-amber-600 text-white text-sm font-semibold rounded">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script>
+let DATA = { packets: [], cheques: [], discrepancies: [], vendors: [] };
+let demoPacket = null;
+
+(async () => {
+  try {
+    const [packets, cheques, discs, vendors] = await Promise.all([
+      API.read('Vendor-Billing-Packets'),
+      API.read('Cheque-Schedule'),
+      API.read('Discrepancy-Log'),
+      API.getVendors()
+    ]);
+    DATA.packets = packets.rows || [];
+    DATA.cheques = cheques.rows || [];
+    DATA.discrepancies = discs.rows || [];
+    DATA.vendors = vendors.vendors || [];
+
+    populateVendorDropdown();
+    updateKPIs();
+    renderPackets();
+  } catch (err) {
+    alert('❌ API error: ' + err.message + '\n\nตรวจสอบว่า Apps Script API deploy เป็น Anyone access');
+  }
+})();
+
+function updateKPIs() {
+  const total = DATA.packets.reduce((s, p) => s + (Number(p.net_payable)||0), 0);
+  const review = DATA.packets.filter(p => p.status === 'review').length;
+  const vendors = new Set(DATA.packets.map(p => p.vendor_id)).size;
+  const invCount = DATA.packets.reduce((s, p) => s + (Number(p.invoice_count)||0), 0);
+
+  document.getElementById('k-packets').textContent = DATA.packets.length;
+  document.getElementById('k-packets-sub').textContent = invCount + ' บิล';
+  document.getElementById('k-cheque').textContent = fmt.money(total).replace('.00','');
+  document.getElementById('k-cheque-sub').textContent = DATA.packets.length + ' ใบ';
+  document.getElementById('k-review').textContent = review;
+  document.getElementById('k-review-sub').textContent = review > 0 ? 'ต้องคุย vendor' : 'ทุก packet ผ่าน';
+  document.getElementById('k-vendors').textContent = vendors;
+  document.getElementById('k-vendors-sub').textContent = 'จาก master ' + DATA.vendors.length + ' ราย';
+}
+
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  document.getElementById('view-' + name).classList.remove('hidden');
+  document.querySelectorAll('nav button').forEach(b => {
+    b.classList.remove('bg-amber-600','text-white');
+    b.classList.add('hover:bg-stone-800');
+  });
+  event.target.classList.add('bg-amber-600','text-white');
+  event.target.classList.remove('hover:bg-stone-800');
+  if (name === 'cheque') renderCheque();
+  else if (name === 'review') renderDiscrepancies();
+  else if (name === 'aging') renderAging();
+}
+
+function renderPackets() {
+  const sorted = [...DATA.packets].sort((a, b) => String(b.billing_date).localeCompare(String(a.billing_date)));
+  let html = '<table class="w-full text-sm"><thead class="bg-stone-50 border-b border-stone-200"><tr class="text-xs text-stone-600">' +
+    '<th class="px-3 py-2 text-left">Packet ID</th>' +
+    '<th class="px-3 py-2 text-left">วันที่</th>' +
+    '<th class="px-3 py-2 text-left">Vendor</th>' +
+    '<th class="px-3 py-2 text-right">บิล</th>' +
+    '<th class="px-3 py-2 text-right">รวม</th>' +
+    '<th class="px-3 py-2 text-right">VAT</th>' +
+    '<th class="px-3 py-2 text-right">WHT</th>' +
+    '<th class="px-3 py-2 text-right">Net Payable</th>' +
+    '<th class="px-3 py-2 text-center">สถานะ</th>' +
+    '<th class="px-3 py-2 text-left">เช็ค</th></tr></thead><tbody>';
+  sorted.forEach(p => {
+    html += '<tr class="border-t border-stone-100 hover:bg-stone-50">' +
+      '<td class="px-3 py-2 font-mono text-xs text-blue-600">' + p.packet_id + '</td>' +
+      '<td class="px-3 py-2 text-xs">' + fmt.thaiDate(p.billing_date) + '</td>' +
+      '<td class="px-3 py-2"><div class="font-semibold text-stone-800 text-sm">' + p.vendor_name + '</div><div class="text-[10px] text-stone-500">' + p.vendor_id + '</div></td>' +
+      '<td class="px-3 py-2 text-right">' + p.invoice_count + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-stone-600">' + fmt.money(p.total_amount) + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-blue-700">' + fmt.money(p.vat_7) + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-red-700">' + fmt.money(p.wht_3) + '</td>' +
+      '<td class="px-3 py-2 text-right font-bold text-emerald-700">' + fmt.money(p.net_payable) + '</td>' +
+      '<td class="px-3 py-2 text-center">' + fmt.statusBadge(p.status) + '</td>' +
+      '<td class="px-3 py-2 text-xs font-mono">' + (p.cheque_no || '-') + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('packets-table').innerHTML = html;
+}
+
+function renderCheque() {
+  const byDate = {};
+  DATA.packets.forEach(p => {
+    const dt = p.cheque_due_date || '?';
+    if (!byDate[dt]) byDate[dt] = [];
+    byDate[dt].push(p);
+  });
+  let html = '';
+  Object.keys(byDate).sort().forEach(date => {
+    const items = byDate[date];
+    const total = items.reduce((s, p) => s + (Number(p.net_payable)||0), 0);
+    html += '<div class="mb-5 border border-stone-200 rounded-xl overflow-hidden">' +
+      '<div class="bg-gradient-to-r from-amber-50 to-stone-50 px-4 py-3 border-b border-stone-200 flex items-center justify-between">' +
+      '<div><div class="text-xs text-stone-500">วันครบกำหนด</div><div class="font-bold">' + fmt.thaiDate(date) + '</div></div>' +
+      '<div class="text-right"><div class="text-xs text-stone-500">' + items.length + ' เช็ค</div>' +
+      '<div class="text-xl font-bold text-emerald-700">' + fmt.money(total) + '</div></div></div>' +
+      '<table class="w-full text-sm"><thead class="bg-stone-50"><tr class="text-xs"><th class="px-3 py-2 text-left">Vendor</th><th class="px-3 py-2 text-right">Net</th><th class="px-3 py-2 text-left">เลขเช็ค</th><th class="px-3 py-2 text-center">สถานะ</th></tr></thead><tbody>';
+    items.forEach(p => {
+      html += '<tr class="border-t border-stone-100"><td class="px-3 py-2 font-semibold text-sm">' + p.vendor_name + '</td>' +
+        '<td class="px-3 py-2 text-right font-bold text-emerald-700">' + fmt.money(p.net_payable) + '</td>' +
+        '<td class="px-3 py-2"><input type="text" class="w-24 px-2 py-1 border border-stone-200 rounded text-xs font-mono" value="' + (p.cheque_no||'') + '" placeholder="เลขเช็ค" onchange="saveCheque(\'' + p.packet_id + '\', this.value)"/></td>' +
+        '<td class="px-3 py-2 text-center">' + fmt.statusBadge(p.status) + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+  document.getElementById('cheque-table').innerHTML = html || '<div class="text-center text-stone-400 py-12">ไม่มีเช็ครอออก</div>';
+}
+
+function renderDiscrepancies() {
+  if (DATA.discrepancies.length === 0) {
+    document.getElementById('disc-list').innerHTML = '<div class="text-center text-stone-400 py-12">🎉 ไม่มี discrepancy</div>';
+    return;
+  }
+  let html = '';
+  DATA.discrepancies.forEach((d, i) => {
+    const resolved = d.resolved === 'yes' || d.resolved === true;
+    const color = resolved ? 'emerald' : 'amber';
+    html += '<div class="bg-' + color + '-50 border border-' + color + '-200 rounded-xl p-4 mb-3">' +
+      '<div class="flex justify-between mb-2"><div class="font-bold text-stone-800">' + d.vendor_name + ' · ' + d.ref_no + '</div>' +
+      '<div class="text-right"><div class="text-xs text-stone-500">ผลกระทบ</div><div class="font-bold text-red-700">' + fmt.money(d.amount_impact) + '</div></div></div>' +
+      '<div class="text-sm text-stone-700 mb-2">' + d.description + '</div>' +
+      (resolved
+        ? '<div class="text-xs text-emerald-700">✅ Resolved by ' + (d.resolved_by||'-') + ': ' + (d.resolution||'') + '</div>'
+        : '<div class="flex gap-2"><input type="text" id="res-' + i + '" placeholder="ระบุการแก้ไข" class="flex-1 px-3 py-1 border rounded text-xs"/>' +
+          '<button onclick="resolveDiscrepancy(' + i + ')" class="px-3 py-1 bg-emerald-600 text-white text-xs rounded">✓ Resolve</button></div>') +
+      '</div>';
+  });
+  document.getElementById('disc-list').innerHTML = html;
+}
+
+function renderAging() {
+  const TODAY = (new Date().getFullYear() + 543) + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-' + String(new Date().getDate()).padStart(2,'0');
+  const byVendor = {};
+  DATA.packets.filter(p => p.status !== 'paid').forEach(p => {
+    if (!byVendor[p.vendor_id]) {
+      const v = DATA.vendors.find(x => x.id === p.vendor_id);
+      byVendor[p.vendor_id] = { id: p.vendor_id, name: p.vendor_name, credit_term: v?.credit_term || 30,
+        current: 0, d_1_30: 0, d_31_60: 0, d_60_plus: 0, total: 0 };
+    }
+    const days = fmt.daysBetween(p.cheque_due_date, TODAY);
+    const amt = Number(p.net_payable) || 0;
+    const bk = byVendor[p.vendor_id];
+    bk.total += amt;
+    if (days < 0) bk.current += amt;
+    else if (days <= 30) bk.d_1_30 += amt;
+    else if (days <= 60) bk.d_31_60 += amt;
+    else bk.d_60_plus += amt;
+  });
+  const totals = { current:0, d_1_30:0, d_31_60:0, d_60_plus:0, total:0 };
+  Object.values(byVendor).forEach(v => { totals.current+=v.current; totals.d_1_30+=v.d_1_30; totals.d_31_60+=v.d_31_60; totals.d_60_plus+=v.d_60_plus; totals.total+=v.total; });
+
+  document.getElementById('aging-buckets').innerHTML =
+    `<div class="bg-white border border-stone-200 rounded-xl p-4 text-center"><div class="text-xs text-stone-500">รวม</div><div class="text-xl font-bold">${fmt.money(totals.total)}</div></div>` +
+    `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center"><div class="text-xs text-emerald-700">ยังไม่ถึง</div><div class="text-xl font-bold text-emerald-800">${fmt.money(totals.current)}</div></div>` +
+    `<div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center"><div class="text-xs text-blue-700">1-30 วัน</div><div class="text-xl font-bold text-blue-800">${fmt.money(totals.d_1_30)}</div></div>` +
+    `<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center"><div class="text-xs text-amber-700">31-60 วัน</div><div class="text-xl font-bold text-amber-800">${fmt.money(totals.d_31_60)}</div></div>` +
+    `<div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center"><div class="text-xs text-red-700">60+ วัน ⚠️</div><div class="text-xl font-bold text-red-800">${fmt.money(totals.d_60_plus)}</div></div>`;
+
+  const sorted = Object.values(byVendor).sort((a, b) => (b.d_60_plus + b.d_31_60) - (a.d_60_plus + a.d_31_60));
+  let html = '<table class="w-full text-sm"><thead class="bg-stone-50"><tr class="text-xs"><th class="px-3 py-2 text-left">Vendor</th><th class="px-3 py-2 text-right">รวม</th><th class="px-3 py-2 text-right">ยังไม่ถึง</th><th class="px-3 py-2 text-right">1-30</th><th class="px-3 py-2 text-right">31-60</th><th class="px-3 py-2 text-right">60+</th></tr></thead><tbody>';
+  sorted.forEach(v => {
+    html += '<tr class="border-t border-stone-100"><td class="px-3 py-2 font-semibold text-sm">' + v.name + '</td>' +
+      '<td class="px-3 py-2 text-right font-bold">' + fmt.money(v.total) + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-emerald-700">' + (v.current > 0 ? fmt.money(v.current) : '-') + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-blue-700">' + (v.d_1_30 > 0 ? fmt.money(v.d_1_30) : '-') + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-amber-700">' + (v.d_31_60 > 0 ? fmt.money(v.d_31_60) : '-') + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-red-700 font-semibold">' + (v.d_60_plus > 0 ? fmt.money(v.d_60_plus) : '-') + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('aging-table').innerHTML = html;
+}
+
+function populateVendorDropdown() {
+  const sel = document.getElementById('upload-vendor');
+  sel.innerHTML = '<option value="">— เลือก vendor —</option>';
+  DATA.vendors.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    opt.textContent = v.id + ' · ' + v.name;
+    sel.appendChild(opt);
+  });
+}
+
+function openUpload() {
+  document.getElementById('upload-modal').classList.remove('hidden');
+  const d = new Date();
+  document.getElementById('upload-date').value = (d.getFullYear()+543) + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function closeUpload() { document.getElementById('upload-modal').classList.add('hidden'); }
+
+function simulateDemo() {
+  demoPacket = {
+    packet_id: 'VB-' + Date.now().toString().slice(-8),
+    billing_date: document.getElementById('upload-date').value,
+    vendor_id: 'V-001',
+    vendor_name: 'บ.ส.เจริญชัยค้าวัสดุก่อสร้าง',
+    invoice_count: 1,
+    total_before_vat: 50000,
+    vat_7: 3500,
+    total_amount: 53500,
+    wht_3: 1500,
+    net_payable: 52000,
+    po_match_count: 1,
+    unmatched_count: 0,
+    status: 'approved',
+    cheque_due_date: '2569-07-05'
+  };
+  alert('✅ จำลอง packet พร้อม\nกด "บันทึก" เพื่อ append เข้า Google Sheet จริง');
+}
+
+async function savePacket() {
+  if (!demoPacket) { alert('กดปุ่ม "จำลอง" ก่อน'); return; }
+  const res = await API.append('Vendor-Billing-Packets', demoPacket);
+  if (res.ok) {
+    alert('✅ บันทึก Sheet สำเร็จ\nrow: ' + res.appendedRow);
+    closeUpload();
+    location.reload();
+  } else {
+    alert('❌ ' + res.error);
+  }
+}
+
+async function saveCheque(packetId, chequeNo) {
+  const res = await API.update('Cheque-Schedule', 'packet_ref', packetId, { cheque_no: chequeNo });
+  if (!res.ok) alert('Update failed: ' + res.error);
+}
+
+async function resolveDiscrepancy(idx) {
+  const d = DATA.discrepancies.filter(x => !(x.resolved === 'yes'))[idx];
+  const resolution = document.getElementById('res-' + idx).value.trim();
+  if (!resolution) { alert('ระบุการแก้ไขก่อน'); return; }
+  const res = await API.update('Discrepancy-Log', 'ref_no', d.ref_no, {
+    resolved: 'yes',
+    resolved_date: (new Date().getFullYear()+543) + '-' + String(new Date().getMonth()+1).padStart(2,'0') + '-' + String(new Date().getDate()).padStart(2,'0'),
+    resolved_by: 'Ice',
+    resolution: resolution
+  });
+  if (res.ok) location.reload();
+  else alert(res.error);
+}
+</script>
+
+</body>
+</html>

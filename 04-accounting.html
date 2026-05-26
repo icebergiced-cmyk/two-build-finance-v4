@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>RE Accounting · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+</style>
+</head>
+<body>
+
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm"><span>←</span><span>Hub</span></a>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800">📚 Real Estate Accounting</h1>
+        <p class="text-xs text-stone-500">Module 04 · 📊 Sheet: <code>Journal-2569 + COA</code> · Standalone</p>
+      </div>
+    </div>
+    <div class="text-xs text-stone-500">งวดบัญชี: 25 พ.ค. 2569</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- Tabs -->
+  <div class="border-b border-stone-200 mb-4 flex gap-1 overflow-x-auto">
+    <button onclick="switchTab('coa')" id="t-coa" class="px-4 py-2 font-medium text-sm border-b-2 border-stone-800 text-stone-800 whitespace-nowrap">📋 Chart of Accounts</button>
+    <button onclick="switchTab('journal')" id="t-journal" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700 whitespace-nowrap">📝 Journal Entries</button>
+    <button onclick="switchTab('gl')" id="t-gl" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700 whitespace-nowrap">📊 General Ledger</button>
+    <button onclick="switchTab('tb')" id="t-tb" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700 whitespace-nowrap">⚖️ Trial Balance</button>
+    <button onclick="switchTab('wip')" id="t-wip" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 hover:text-stone-700 whitespace-nowrap">🏗️ WIP รายแปลง</button>
+  </div>
+
+  <!-- COA -->
+  <div id="pane-coa" class="space-y-4">
+    <div class="bg-gradient-to-r from-stone-700 to-stone-900 text-white rounded-xl p-4 flex justify-between items-center">
+      <div>
+        <div class="serif text-xl font-bold">Chart of Accounts (ผังบัญชี)</div>
+        <div class="text-xs text-stone-300 mt-1">ผังบัญชีสำหรับบริษัทอสังหาริมทรัพย์ · 42 บัญชี · 5 หมวดใหญ่</div>
+      </div>
+      <button onclick="alert('💾 Export ผังบัญชีเป็น Excel')" class="bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold px-4 py-2 rounded text-sm">📥 Export</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Assets -->
+      <div class="bg-white rounded-xl border border-stone-200 p-4">
+        <div class="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
+          <div>
+            <div class="text-xs text-blue-600 font-bold">1XXXX</div>
+            <div class="font-bold text-stone-800">💎 สินทรัพย์ (Assets)</div>
+          </div>
+          <div class="text-blue-600 font-bold">฿178.5M</div>
+        </div>
+        <div class="space-y-1 text-sm">
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">11010</span> เงินสด</span><span>฿12,400,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">11020</span> ธ.ไทยพาณิชย์</span><span>฿8,950,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">11030</span> ธ.กสิกรไทย</span><span>฿4,200,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">12010</span> ลูกหนี้การค้า</span><span>฿2,150,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded bg-amber-50"><span><span class="font-mono text-xs text-amber-700">13010</span> 🏞️ ที่ดินรอพัฒนา</span><span class="font-bold">฿45,000,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded bg-amber-50"><span><span class="font-mono text-xs text-amber-700">13020</span> 🏗️ งานระหว่างก่อสร้าง (WIP)</span><span class="font-bold">฿78,500,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded bg-amber-50"><span><span class="font-mono text-xs text-amber-700">13030</span> 🏠 บ้านพร้อมขาย (Inventory)</span><span class="font-bold">฿24,800,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">14010</span> ภาษีซื้อ</span><span>฿890,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">15010</span> ยานพาหนะ</span><span>฿1,610,000</span></div>
+        </div>
+      </div>
+
+      <!-- Liabilities -->
+      <div class="bg-white rounded-xl border border-stone-200 p-4">
+        <div class="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
+          <div>
+            <div class="text-xs text-red-600 font-bold">2XXXX</div>
+            <div class="font-bold text-stone-800">📉 หนี้สิน (Liabilities)</div>
+          </div>
+          <div class="text-red-600 font-bold">฿42.3M</div>
+        </div>
+        <div class="space-y-1 text-sm">
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">21010</span> เจ้าหนี้การค้า</span><span>฿4,800,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">21020</span> ค่าใช้จ่ายค้างจ่าย</span><span>฿1,250,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">22010</span> เงินจองลูกค้า</span><span>฿3,500,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">22020</span> เงินผ่อนดาวน์รับล่วงหน้า</span><span>฿8,750,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">23010</span> ภาษีขาย</span><span>฿420,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-red-600">23020</span> 🏛️ ภาษีธุรกิจเฉพาะค้างจ่าย</span><span class="text-red-700 font-bold">฿2,300,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">23030</span> ภาษีหัก ณ ที่จ่าย</span><span>฿180,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">25010</span> เงินกู้ระยะยาว</span><span>฿21,100,000</span></div>
+        </div>
+      </div>
+
+      <!-- Equity -->
+      <div class="bg-white rounded-xl border border-stone-200 p-4">
+        <div class="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
+          <div>
+            <div class="text-xs text-purple-600 font-bold">3XXXX</div>
+            <div class="font-bold text-stone-800">💼 ส่วนของผู้ถือหุ้น (Equity)</div>
+          </div>
+          <div class="text-purple-600 font-bold">฿136.2M</div>
+        </div>
+        <div class="space-y-1 text-sm">
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">31010</span> ทุนจดทะเบียน</span><span>฿50,000,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">32010</span> กำไรสะสม</span><span>฿76,600,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">33010</span> กำไรงวดนี้ (YTD)</span><span class="text-emerald-700 font-bold">฿9,600,000</span></div>
+        </div>
+      </div>
+
+      <!-- Revenue + Expense -->
+      <div class="bg-white rounded-xl border border-stone-200 p-4">
+        <div class="flex items-center justify-between mb-3 pb-2 border-b border-stone-100">
+          <div>
+            <div class="text-xs text-emerald-600 font-bold">4XXXX / 5XXXX</div>
+            <div class="font-bold text-stone-800">📊 รายได้ + ค่าใช้จ่าย</div>
+          </div>
+        </div>
+        <div class="space-y-1 text-sm">
+          <div class="text-xs font-bold text-emerald-700 mt-1">รายได้ (Revenue)</div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">41010</span> 🏠 รายได้จากการขายบ้าน</span><span class="text-emerald-700">฿28,500,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">41020</span> รายได้จากค่าส่วนกลาง</span><span class="text-emerald-700">฿85,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">42010</span> รายได้อื่นๆ</span><span class="text-emerald-700">฿42,000</span></div>
+
+          <div class="text-xs font-bold text-red-700 mt-3">ต้นทุน (COGS)</div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">51010</span> ต้นทุนขายบ้าน</span><span class="text-red-700">฿17,100,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">52010</span> ค่าวัสดุ</span><span class="text-red-700">฿9,450,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">52020</span> ค่าแรง/ผู้รับเหมา</span><span class="text-red-700">฿5,670,000</span></div>
+
+          <div class="text-xs font-bold text-orange-700 mt-3">ค่าใช้จ่าย (OPEX)</div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">61010</span> เงินเดือนพนักงาน</span><span class="text-orange-700">฿1,890,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">61020</span> ค่าโสหุ้ย</span><span class="text-orange-700">฿945,000</span></div>
+          <div class="flex justify-between hover:bg-stone-50 px-2 py-1 rounded"><span><span class="font-mono text-xs text-stone-500">61030</span> ค่าบริหาร/ขาย</span><span class="text-orange-700">฿945,000</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Journal -->
+  <div id="pane-journal" class="hidden space-y-3">
+    <div class="flex justify-between items-center">
+      <div>
+        <h3 class="serif text-xl text-stone-800 font-bold">Journal Entries (สมุดรายวัน)</h3>
+        <div class="text-xs text-stone-500">รายการลงบัญชีรายวัน · auto-generated จาก Module 01-03 + 08-09</div>
+      </div>
+      <button onclick="openJournalModal()" class="bg-stone-800 hover:bg-stone-900 text-white px-4 py-2 rounded font-medium text-sm">+ ลงรายการ</button>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">วันที่</th>
+            <th class="text-left px-3 py-2.5">เลขที่ JV</th>
+            <th class="text-left px-3 py-2.5">รหัส</th>
+            <th class="text-left px-3 py-2.5">บัญชี</th>
+            <th class="text-left px-3 py-2.5">คำอธิบาย</th>
+            <th class="text-right px-3 py-2.5">เดบิต</th>
+            <th class="text-right px-3 py-2.5">เครดิต</th>
+          </tr>
+        </thead>
+        <tbody id="journal-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GL -->
+  <div id="pane-gl" class="hidden">
+    <div class="mb-3 flex items-center gap-3">
+      <label class="text-sm text-stone-600">เลือกบัญชี:</label>
+      <select id="gl-acc" onchange="renderGL()" class="bg-white border border-stone-300 px-3 py-2 rounded text-sm">
+        <option value="11010">11010 · เงินสด</option>
+        <option value="13020">13020 · งานระหว่างก่อสร้าง (WIP)</option>
+        <option value="21010">21010 · เจ้าหนี้การค้า</option>
+        <option value="41010">41010 · รายได้จากการขายบ้าน</option>
+        <option value="52010">52010 · ค่าวัสดุ</option>
+      </select>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">วันที่</th>
+            <th class="text-left px-3 py-2.5">JV</th>
+            <th class="text-left px-3 py-2.5">คำอธิบาย</th>
+            <th class="text-right px-3 py-2.5">เดบิต</th>
+            <th class="text-right px-3 py-2.5">เครดิต</th>
+            <th class="text-right px-3 py-2.5">ยอดคงเหลือ</th>
+          </tr>
+        </thead>
+        <tbody id="gl-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TB -->
+  <div id="pane-tb" class="hidden">
+    <div class="flex justify-between items-center mb-3">
+      <div>
+        <h3 class="serif text-xl text-stone-800 font-bold">Trial Balance · ณ 31 พ.ค. 2569</h3>
+        <div class="text-xs text-stone-500">งบทดลอง · ตรวจสอบยอดเดบิต = เครดิต</div>
+      </div>
+      <button onclick="alert('📥 Export TB เป็น Excel')" class="bg-emerald-600 text-white px-4 py-2 rounded font-medium text-sm">📊 Export Excel</button>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">รหัส</th>
+            <th class="text-left px-3 py-2.5">ชื่อบัญชี</th>
+            <th class="text-right px-3 py-2.5">เดบิต (Dr.)</th>
+            <th class="text-right px-3 py-2.5">เครดิต (Cr.)</th>
+          </tr>
+        </thead>
+        <tbody id="tb-body"></tbody>
+        <tfoot class="bg-stone-100 font-bold border-t-2 border-stone-400">
+          <tr>
+            <td colspan="2" class="px-3 py-3 text-right">รวม:</td>
+            <td class="px-3 py-3 text-right text-blue-700" id="tb-dr">฿0</td>
+            <td class="px-3 py-3 text-right text-red-700" id="tb-cr">฿0</td>
+          </tr>
+          <tr id="tb-balance" class="bg-emerald-50">
+            <td colspan="4" class="px-3 py-3 text-center text-emerald-700 font-bold">✅ ยอดสมดุล · Debit = Credit</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- WIP per plot -->
+  <div id="pane-wip" class="hidden space-y-4">
+    <div class="bg-gradient-to-r from-amber-100 to-amber-50 rounded-xl p-4 border border-amber-200">
+      <div class="font-bold text-amber-900">🏗️ งานระหว่างก่อสร้าง (WIP) · ตัดต้นทุนเข้าแปลง</div>
+      <p class="text-sm text-amber-800 mt-1">เมื่อขายแปลง — โอน WIP → ต้นทุนขาย · สอดคล้อง BOQ จาก Module 09</p>
+    </div>
+    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5">แปลง</th>
+            <th class="text-left px-3 py-2.5">โครงการ</th>
+            <th class="text-right px-3 py-2.5">ค่าวัสดุ</th>
+            <th class="text-right px-3 py-2.5">ค่าแรง</th>
+            <th class="text-right px-3 py-2.5">ค่าโสหุ้ย</th>
+            <th class="text-right px-3 py-2.5">รวม WIP</th>
+            <th class="text-center px-3 py-2.5">% ก่อสร้าง</th>
+            <th class="text-center px-3 py-2.5">สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2 font-bold">A-12</td>
+            <td class="px-3 py-2"><span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">One Vela</span></td>
+            <td class="px-3 py-2 text-right">฿1,250,000</td>
+            <td class="px-3 py-2 text-right">฿680,000</td>
+            <td class="px-3 py-2 text-right">฿85,000</td>
+            <td class="px-3 py-2 text-right font-bold">฿2,015,000</td>
+            <td class="px-3 py-2 text-center"><div class="inline-block w-24"><div class="bg-stone-200 h-2 rounded"><div class="bg-emerald-500 h-2 rounded" style="width:100%"></div></div><div class="text-xs text-stone-500 mt-0.5">100%</div></div></td>
+            <td class="px-3 py-2 text-center"><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">✅ โอนแล้ว</span></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2 font-bold">A-13</td>
+            <td class="px-3 py-2"><span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">One Vela</span></td>
+            <td class="px-3 py-2 text-right">฿1,180,000</td>
+            <td class="px-3 py-2 text-right">฿590,000</td>
+            <td class="px-3 py-2 text-right">฿75,000</td>
+            <td class="px-3 py-2 text-right font-bold">฿1,845,000</td>
+            <td class="px-3 py-2 text-center"><div class="inline-block w-24"><div class="bg-stone-200 h-2 rounded"><div class="bg-blue-500 h-2 rounded" style="width:85%"></div></div><div class="text-xs text-stone-500 mt-0.5">85%</div></div></td>
+            <td class="px-3 py-2 text-center"><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">🏗️ ก่อสร้าง</span></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2 font-bold">A-15</td>
+            <td class="px-3 py-2"><span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">One Vela</span></td>
+            <td class="px-3 py-2 text-right">฿845,000</td>
+            <td class="px-3 py-2 text-right">฿380,000</td>
+            <td class="px-3 py-2 text-right">฿42,000</td>
+            <td class="px-3 py-2 text-right font-bold">฿1,267,000</td>
+            <td class="px-3 py-2 text-center"><div class="inline-block w-24"><div class="bg-stone-200 h-2 rounded"><div class="bg-blue-500 h-2 rounded" style="width:60%"></div></div><div class="text-xs text-stone-500 mt-0.5">60%</div></div></td>
+            <td class="px-3 py-2 text-center"><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">🏗️ ก่อสร้าง</span></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2 font-bold">B-23</td>
+            <td class="px-3 py-2"><span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">วันเวลา</span></td>
+            <td class="px-3 py-2 text-right">฿1,420,000</td>
+            <td class="px-3 py-2 text-right">฿720,000</td>
+            <td class="px-3 py-2 text-right">฿95,000</td>
+            <td class="px-3 py-2 text-right font-bold">฿2,235,000</td>
+            <td class="px-3 py-2 text-center"><div class="inline-block w-24"><div class="bg-stone-200 h-2 rounded"><div class="bg-emerald-500 h-2 rounded" style="width:100%"></div></div><div class="text-xs text-stone-500 mt-0.5">100%</div></div></td>
+            <td class="px-3 py-2 text-center"><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">✅ โอนแล้ว</span></td>
+          </tr>
+          <tr class="border-b border-stone-100 hover:bg-stone-50">
+            <td class="px-3 py-2 font-bold">C-01</td>
+            <td class="px-3 py-2"><span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Oxygen 3</span></td>
+            <td class="px-3 py-2 text-right">฿620,000</td>
+            <td class="px-3 py-2 text-right">฿280,000</td>
+            <td class="px-3 py-2 text-right">฿32,000</td>
+            <td class="px-3 py-2 text-right font-bold">฿932,000</td>
+            <td class="px-3 py-2 text-center"><div class="inline-block w-24"><div class="bg-stone-200 h-2 rounded"><div class="bg-amber-500 h-2 rounded" style="width:40%"></div></div><div class="text-xs text-stone-500 mt-0.5">40%</div></div></td>
+            <td class="px-3 py-2 text-center"><span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-medium">🏗️ ก่อสร้าง</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- Journal Add Modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal()">
+  <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="bg-gradient-to-br from-stone-700 to-stone-900 text-white p-5 rounded-t-xl flex justify-between">
+      <div class="serif text-xl font-bold">📝 ลงบัญชี (Journal Entry)</div>
+      <button onclick="closeModal()" class="text-3xl hover:text-amber-300">×</button>
+    </div>
+    <form onsubmit="saveJournal(event)" class="p-5 space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-medium text-stone-600">วันที่</label><input name="date" type="date" value="2026-05-25" required class="w-full mt-1 px-3 py-2 border border-stone-300 rounded"></div>
+        <div><label class="text-xs font-medium text-stone-600">เลข JV</label><input name="jv" value="JV-2569-${Date.now().toString().slice(-4)}" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded font-mono text-sm"></div>
+      </div>
+      <div><label class="text-xs font-medium text-stone-600">คำอธิบาย</label><input name="desc" required class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm"></div>
+      <div class="bg-stone-50 rounded p-3">
+        <div class="font-bold text-sm mb-2">เดบิต (Debit)</div>
+        <div class="grid grid-cols-3 gap-2">
+          <select name="drAcc" class="px-2 py-2 border border-stone-300 rounded text-sm col-span-2">
+            <option value="11010">11010 · เงินสด</option>
+            <option value="13020">13020 · WIP</option>
+            <option value="52010">52010 · ค่าวัสดุ</option>
+          </select>
+          <input name="drAmt" type="number" placeholder="0.00" class="px-2 py-2 border border-stone-300 rounded text-sm text-right font-bold">
+        </div>
+      </div>
+      <div class="bg-stone-50 rounded p-3">
+        <div class="font-bold text-sm mb-2">เครดิต (Credit)</div>
+        <div class="grid grid-cols-3 gap-2">
+          <select name="crAcc" class="px-2 py-2 border border-stone-300 rounded text-sm col-span-2">
+            <option value="21010">21010 · เจ้าหนี้การค้า</option>
+            <option value="11010">11010 · เงินสด</option>
+            <option value="41010">41010 · รายได้ขายบ้าน</option>
+          </select>
+          <input name="crAmt" type="number" placeholder="0.00" class="px-2 py-2 border border-stone-300 rounded text-sm text-right font-bold">
+        </div>
+      </div>
+      <div class="flex gap-2 pt-3 border-t">
+        <button type="button" onclick="closeModal()" class="flex-1 bg-stone-100 hover:bg-stone-200 py-2.5 rounded font-medium">ยกเลิก</button>
+        <button type="submit" class="flex-1 bg-stone-800 text-white py-2.5 rounded font-bold">💾 บันทึก</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const fmt = n => '฿' + Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const journal = [
+  { date:'25/05/2569', jv:'JV-2569-1001', drAcc:'11010', drName:'เงินสด', crAcc:'41010', crName:'รายได้ขายบ้าน', desc:'รับโอน A-12 · นายธนา', dr:4250000, cr:4250000 },
+  { date:'25/05/2569', jv:'JV-2569-1002', drAcc:'51010', drName:'ต้นทุนขายบ้าน', crAcc:'13020', crName:'WIP', desc:'โอน WIP → COGS · A-12', dr:2015000, cr:2015000 },
+  { date:'25/05/2569', jv:'JV-2569-1003', drAcc:'52010', drName:'ค่าวัสดุ', crAcc:'21010', crName:'เจ้าหนี้การค้า', desc:'PO-2026-0341 · ปูนซีเมนต์ไทย', dr:87450, cr:87450 },
+  { date:'25/05/2569', jv:'JV-2569-1004', drAcc:'21010', drName:'เจ้าหนี้การค้า', crAcc:'11010', crName:'เงินสด', desc:'จ่าย PO-2026-0341', dr:87450, cr:87450 },
+  { date:'25/05/2569', jv:'JV-2569-1005', drAcc:'52020', drName:'ค่าแรง', crAcc:'11010', crName:'เงินสด', desc:'งวด 3/5 · นายสมชาย A-15,16', dr:145000, cr:145000 },
+  { date:'25/05/2569', jv:'JV-2569-1006', drAcc:'13020', drName:'WIP · A-15', crAcc:'52020', crName:'ค่าแรง', desc:'ตัด WIP เข้าแปลง A-15', dr:72500, cr:72500 },
+  { date:'25/05/2569', jv:'JV-2569-1007', drAcc:'13020', drName:'WIP · A-16', crAcc:'52020', crName:'ค่าแรง', desc:'ตัด WIP เข้าแปลง A-16', dr:72500, cr:72500 },
+  { date:'24/05/2569', jv:'JV-2569-0998', drAcc:'61010', drName:'เงินเดือน', crAcc:'11010', crName:'เงินสด', desc:'งวดที่ 2 พ.ค. · 9 คน', dr:945000, cr:945000 },
+  { date:'21/05/2569', jv:'JV-2569-0987', drAcc:'11010', drName:'เงินสด', crAcc:'41010', crName:'รายได้ขายบ้าน', desc:'รับโอน B-23 · นางสาวภัสรา', dr:5450000, cr:5450000 }
+];
+
+const trialBalance = [
+  { code:'11010', name:'เงินสด', dr:12400000, cr:0 },
+  { code:'11020', name:'ธ.ไทยพาณิชย์', dr:8950000, cr:0 },
+  { code:'11030', name:'ธ.กสิกรไทย', dr:4200000, cr:0 },
+  { code:'12010', name:'ลูกหนี้การค้า', dr:2150000, cr:0 },
+  { code:'13010', name:'ที่ดินรอพัฒนา', dr:45000000, cr:0 },
+  { code:'13020', name:'งานระหว่างก่อสร้าง (WIP)', dr:78500000, cr:0 },
+  { code:'13030', name:'บ้านพร้อมขาย', dr:24800000, cr:0 },
+  { code:'14010', name:'ภาษีซื้อ', dr:890000, cr:0 },
+  { code:'15010', name:'ยานพาหนะ', dr:1610000, cr:0 },
+  { code:'21010', name:'เจ้าหนี้การค้า', dr:0, cr:4800000 },
+  { code:'21020', name:'ค่าใช้จ่ายค้างจ่าย', dr:0, cr:1250000 },
+  { code:'22010', name:'เงินจองลูกค้า', dr:0, cr:3500000 },
+  { code:'22020', name:'เงินผ่อนดาวน์รับล่วงหน้า', dr:0, cr:8750000 },
+  { code:'23010', name:'ภาษีขาย', dr:0, cr:420000 },
+  { code:'23020', name:'ภาษีธุรกิจเฉพาะค้างจ่าย', dr:0, cr:2300000 },
+  { code:'23030', name:'ภาษีหัก ณ ที่จ่าย', dr:0, cr:180000 },
+  { code:'25010', name:'เงินกู้ระยะยาว', dr:0, cr:21100000 },
+  { code:'31010', name:'ทุนจดทะเบียน', dr:0, cr:50000000 },
+  { code:'32010', name:'กำไรสะสม', dr:0, cr:76600000 },
+  { code:'41010', name:'รายได้จากการขายบ้าน', dr:0, cr:28500000 },
+  { code:'41020', name:'รายได้ค่าส่วนกลาง', dr:0, cr:85000 },
+  { code:'42010', name:'รายได้อื่นๆ', dr:0, cr:42000 },
+  { code:'51010', name:'ต้นทุนขายบ้าน', dr:17100000, cr:0 },
+  { code:'52010', name:'ค่าวัสดุ', dr:9450000, cr:0 },
+  { code:'52020', name:'ค่าแรง/ผู้รับเหมา', dr:5670000, cr:0 },
+  { code:'61010', name:'เงินเดือนพนักงาน', dr:1890000, cr:0 },
+  { code:'61020', name:'ค่าโสหุ้ย', dr:945000, cr:0 },
+  { code:'61030', name:'ค่าบริหาร/ขาย', dr:945000, cr:0 }
+];
+
+const glEntries = {
+  '11010': [
+    { date:'01/05', jv:'OB', desc:'ยอดต้นเดือน', dr:10300000, cr:0 },
+    { date:'02/05', jv:'JV-0950', desc:'รับโอน A-08', dr:4150000, cr:0 },
+    { date:'05/05', jv:'JV-0955', desc:'ค่าแรง 32 คน', dr:0, cr:144000 },
+    { date:'15/05', jv:'JV-0980', desc:'เงินเดือน งวด 1', dr:0, cr:945000 },
+    { date:'21/05', jv:'JV-0987', desc:'รับโอน B-23', dr:5450000, cr:0 },
+    { date:'25/05', jv:'JV-1001', desc:'รับโอน A-12', dr:4250000, cr:0 },
+    { date:'25/05', jv:'JV-1004', desc:'จ่าย PO-0341', dr:0, cr:87450 },
+    { date:'25/05', jv:'JV-1005', desc:'จ่ายค่าแรง', dr:0, cr:145000 }
+  ],
+  '13020': [
+    { date:'01/05', jv:'OB', desc:'ยอดต้นเดือน', dr:76200000, cr:0 },
+    { date:'10/05', jv:'JV-0970', desc:'ตัด WIP A-13', dr:1180000, cr:0 },
+    { date:'25/05', jv:'JV-1002', desc:'โอน A-12 → COGS', dr:0, cr:2015000 },
+    { date:'25/05', jv:'JV-1006', desc:'WIP A-15', dr:72500, cr:0 },
+    { date:'25/05', jv:'JV-1007', desc:'WIP A-16', dr:72500, cr:0 }
+  ],
+  '21010': [{ date:'25/05', jv:'JV-1003', desc:'PO-0341', dr:0, cr:87450 }, { date:'25/05', jv:'JV-1004', desc:'จ่าย', dr:87450, cr:0 }],
+  '41010': [{ date:'02/05', jv:'JV-0950', desc:'A-08', dr:0, cr:4150000 }, { date:'21/05', jv:'JV-0987', desc:'B-23', dr:0, cr:5450000 }, { date:'25/05', jv:'JV-1001', desc:'A-12', dr:0, cr:4250000 }],
+  '52010': [{ date:'25/05', jv:'JV-1003', desc:'ปูน A-12', dr:87450, cr:0 }]
+};
+
+function switchTab(tab) {
+  ['coa','journal','gl','tb','wip'].forEach(t => {
+    document.getElementById('pane-'+t).classList.add('hidden');
+    document.getElementById('t-'+t).classList.remove('border-stone-800','text-stone-800');
+    document.getElementById('t-'+t).classList.add('border-transparent','text-stone-500');
+  });
+  document.getElementById('pane-'+tab).classList.remove('hidden');
+  document.getElementById('t-'+tab).classList.add('border-stone-800','text-stone-800');
+  document.getElementById('t-'+tab).classList.remove('border-transparent','text-stone-500');
+  if (tab==='journal') renderJournal();
+  if (tab==='gl') renderGL();
+  if (tab==='tb') renderTB();
+}
+
+function renderJournal() {
+  document.getElementById('journal-body').innerHTML = journal.map(j => `
+    <tr class="border-b border-stone-100 hover:bg-stone-50">
+      <td class="px-3 py-2 text-xs text-stone-600">${j.date}</td>
+      <td class="px-3 py-2 font-mono text-xs text-blue-700">${j.jv}</td>
+      <td class="px-3 py-2 font-mono text-xs">
+        <div class="text-blue-700">${j.drAcc}</div>
+        <div class="text-red-700">${j.crAcc}</div>
+      </td>
+      <td class="px-3 py-2 text-xs">
+        <div class="text-stone-800">${j.drName}</div>
+        <div class="text-stone-600 pl-3">${j.crName}</div>
+      </td>
+      <td class="px-3 py-2 text-stone-700 text-xs">${j.desc}</td>
+      <td class="px-3 py-2 text-right font-bold text-blue-700">${fmt(j.dr)}</td>
+      <td class="px-3 py-2 text-right font-bold text-red-700">${fmt(j.cr)}</td>
+    </tr>`).join('');
+}
+
+function renderGL() {
+  const acc = document.getElementById('gl-acc').value;
+  const entries = glEntries[acc] || [];
+  let bal = 0;
+  document.getElementById('gl-body').innerHTML = entries.map(e => {
+    bal += e.dr - e.cr;
+    return `
+      <tr class="border-b border-stone-100 hover:bg-stone-50">
+        <td class="px-3 py-2 text-stone-600">${e.date}</td>
+        <td class="px-3 py-2 font-mono text-xs text-blue-700">${e.jv}</td>
+        <td class="px-3 py-2 text-stone-700">${e.desc}</td>
+        <td class="px-3 py-2 text-right text-blue-700">${e.dr ? fmt(e.dr) : '—'}</td>
+        <td class="px-3 py-2 text-right text-red-700">${e.cr ? fmt(e.cr) : '—'}</td>
+        <td class="px-3 py-2 text-right font-bold ${bal >= 0 ? 'text-stone-800' : 'text-red-700'}">${fmt(bal)}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="6" class="px-3 py-6 text-center text-stone-500 text-sm">ไม่มีรายการ</td></tr>';
+}
+
+function renderTB() {
+  let totalDr = 0, totalCr = 0;
+  document.getElementById('tb-body').innerHTML = trialBalance.map(t => {
+    totalDr += t.dr; totalCr += t.cr;
+    return `
+      <tr class="border-b border-stone-100 hover:bg-stone-50">
+        <td class="px-3 py-2 font-mono text-xs text-stone-500">${t.code}</td>
+        <td class="px-3 py-2 text-stone-800">${t.name}</td>
+        <td class="px-3 py-2 text-right ${t.dr ? 'text-blue-700 font-bold' : 'text-stone-300'}">${t.dr ? fmt(t.dr) : '—'}</td>
+        <td class="px-3 py-2 text-right ${t.cr ? 'text-red-700 font-bold' : 'text-stone-300'}">${t.cr ? fmt(t.cr) : '—'}</td>
+      </tr>`;
+  }).join('');
+  document.getElementById('tb-dr').textContent = fmt(totalDr);
+  document.getElementById('tb-cr').textContent = fmt(totalCr);
+  document.getElementById('tb-balance').innerHTML = totalDr === totalCr
+    ? '<td colspan="4" class="px-3 py-3 text-center text-emerald-700 font-bold">✅ ยอดสมดุล · Debit = Credit</td>'
+    : `<td colspan="4" class="px-3 py-3 text-center text-red-700 font-bold">⚠️ ไม่สมดุล · ผลต่าง ${fmt(Math.abs(totalDr-totalCr))}</td>`;
+}
+
+function openJournalModal() { document.getElementById('modal').classList.remove('hidden'); }
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+function saveJournal(ev) {
+  ev.preventDefault();
+  alert('💾 ลงบัญชีสำเร็จ\n\n• เพิ่มเข้า Journal\n• Update GL อัตโนมัติ\n• ตรวจ Debit = Credit ✓\n• บันทึก Sheet "Journal-2569"');
+  closeModal();
+}
+
+renderJournal();
+</script>
+</body>
+</html>

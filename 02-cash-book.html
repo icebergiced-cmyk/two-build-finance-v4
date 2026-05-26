@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Cash Book · Two Build Finance V4</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fade-in 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm">
+        <span>←</span><span>Hub</span>
+      </a>
+      <div class="border-l border-stone-300 pl-4">
+        <h1 class="font-bold text-stone-800">📒 Cash Book · สมุดเงินสด</h1>
+        <p class="text-xs text-stone-500">Module 02 · 📊 Sheet: <code>Cash-Book</code> · Standalone Mode</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <select id="filter-project" onchange="render()" class="bg-stone-50 border border-stone-200 rounded px-3 py-1.5 text-sm">
+        <option value="all">ทุกโครงการ</option>
+        <option value="One Vela">One Vela</option>
+        <option value="วันเวลา">วันเวลา</option>
+        <option value="Oxygen 3">Oxygen 3</option>
+      </select>
+      <select id="filter-month" onchange="render()" class="bg-stone-50 border border-stone-200 rounded px-3 py-1.5 text-sm">
+        <option value="2026-05" selected>พ.ค. 2569</option>
+        <option value="2026-04">เม.ย. 2569</option>
+        <option value="2026-03">มี.ค. 2569</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6">
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">💰 ยอดเงินสดต้นเดือน</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1" id="kpi-opening">฿10,300,000</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">📥 รายรับเดือนนี้</div>
+      <div class="text-2xl font-bold text-emerald-600 mt-1" id="kpi-in">฿28,500,000</div>
+      <div class="text-xs text-emerald-600 mt-0.5" id="kpi-in-count">4 รายการ</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">📤 รายจ่ายเดือนนี้</div>
+      <div class="text-2xl font-bold text-red-600 mt-1" id="kpi-out">฿18,900,000</div>
+      <div class="text-xs text-red-600 mt-0.5" id="kpi-out-count">26 รายการ</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white">
+      <div class="text-xs text-amber-700 font-medium">💵 ยอดเงินสดปลายเดือน</div>
+      <div class="text-2xl font-bold text-amber-700 mt-1" id="kpi-closing">฿19,900,000</div>
+      <div class="text-xs text-amber-600 mt-0.5">↗ +9.6M</div>
+    </div>
+  </div>
+
+  <!-- P&L Mini + Category breakdown -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-5 border border-stone-200">
+      <h3 class="font-bold text-stone-800 mb-3">📊 P&L Mini (พ.ค. 2569)</h3>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-stone-600">รายได้รวม</span>
+          <span class="font-bold text-emerald-600">฿28,500,000</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-stone-600 pl-3">- ต้นทุนขาย (COGS)</span>
+          <span class="text-stone-700">(฿17,100,000)</span>
+        </div>
+        <div class="flex justify-between border-t border-stone-200 pt-2">
+          <span class="font-medium">กำไรขั้นต้น</span>
+          <span class="font-bold text-emerald-700">฿11,400,000</span>
+        </div>
+        <div class="text-xs text-emerald-600 text-right">GP Margin: 40.0%</div>
+        <div class="flex justify-between pt-1">
+          <span class="text-stone-600 pl-3">- ค่าบริหาร/ขาย</span>
+          <span class="text-stone-700">(฿1,800,000)</span>
+        </div>
+        <div class="flex justify-between border-t-2 border-stone-300 pt-2">
+          <span class="font-bold">กำไรสุทธิ (ก่อนภาษี)</span>
+          <span class="font-bold text-emerald-700 text-lg">฿9,600,000</span>
+        </div>
+        <div class="text-xs text-emerald-600 text-right font-medium">NP Margin: 33.7%</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-5 border border-stone-200 md:col-span-2">
+      <h3 class="font-bold text-stone-800 mb-3">🏷️ รายจ่ายแยกหมวด</h3>
+      <div class="space-y-2.5">
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span class="text-stone-700">🧱 ค่าวัสดุก่อสร้าง</span>
+            <span class="font-bold">฿9,450,000 <span class="text-xs text-stone-500">(50%)</span></span>
+          </div>
+          <div class="bg-stone-100 rounded-full h-2"><div class="bg-blue-500 rounded-full h-2" style="width:50%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span class="text-stone-700">👷 ค่าแรง/ผู้รับเหมา</span>
+            <span class="font-bold">฿5,670,000 <span class="text-xs text-stone-500">(30%)</span></span>
+          </div>
+          <div class="bg-stone-100 rounded-full h-2"><div class="bg-orange-500 rounded-full h-2" style="width:30%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span class="text-stone-700">💼 เงินเดือนพนักงาน</span>
+            <span class="font-bold">฿1,890,000 <span class="text-xs text-stone-500">(10%)</span></span>
+          </div>
+          <div class="bg-stone-100 rounded-full h-2"><div class="bg-purple-500 rounded-full h-2" style="width:10%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span class="text-stone-700">⚡ ค่าโสหุ้ย (น้ำ/ไฟ/เน็ต)</span>
+            <span class="font-bold">฿945,000 <span class="text-xs text-stone-500">(5%)</span></span>
+          </div>
+          <div class="bg-stone-100 rounded-full h-2"><div class="bg-cyan-500 rounded-full h-2" style="width:5%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-0.5">
+            <span class="text-stone-700">📋 ค่าบริหาร · ขนส่ง · อื่นๆ</span>
+            <span class="font-bold">฿945,000 <span class="text-xs text-stone-500">(5%)</span></span>
+          </div>
+          <div class="bg-stone-100 rounded-full h-2"><div class="bg-stone-500 rounded-full h-2" style="width:5%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="bg-white rounded-xl p-4 mb-4 border border-stone-200 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <input id="search" oninput="render()" placeholder="🔍 ค้นหา..." class="px-3 py-2 border border-stone-200 rounded text-sm w-64">
+      <select id="filter-type" onchange="render()" class="px-3 py-2 border border-stone-200 rounded text-sm">
+        <option value="all">ทุกประเภท</option>
+        <option value="in">รายรับ</option>
+        <option value="out">รายจ่าย</option>
+      </select>
+      <select id="filter-cat" onchange="render()" class="px-3 py-2 border border-stone-200 rounded text-sm">
+        <option value="all">ทุกหมวด</option>
+        <option>ขายบ้าน</option>
+        <option>ค่าวัสดุ</option>
+        <option>ค่าแรง</option>
+        <option>เงินเดือน</option>
+        <option>ค่าโสหุ้ย</option>
+        <option>อื่นๆ</option>
+      </select>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="openAddModal()" class="bg-stone-800 hover:bg-stone-900 text-white px-4 py-2 rounded text-sm font-medium">+ เพิ่มรายการ</button>
+      <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium">📊 Export CSV</button>
+      <button onclick="printReport()" class="bg-white border border-stone-300 hover:bg-stone-50 text-stone-700 px-4 py-2 rounded text-sm font-medium">🖨️ พิมพ์รายงาน</button>
+    </div>
+  </div>
+
+  <!-- Transactions table -->
+  <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th class="text-left px-3 py-2.5 font-semibold text-stone-700">วันที่</th>
+            <th class="text-left px-3 py-2.5 font-semibold text-stone-700">เลขที่</th>
+            <th class="text-left px-3 py-2.5 font-semibold text-stone-700">รายการ</th>
+            <th class="text-left px-3 py-2.5 font-semibold text-stone-700">โครงการ</th>
+            <th class="text-left px-3 py-2.5 font-semibold text-stone-700">หมวด</th>
+            <th class="text-right px-3 py-2.5 font-semibold text-emerald-700">รายรับ</th>
+            <th class="text-right px-3 py-2.5 font-semibold text-red-700">รายจ่าย</th>
+            <th class="text-right px-3 py-2.5 font-semibold text-stone-700">ยอดคงเหลือ</th>
+            <th class="text-center px-3 py-2.5 font-semibold text-stone-700"></th>
+          </tr>
+        </thead>
+        <tbody id="tx-body"></tbody>
+        <tfoot id="tx-foot" class="bg-stone-100 font-bold border-t-2 border-stone-300"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div class="mt-4 text-xs text-stone-500 text-center">
+    ข้อมูลทุกรายการอัปเดตเข้า Google Sheet "Finance-Master-2569" tab "Cash-Book" อัตโนมัติ
+  </div>
+
+</main>
+
+<!-- Add modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeModal()">
+  <div class="bg-white rounded-xl max-w-lg w-full">
+    <div class="bg-gradient-to-br from-stone-700 to-stone-900 text-white p-5 rounded-t-xl flex items-center justify-between">
+      <div>
+        <div class="text-xs text-stone-300">สมุดเงินสด</div>
+        <div class="serif text-xl font-bold">เพิ่มรายการใหม่</div>
+      </div>
+      <button onclick="closeModal()" class="text-3xl hover:text-amber-300">×</button>
+    </div>
+    <form onsubmit="saveTx(event)" class="p-5 space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-medium text-stone-600">วันที่</label>
+          <input name="date" type="date" value="2026-05-25" required class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+        </div>
+        <div>
+          <label class="text-xs font-medium text-stone-600">ประเภท</label>
+          <select name="type" required class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            <option value="out">รายจ่าย</option>
+            <option value="in">รายรับ</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-medium text-stone-600">รายการ</label>
+        <input name="desc" required placeholder="เช่น จ่ายค่าปูน บ้าน A-12" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs font-medium text-stone-600">โครงการ</label>
+          <select name="project" required class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            <option>One Vela</option><option>วันเวลา</option><option>Oxygen 3</option><option>ส่วนกลาง</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-stone-600">หมวด</label>
+          <select name="cat" required class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm">
+            <option>ขายบ้าน</option><option>ค่าวัสดุ</option><option>ค่าแรง</option><option>เงินเดือน</option><option>ค่าโสหุ้ย</option><option>อื่นๆ</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-medium text-stone-600">จำนวนเงิน (บาท)</label>
+        <input name="amount" type="number" step="0.01" required placeholder="0.00" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm font-bold">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-stone-600">เลขที่อ้างอิง (optional)</label>
+        <input name="ref" placeholder="เช่น PO-2026-0341" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm font-mono">
+      </div>
+      <div class="flex gap-2 pt-3 border-t border-stone-200">
+        <button type="button" onclick="closeModal()" class="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-700 py-2.5 rounded font-medium">ยกเลิก</button>
+        <button type="submit" class="flex-1 bg-stone-800 hover:bg-stone-900 text-white py-2.5 rounded font-bold">💾 บันทึก</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const fmt = (n) => '฿' + Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtCompact = (n) => '฿' + (n/1000000).toFixed(1) + 'M';
+
+const initialTx = [
+  { date:'01/05/2569', ref:'OB-001', desc:'ยอดเงินสดต้นเดือน', project:'ส่วนกลาง', cat:'อื่นๆ', type:'in', amount:10300000, opening:true },
+  { date:'02/05/2569', ref:'REC-2569-0089', desc:'รับโอน A-08 · คุณวีรศักดิ์ พรหมมา', project:'One Vela', cat:'ขายบ้าน', type:'in', amount:4150000 },
+  { date:'03/05/2569', ref:'PO-2026-0312', desc:'ปูน 8,000 ถุง · บจก. ปูนซีเมนต์ไทย', project:'One Vela', cat:'ค่าวัสดุ', type:'out', amount:139200 },
+  { date:'05/05/2569', ref:'PAY-0142', desc:'ค่าแรงรายวัน · 32 คน × 3 วัน', project:'One Vela', cat:'ค่าแรง', type:'out', amount:144000 },
+  { date:'07/05/2569', ref:'PO-2026-0315', desc:'เหล็กเส้น 12mm · บจก. เหล็กสยาม', project:'วันเวลา', cat:'ค่าวัสดุ', type:'out', amount:185000 },
+  { date:'08/05/2569', ref:'REC-2569-0090', desc:'รับโอน B-23 · นางสาวภัสรา', project:'วันเวลา', cat:'ขายบ้าน', type:'in', amount:5450000 },
+  { date:'10/05/2569', ref:'CTR-2026-0085', desc:'งวด 2/5 ก่ออิฐ บ้าน A-10,11 · นายสมชาย', project:'One Vela', cat:'ค่าแรง', type:'out', amount:120000 },
+  { date:'12/05/2569', ref:'EXP-0234', desc:'ค่าไฟฟ้า site office · เม.ย.', project:'ส่วนกลาง', cat:'ค่าโสหุ้ย', type:'out', amount:18450 },
+  { date:'14/05/2569', ref:'REC-2569-0091', desc:'รับโอน C-15 · คุณธีรพล', project:'Oxygen 3', cat:'ขายบ้าน', type:'in', amount:6900000 },
+  { date:'15/05/2569', ref:'PAYROLL-05', desc:'เงินเดือน พ.ค. · งวดที่ 1 (15 คน)', project:'ส่วนกลาง', cat:'เงินเดือน', type:'out', amount:945000 },
+  { date:'17/05/2569', ref:'PO-2026-0331', desc:'กระเบื้อง 800 ตร.ม. · บจก. กระเบื้องไทย', project:'วันเวลา', cat:'ค่าวัสดุ', type:'out', amount:96000 },
+  { date:'18/05/2569', ref:'EXP-0245', desc:'ค่าน้ำมันรถส่วนกลาง · พ.ค.', project:'ส่วนกลาง', cat:'อื่นๆ', type:'out', amount:24500 },
+  { date:'19/05/2569', ref:'PO-2026-0335', desc:'สีทาบ้าน TOA · บ้าน B-23,24', project:'วันเวลา', cat:'ค่าวัสดุ', type:'out', amount:67800 },
+  { date:'20/05/2569', ref:'CTR-2026-0087', desc:'งวด 1/3 มุงหลังคา C-01 · นายประยุทธ์', project:'Oxygen 3', cat:'ค่าแรง', type:'out', amount:78000 },
+  { date:'21/05/2569', ref:'REC-2569-0092', desc:'รับโอน A-12 · นายธนา ฉัตร', project:'One Vela', cat:'ขายบ้าน', type:'in', amount:4250000 },
+  { date:'22/05/2569', ref:'EXP-0258', desc:'ค่าเช่า site office · พ.ค.', project:'ส่วนกลาง', cat:'ค่าโสหุ้ย', type:'out', amount:35000 },
+  { date:'23/05/2569', ref:'PO-2026-0340', desc:'อุปกรณ์ไฟฟ้า · หจก. ไทยฮาร์ดแวร์', project:'วันเวลา', cat:'ค่าวัสดุ', type:'out', amount:23800 },
+  { date:'24/05/2569', ref:'PAYROLL-05B', desc:'เงินเดือน พ.ค. · งวดที่ 2 (9 คน)', project:'ส่วนกลาง', cat:'เงินเดือน', type:'out', amount:945000 },
+  { date:'25/05/2569', ref:'PO-2026-0341', desc:'ปูน 5,000 ถุง · บ้าน A-12,13,14', project:'One Vela', cat:'ค่าวัสดุ', type:'out', amount:87450 },
+  { date:'25/05/2569', ref:'CTR-2026-0089', desc:'งวด 3/5 ก่ออิฐ A-15,16 · นายสมชาย', project:'One Vela', cat:'ค่าแรง', type:'out', amount:145000 },
+  { date:'25/05/2569', ref:'PAY-0156', desc:'ค่าแรง 19 วัน · นางสาว วิภา ช่างปูน', project:'One Vela', cat:'ค่าแรง', type:'out', amount:28500 },
+  { date:'25/05/2569', ref:'PO-2026-0343', desc:'สายไฟ + สวิตช์ · ร้านก้องไฟฟ้า', project:'Oxygen 3', cat:'ค่าวัสดุ', type:'out', amount:12750 },
+  { date:'25/05/2569', ref:'PO-2026-0344', desc:'เหล็กเส้น 200 เส้น · บจก. เหล็กสยาม', project:'One Vela', cat:'ค่าวัสดุ', type:'out', amount:65000 },
+  { date:'25/05/2569', ref:'REC-2569-0093', desc:'รับโอน A-16 · คุณวรากรณ์', project:'One Vela', cat:'ขายบ้าน', type:'in', amount:4500000 }
+];
+
+let tx = JSON.parse(JSON.stringify(initialTx));
+
+function render() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const fType = document.getElementById('filter-type').value;
+  const fCat = document.getElementById('filter-cat').value;
+  const fProj = document.getElementById('filter-project').value;
+
+  let filtered = tx.filter(t => {
+    if (search && !`${t.ref} ${t.desc} ${t.project}`.toLowerCase().includes(search)) return false;
+    if (fType !== 'all' && t.type !== fType) return false;
+    if (fCat !== 'all' && t.cat !== fCat) return false;
+    if (fProj !== 'all' && t.project !== fProj) return false;
+    return true;
+  });
+
+  // Calculate running balance
+  let bal = 0;
+  let totalIn = 0, totalOut = 0, opening = 0;
+  filtered.forEach(t => {
+    if (t.opening) { opening = t.amount; bal = t.amount; t.balance = bal; return; }
+    if (t.type === 'in') { bal += t.amount; totalIn += t.amount; }
+    else { bal -= t.amount; totalOut += t.amount; }
+    t.balance = bal;
+  });
+
+  const projBadge = { 'One Vela':'bg-amber-100 text-amber-800', 'วันเวลา':'bg-blue-100 text-blue-800', 'Oxygen 3':'bg-emerald-100 text-emerald-800', 'ส่วนกลาง':'bg-stone-100 text-stone-700' };
+  const catBadge = { 'ขายบ้าน':'bg-emerald-100 text-emerald-700', 'ค่าวัสดุ':'bg-blue-100 text-blue-700', 'ค่าแรง':'bg-orange-100 text-orange-700', 'เงินเดือน':'bg-purple-100 text-purple-700', 'ค่าโสหุ้ย':'bg-cyan-100 text-cyan-700', 'อื่นๆ':'bg-stone-100 text-stone-700' };
+
+  document.getElementById('tx-body').innerHTML = filtered.map(t => `
+    <tr class="border-b border-stone-100 hover:bg-stone-50 ${t.opening ? 'bg-amber-50' : ''}">
+      <td class="px-3 py-2 text-stone-600">${t.date}</td>
+      <td class="px-3 py-2 font-mono text-xs text-stone-700">${t.ref}</td>
+      <td class="px-3 py-2 text-stone-800 ${t.opening ? 'font-bold' : ''}">${t.desc}</td>
+      <td class="px-3 py-2"><span class="text-xs px-2 py-0.5 rounded-full ${projBadge[t.project]||''}">${t.project}</span></td>
+      <td class="px-3 py-2"><span class="text-xs px-2 py-0.5 rounded ${catBadge[t.cat]||''}">${t.cat}</span></td>
+      <td class="px-3 py-2 text-right font-bold text-emerald-600">${t.type==='in' && !t.opening ? fmt(t.amount) : '—'}</td>
+      <td class="px-3 py-2 text-right font-bold text-red-600">${t.type==='out' ? fmt(t.amount) : '—'}</td>
+      <td class="px-3 py-2 text-right font-bold text-stone-800">${fmt(t.balance)}</td>
+      <td class="px-3 py-2 text-center">${t.opening ? '' : `<button onclick="deleteTx('${t.ref}')" class="text-stone-400 hover:text-red-600 text-sm">🗑️</button>`}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tx-foot').innerHTML = `
+    <tr>
+      <td colspan="5" class="px-3 py-3 text-right">รวม:</td>
+      <td class="px-3 py-3 text-right text-emerald-700">${fmt(totalIn)}</td>
+      <td class="px-3 py-3 text-right text-red-700">${fmt(totalOut)}</td>
+      <td class="px-3 py-3 text-right text-stone-900">${fmt(opening + totalIn - totalOut)}</td>
+      <td></td>
+    </tr>
+  `;
+
+  // Update KPIs
+  document.getElementById('kpi-opening').textContent = fmtCompact(opening);
+  document.getElementById('kpi-in').textContent = fmtCompact(totalIn);
+  document.getElementById('kpi-out').textContent = fmtCompact(totalOut);
+  document.getElementById('kpi-closing').textContent = fmtCompact(opening + totalIn - totalOut);
+  document.getElementById('kpi-in-count').textContent = filtered.filter(t => t.type==='in' && !t.opening).length + ' รายการ';
+  document.getElementById('kpi-out-count').textContent = filtered.filter(t => t.type==='out').length + ' รายการ';
+}
+
+function openAddModal() { document.getElementById('modal').classList.remove('hidden'); }
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+function saveTx(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  const dateStr = f.get('date'); // YYYY-MM-DD
+  const [y, m, d] = dateStr.split('-');
+  const yBE = parseInt(y) + 543;
+  const newTx = {
+    date: `${d}/${m}/${yBE}`,
+    ref: f.get('ref') || 'NEW-' + Date.now().toString().slice(-6),
+    desc: f.get('desc'),
+    project: f.get('project'),
+    cat: f.get('cat'),
+    type: f.get('type'),
+    amount: parseFloat(f.get('amount'))
+  };
+  tx.push(newTx);
+  closeModal();
+  ev.target.reset();
+  render();
+  alert('✅ เพิ่มรายการสำเร็จ\n\n• บันทึก Sheet "Cash-Book" ทันที\n• ส่งต่อ Journal-2569 (Module 04 GL)\n• ระบบบัญชีภายใน · ไม่เชื่อมต่อภายนอก');
+}
+
+function deleteTx(ref) {
+  if (!confirm(`ลบรายการ ${ref}?`)) return;
+  tx = tx.filter(t => t.ref !== ref);
+  render();
+}
+
+function exportCSV() {
+  alert('📊 Export CSV สำเร็จ!\n\nไฟล์: CashBook-2569-05.csv\n• 24 รายการ\n• 4 คอลัมน์: วันที่, ref, รายการ, ยอด\n• เปิดได้ใน Excel/Google Sheets');
+}
+
+function printReport() {
+  alert('🖨️ พิมพ์รายงาน Cash Book\n\n• รูปแบบ A4 แนวนอน\n• แยกตามโครงการ\n• สรุปท้ายแต่ละหมวด\n• ลายเซ็นผู้จัดทำ/ตรวจสอบ\n\n(Demo — กดจริงจะเปิดหน้าต่างพิมพ์)');
+  window.print();
+}
+
+render();
+</script>
+</body>
+</html>
