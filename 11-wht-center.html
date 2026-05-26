@@ -457,8 +457,9 @@ function buildCertHTML(r) {
           <td style="width:50%;vertical-align:top;">
             <strong>ผู้จ่ายเงิน:</strong><br/>
             บจก. ทู บิลด์ ดีเวลลอปเมนท์<br/>
-            ที่อยู่: 9/9 หมู่ 9 ต.อมตะ อ.เมือง จ.ชลบุรี<br/>
-            เลขประจำตัวผู้เสียภาษี: 0205565000123
+            ที่อยู่: 1/88 หมู่ที่ 1 ตำบลหนองแหน อำเภอพนมสารคาม จังหวัดฉะเชิงเทรา 24120<br/>
+            โทร. 092-787-4222<br/>
+            เลขประจำตัวผู้เสียภาษี: 0245566004014
           </td>
           <td style="width:50%;vertical-align:top;">
             <strong>ผู้ถูกหักภาษี:</strong><br/>
@@ -525,7 +526,7 @@ function buildCertHTML(r) {
         <div style="text-align:center;width:45%;">
           <div style="border-top:1px solid #333;padding-top:4px;font-size:10pt;">
             <strong>ผู้จ่ายเงิน</strong><br/>
-            (คุณไอซ์ Iceberg) ผู้บริหาร<br/>
+            (นายเฉลิมไชย ดีแสน) ผู้มีอำนาจลงนาม<br/>
             วันที่ ${fmt.thaiDate(r.date)}
           </div>
         </div>
@@ -539,7 +540,7 @@ function buildCertHTML(r) {
       </div>
 
       <div style="margin-top:20px;font-size:8pt;color:#666;text-align:center;border-top:1px dashed #aaa;padding-top:6px;">
-        เอกสารนี้พิมพ์จากระบบ Two Build Finance V4 — สร้าง ${new Date().toLocaleString('th-TH')}
+        พิมพ์ ${new Date().toLocaleString('th-TH')}
       </div>
     </div>
   `;
@@ -656,7 +657,7 @@ async function saveWHT(genCert) {
       total_wht: data.wht_amount,
       form_type: data.form_type,
       period: data.period,
-      payer_signed_by: 'คุณไอซ์ (Iceberg)',
+      payer_signed_by: 'นายเฉลิมไชย ดีแสน',
       status: 'issued',
       pdf_url: '',
       notes: data.notes || ''
