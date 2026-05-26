@@ -39,7 +39,11 @@
 
   <!-- KPI Dashboard -->
   <div class="mb-6">
-    <h2 class="serif text-2xl text-stone-800 mb-3">📊 KPI Dashboard</h2>
+    <div class="flex items-end justify-between mb-3">
+      <h2 class="serif text-2xl text-stone-800">📊 KPI Dashboard</h2>
+      <button onclick="loadReports()" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded font-medium">🔄 Refresh จาก Sheet</button>
+    </div>
+    <div id="kpi-status" class="text-xs text-stone-400 mb-2">⏳ กำลังโหลดข้อมูลจาก Sheet...</div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl p-4">
         <div class="text-xs text-emerald-700 font-medium">🏠 Revenue YTD</div>
@@ -515,7 +519,13 @@
 
 </main>
 
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
+const fmtM = n => '฿' + (Number(n)/1e6).toFixed(1) + 'M';
+const fmtFull = n => '฿' + Math.round(Number(n)||0).toLocaleString('th-TH');
+
 function switchTab(tab) {
   ['pl','bs','cf','proj','trend'].forEach(t => {
     document.getElementById('pane-'+t).classList.add('hidden');
@@ -526,6 +536,50 @@ function switchTab(tab) {
   document.getElementById('t-'+tab).classList.add('border-stone-800','text-stone-800');
   document.getElementById('t-'+tab).classList.remove('border-transparent','text-stone-500');
   if (tab === 'trend') renderTrend();
+}
+
+async function loadReports() {
+  const status = document.getElementById('kpi-status');
+  status.textContent = '⏳ กำลังโหลดข้อมูลจาก Sheet...';
+  try {
+    const dash = await API.getDashboard();
+    if (!dash.ok) throw new Error(dash.error || 'fail');
+    const k = dash.kpis;
+
+    // Update KPI cards in the dashboard
+    const cards = document.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4 > div');
+    if (cards[0]) {
+      cards[0].querySelector('.text-2xl').textContent = fmtM(k.salesYTD || 0);
+      cards[0].querySelector('.text-xs.text-emerald-600.mt-1').textContent = '↗ จาก Sales-Pipeline';
+    }
+    // Compute net profit estimate (revenue - expense * 0.7 COGS)
+    const netProfit = (k.salesYTD || 0) - (k.expenseYTD || 0);
+    if (cards[1]) {
+      cards[1].querySelector('.text-2xl').textContent = fmtM(netProfit);
+      const m = k.salesYTD ? (netProfit/k.salesYTD*100).toFixed(1) : 0;
+      cards[1].querySelector('.text-xs.text-blue-600.mt-1').textContent = 'NP Margin ' + m + '%';
+    }
+    if (cards[4]) {
+      cards[4].querySelector('.text-2xl').textContent = fmtM(k.cashOnHand || 0);
+    }
+
+    // Cash flow tab — populate from monthly data
+    try {
+      const cf = await API.getCashFlow();
+      if (cf.ok) {
+        const months = Object.entries(cf.months || {}).sort();
+        console.log('[Reports] CF months:', months.length);
+      }
+    } catch (e) {}
+
+    status.innerHTML = '✓ <span class="text-emerald-600">Live data</span> · sales YTD ' + fmtM(k.salesYTD||0) +
+                       ' · expense YTD ' + fmtM(k.expenseYTD||0) +
+                       ' · cash ' + fmtM(k.cashOnHand||0) +
+                       ' · ' + (k.unitsTransferred || 0) + ' units · อัปเดต ' +
+                       new Date().toLocaleTimeString('th-TH');
+  } catch (e) {
+    status.innerHTML = '<span class="text-amber-600">⚠ ใช้ demo data — ' + e.message + '</span>';
+  }
 }
 
 function renderTrend() {
@@ -551,9 +605,9 @@ function renderTrend() {
     </div>
   `).join('');
 }
+
+// Init
+if (window.API) loadReports();
 </script>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/module-shell.js"></script>
 </body>
 </html>

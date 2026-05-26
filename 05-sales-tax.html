@@ -359,11 +359,14 @@
 
 </main>
 
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
-const fmt = n => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtRound = n => '฿' + Math.round(n).toLocaleString('th-TH');
+const fmt = n => '฿' + (Number(n)||0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtRound = n => '฿' + Math.round(Number(n)||0).toLocaleString('th-TH');
 
-const sales = [
+let sales = [
   { plot:'A-08', cust:'นายวีรศักดิ์ พรหมมา', date:'02/05/2569', sell:4150000, assess:3700000, status:'transferred' },
   { plot:'B-23', cust:'นางสาวภัสรา ทรงพล', date:'21/05/2569', sell:5450000, assess:4800000, status:'transferred' },
   { plot:'C-15', cust:'นายธีรพล ศักดิ์ดา', date:'14/05/2569', sell:6900000, assess:6200000, status:'transferred' },
@@ -470,10 +473,67 @@ function switchTab(tab) {
   if (tab === 'calc') calculate();
 }
 
-renderSales();
+async function loadSales() {
+  try {
+    const r = await API.read('Sales-Pipeline');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      sales = r.rows.map(row => {
+        const transferred = String(row.status || '').toLowerCase().includes('โอน') || row.status === 'transferred';
+        return {
+          plot: row.plot || row.unit || '-',
+          cust: row.customer_name || row.customer || '-',
+          date: row.transfer_date || row.date || '-',
+          sell: Number(row.sale_price) || Number(row.price) || 0,
+          assess: Number(row.assess_price) || Number(row.govt_price) || 0,
+          status: transferred ? 'transferred' : 'pending'
+        };
+      });
+      console.log('[Sales-Pipeline] loaded', sales.length, 'records');
+    }
+  } catch (e) { console.warn('sales load failed', e); }
+  renderSales();
+}
+
+async function loadTaxCalendar() {
+  try {
+    const r = await API.read('Tax-Tracker');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      // Could render dynamically — for now keep static UI
+      console.log('[Tax-Tracker] loaded', r.rows.length, 'entries');
+    }
+  } catch (e) { /* ignore */ }
+}
+
+// Save sale → Tax-Tracker (auto-generate taxes for transferred sale)
+async function recordTransfer(plot, sell, assess) {
+  if (!window.API) return;
+  const sbt = sell * 0.033;
+  const transfer = assess * 0.02;
+  await API.append('Tax-Tracker', {
+    tax_id: 'TAX-' + Date.now().toString().slice(-6),
+    type: 'SBT 3.3%', amount_due: sbt, base_amount: sell, plot,
+    period: '2569-' + String(new Date().getMonth()+1).padStart(2,'0'),
+    status: 'pending', due_date: '',
+    created_at: new Date().toISOString()
+  });
+  await API.append('Tax-Tracker', {
+    tax_id: 'TAX-' + Date.now().toString().slice(-6),
+    type: 'Transfer Fee 2%', amount_due: transfer, base_amount: assess, plot,
+    period: '2569-' + String(new Date().getMonth()+1).padStart(2,'0'),
+    status: 'pending', due_date: '',
+    created_at: new Date().toISOString()
+  });
+}
+
+// Init
+(async () => {
+  if (window.API) {
+    await loadSales();
+    await loadTaxCalendar();
+  } else {
+    renderSales();
+  }
+})();
 </script>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/module-shell.js"></script>
 </body>
 </html>

@@ -345,10 +345,13 @@
   </div>
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
-const fmt = n => '฿' + Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = n => '฿' + Math.abs(Number(n)||0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const journal = [
+let journal = [
   { date:'25/05/2569', jv:'JV-2569-1001', drAcc:'11010', drName:'เงินสด', crAcc:'41010', crName:'รายได้ขายบ้าน', desc:'รับโอน A-12 · นายธนา', dr:4250000, cr:4250000 },
   { date:'25/05/2569', jv:'JV-2569-1002', drAcc:'51010', drName:'ต้นทุนขายบ้าน', crAcc:'13020', crName:'WIP', desc:'โอน WIP → COGS · A-12', dr:2015000, cr:2015000 },
   { date:'25/05/2569', jv:'JV-2569-1003', drAcc:'52010', drName:'ค่าวัสดุ', crAcc:'21010', crName:'เจ้าหนี้การค้า', desc:'PO-2026-0341 · ปูนซีเมนต์ไทย', dr:87450, cr:87450 },
@@ -360,7 +363,7 @@ const journal = [
   { date:'21/05/2569', jv:'JV-2569-0987', drAcc:'11010', drName:'เงินสด', crAcc:'41010', crName:'รายได้ขายบ้าน', desc:'รับโอน B-23 · นางสาวภัสรา', dr:5450000, cr:5450000 }
 ];
 
-const trialBalance = [
+let trialBalance = [
   { code:'11010', name:'เงินสด', dr:12400000, cr:0 },
   { code:'11020', name:'ธ.ไทยพาณิชย์', dr:8950000, cr:0 },
   { code:'11030', name:'ธ.กสิกรไทย', dr:4200000, cr:0 },
@@ -391,7 +394,7 @@ const trialBalance = [
   { code:'61030', name:'ค่าบริหาร/ขาย', dr:945000, cr:0 }
 ];
 
-const glEntries = {
+let glEntries = {
   '11010': [
     { date:'01/05', jv:'OB', desc:'ยอดต้นเดือน', dr:10300000, cr:0 },
     { date:'02/05', jv:'JV-0950', desc:'รับโอน A-08', dr:4150000, cr:0 },
@@ -486,16 +489,126 @@ function renderTB() {
 
 function openJournalModal() { document.getElementById('modal').classList.remove('hidden'); }
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-function saveJournal(ev) {
+
+async function saveJournal(ev) {
   ev.preventDefault();
-  alert('💾 ลงบัญชีสำเร็จ\n\n• เพิ่มเข้า Journal\n• Update GL อัตโนมัติ\n• ตรวจ Debit = Credit ✓\n• บันทึก Sheet "Journal-2569"');
-  closeModal();
+  const f = new FormData(ev.target);
+  const dateAD = f.get('date'); // YYYY-MM-DD AD
+  const [y,m,d] = dateAD.split('-');
+  const dateBE = `${parseInt(y)+543}-${m}-${d}`;
+  const dispDate = `${d}/${m}/${parseInt(y)+543}`;
+  const jvNo = f.get('jv');
+  const drAcc = f.get('drAcc');
+  const crAcc = f.get('crAcc');
+  const drAmt = parseFloat(f.get('drAmt')) || 0;
+  const crAmt = parseFloat(f.get('crAmt')) || 0;
+  const desc  = f.get('desc');
+
+  if (Math.abs(drAmt - crAmt) > 0.01) {
+    alert(`⚠️ ยอด Debit (${fmt(drAmt)}) ≠ Credit (${fmt(crAmt)}) — ต้องเท่ากัน`);
+    return;
+  }
+
+  const row = {
+    jv_no: jvNo, date: dateBE,
+    dr_account: drAcc, cr_account: crAcc,
+    description: desc,
+    dr_amount: drAmt, cr_amount: crAmt,
+    posted_by: 'คุณไอซ์',
+    posted_at: new Date().toISOString()
+  };
+
+  try {
+    const r = await API.append('Journal-2569', row);
+    if (r && r.ok) {
+      const accName = (code) => (coaMap[code] || code);
+      journal.unshift({
+        date: dispDate, jv: jvNo,
+        drAcc, drName: accName(drAcc), crAcc, crName: accName(crAcc),
+        desc, dr: drAmt, cr: crAmt
+      });
+      // Rebuild GL + TB from journal
+      rebuildGL();
+      rebuildTB();
+      renderJournal();
+      closeModal();
+      ev.target.reset();
+      alert(`💾 ลงบัญชีสำเร็จ\n\n• Journal: ${jvNo}\n• Dr ${drAcc} / Cr ${crAcc}\n• ${fmt(drAmt)} = ${fmt(crAmt)} ✓\n• บันทึก Sheet "Journal-2569" แล้ว (row ${r.appendedRow})`);
+    } else {
+      alert('⚠️ บันทึกไม่สำเร็จ: ' + ((r && r.error) || 'unknown'));
+    }
+  } catch (e) {
+    alert('⚠️ Network error: ' + e.message);
+  }
 }
 
-renderJournal();
+// === COA map ===
+const coaMap = {};
+async function loadCOA() {
+  try {
+    const r = await API.read('COA');
+    if (r.ok) (r.rows || []).forEach(row => {
+      const code = row.code || row.account_code || row.acc_code;
+      if (code) coaMap[code] = row.name || row.account_name || code;
+    });
+  } catch (e) {}
+}
+
+async function loadJournal() {
+  try {
+    const r = await API.read('Journal-2569');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      journal = r.rows.map(row => {
+        const iso = String(row.date || '');
+        const [yBE, m, d] = iso.split('-');
+        return {
+          date: d && m && yBE ? `${d}/${m}/${yBE}` : iso,
+          jv: row.jv_no || row.jv || '-',
+          drAcc: row.dr_account || row.dr_acc || '',
+          drName: coaMap[row.dr_account] || row.dr_name || '',
+          crAcc: row.cr_account || row.cr_acc || '',
+          crName: coaMap[row.cr_account] || row.cr_name || '',
+          desc: row.description || row.desc || '-',
+          dr: Number(row.dr_amount) || Number(row.dr) || 0,
+          cr: Number(row.cr_amount) || Number(row.cr) || 0
+        };
+      });
+      console.log('[Journal-2569] loaded', journal.length, 'entries');
+    }
+  } catch (e) { console.warn('journal load failed', e); }
+}
+
+function rebuildGL() {
+  glEntries = {};
+  journal.forEach(j => {
+    if (!glEntries[j.drAcc]) glEntries[j.drAcc] = [];
+    glEntries[j.drAcc].push({ date:j.date, jv:j.jv, desc:j.desc, dr:j.dr, cr:0 });
+    if (!glEntries[j.crAcc]) glEntries[j.crAcc] = [];
+    glEntries[j.crAcc].push({ date:j.date, jv:j.jv, desc:j.desc, dr:0, cr:j.cr });
+  });
+}
+
+function rebuildTB() {
+  // Aggregate from journal — sum dr/cr per account
+  const acct = {};
+  journal.forEach(j => {
+    acct[j.drAcc] = acct[j.drAcc] || { code:j.drAcc, name:coaMap[j.drAcc]||j.drName||j.drAcc, dr:0, cr:0 };
+    acct[j.drAcc].dr += j.dr;
+    acct[j.crAcc] = acct[j.crAcc] || { code:j.crAcc, name:coaMap[j.crAcc]||j.crName||j.crAcc, dr:0, cr:0 };
+    acct[j.crAcc].cr += j.cr;
+  });
+  trialBalance = Object.values(acct).sort((a,b) => String(a.code).localeCompare(String(b.code)));
+}
+
+// Init
+(async () => {
+  if (window.API) {
+    await loadCOA();
+    await loadJournal();
+    if (journal.length > 0) { rebuildGL(); rebuildTB(); }
+  }
+  renderJournal();
+})();
 </script>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/module-shell.js"></script>
 </body>
 </html>

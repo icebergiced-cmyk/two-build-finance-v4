@@ -233,9 +233,12 @@
 
 </main>
 
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
-const fmt = n => '฿' + Math.round(n).toLocaleString('th-TH');
-const fmtM = n => '฿' + (n / 1000000).toFixed(1) + 'M';
+const fmt = n => '฿' + Math.round(Number(n)||0).toLocaleString('th-TH');
+const fmtM = n => '฿' + (Number(n) / 1000000).toFixed(1) + 'M';
 
 function calculate() {
   const rai = +document.getElementById('i-rai').value || 0;
@@ -418,8 +421,101 @@ function simulateBest(cf, units, price) {
   return cf.map((c, i) => i === 0 ? c : c + bonus);
 }
 
-function saveAnalysis() {
-  alert('💾 บันทึก Analysis สำเร็จ!\n\n• ชื่อโครงการ: ' + document.getElementById('i-name').value + '\n• IRR: ' + document.getElementById('m-irr').textContent + '\n• NPV: ' + document.getElementById('m-npv').textContent + '\n• Payback: ' + document.getElementById('m-payback').textContent + '\n\nบันทึกไว้ใน Drive: /Two Build/Feasibility/');
+let savedAnalyses = [];
+
+async function saveAnalysis() {
+  const inputs = {
+    name: document.getElementById('i-name').value,
+    rai: +document.getElementById('i-rai').value || 0,
+    rai_price: +document.getElementById('i-rai-price').value || 0,
+    units: +document.getElementById('i-units').value || 0,
+    price: +document.getElementById('i-price').value || 0,
+    cost: +document.getElementById('i-cost').value || 0,
+    infra: +document.getElementById('i-infra').value || 0,
+    years: +document.getElementById('i-years').value || 0,
+    discount_rate: +document.getElementById('i-dr').value || 0,
+    opex: +document.getElementById('i-opex').value || 0,
+    marketing_pct: +document.getElementById('i-mkt').value || 0
+  };
+  const results = {
+    irr: document.getElementById('m-irr').textContent,
+    npv: document.getElementById('m-npv').textContent,
+    payback: document.getElementById('m-payback').textContent,
+    np_margin: document.getElementById('m-npm').textContent
+  };
+
+  const row = {
+    analysis_id: 'FEAS-' + Date.now().toString().slice(-8),
+    project_name: inputs.name,
+    saved_date: new Date().toISOString().slice(0,10),
+    rai: inputs.rai, rai_price: inputs.rai_price,
+    units: inputs.units, sale_price: inputs.price, cost_per_unit: inputs.cost,
+    infra_cost: inputs.infra, years: inputs.years,
+    discount_rate: inputs.discount_rate,
+    opex_per_year: inputs.opex, marketing_pct: inputs.marketing_pct,
+    irr: results.irr, npv: results.npv, payback: results.payback, np_margin: results.np_margin,
+    inputs_json: JSON.stringify(inputs),
+    created_by: 'คุณไอซ์',
+    created_at: new Date().toISOString()
+  };
+
+  try {
+    const r = await API.append('Feasibility-Save', row);
+    if (r && r.ok) {
+      alert(`💾 บันทึก Analysis สำเร็จ!\n\n• โครงการ: ${inputs.name}\n• IRR: ${results.irr}\n• NPV: ${results.npv}\n• Payback: ${results.payback}\n• NP Margin: ${results.np_margin}\n\n📊 บันทึก Sheet "Feasibility-Save" แล้ว (row ${r.appendedRow})`);
+      loadSavedAnalyses();
+    } else {
+      alert('⚠️ บันทึกไม่สำเร็จ: ' + ((r && r.error) || 'unknown'));
+    }
+  } catch (e) {
+    alert('⚠️ Network error: ' + e.message);
+  }
+}
+
+async function loadSavedAnalyses() {
+  try {
+    const r = await API.read('Feasibility-Save');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      savedAnalyses = r.rows;
+      renderSavedList();
+    }
+  } catch (e) { console.warn('saved analyses load failed', e); }
+}
+
+function renderSavedList() {
+  const html = savedAnalyses.slice(-8).reverse().map((a, idx) => `
+    <button onclick="loadAnalysisFromSheet(${idx})" class="w-full text-left p-2 hover:bg-stone-50 rounded text-sm">
+      <div class="font-medium">${a.project_name || '-'}</div>
+      <div class="text-xs text-stone-500">บันทึก ${a.saved_date || a.created_at?.slice(0,10) || '-'} · IRR ${a.irr || '-'}</div>
+    </button>
+  `).join('');
+  // Find the saved-analyses container — it's the div with text "📁 Analysis ที่บันทึก"
+  document.querySelectorAll('.font-bold.text-stone-800.mb-2.text-sm').forEach(el => {
+    if (el.textContent.includes('Analysis ที่บันทึก')) {
+      el.nextElementSibling.innerHTML = html || '<div class="text-xs text-stone-400 p-2">ยังไม่มี analysis บันทึก</div>';
+    }
+  });
+}
+
+function loadAnalysisFromSheet(idx) {
+  const reversed = savedAnalyses.slice(-8).reverse();
+  const a = reversed[idx];
+  if (!a) return;
+  // Parse inputs_json if available, else use individual columns
+  let i = a;
+  if (a.inputs_json) { try { i = { ...a, ...JSON.parse(a.inputs_json) }; } catch (e) {} }
+  document.getElementById('i-name').value = i.project_name || i.name || '';
+  document.getElementById('i-rai').value = i.rai || 0;
+  document.getElementById('i-rai-price').value = i.rai_price || 0;
+  document.getElementById('i-units').value = i.units || 0;
+  document.getElementById('i-price').value = i.sale_price || i.price || 0;
+  document.getElementById('i-cost').value = i.cost_per_unit || i.cost || 0;
+  document.getElementById('i-infra').value = i.infra_cost || i.infra || 0;
+  document.getElementById('i-years').value = i.years || 1;
+  document.getElementById('i-dr').value = i.discount_rate || 8;
+  document.getElementById('i-opex').value = i.opex_per_year || i.opex || 0;
+  document.getElementById('i-mkt').value = i.marketing_pct || 2.5;
+  calculate();
 }
 
 function loadAnalysis(id) {
@@ -442,9 +538,7 @@ function loadAnalysis(id) {
 }
 
 calculate();
+if (window.API) loadSavedAnalyses();
 </script>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/module-shell.js"></script>
 </body>
 </html>
