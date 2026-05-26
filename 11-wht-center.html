@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WHT Center · Finance V4</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+  body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
+  .serif { font-family: 'Playfair Display', serif; }
+  @media print {
+    body { background: white; }
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    .cert-page { page-break-after: always; }
+  }
+  .print-only { display: none; }
+  /* ใบ 50ทวิ A4 layout */
+  .cert-form {
+    width: 210mm; min-height: 297mm; padding: 15mm;
+    background: white; margin: 0 auto;
+    font-size: 12pt; line-height: 1.4;
+    border: 1px solid #ccc;
+  }
+  .cert-form table { border-collapse: collapse; width: 100%; }
+  .cert-form td, .cert-form th { border: 1px solid #333; padding: 4px 6px; font-size: 10pt; }
+  .cert-form .check { display: inline-block; width: 14px; height: 14px; border: 1px solid #333; vertical-align: middle; margin-right: 4px; }
+  .cert-form .check.x::before { content: "✓"; display: block; text-align: center; line-height: 12px; font-weight: bold; }
+</style>
+</head>
+<body class="text-stone-800">
+
+<!-- Header -->
+<header class="bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-stone-100 no-print">
+  <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="index.html" class="bg-white p-2 rounded-lg hover:scale-105 transition-transform">
+        <img src="assets/brand/logo-horizontal.png" alt="One Vela" class="h-10 w-auto"/>
+      </a>
+      <div>
+        <div class="text-[11px] uppercase tracking-[0.2em] text-amber-400">TWO BUILD · FINANCE V4 · MODULE 11</div>
+        <h1 class="serif text-2xl font-bold">🧾 WHT Center — ระบบหัก ณ ที่จ่าย</h1>
+        <div class="text-xs text-stone-400 mt-0.5">บันทึก · ใบ 50ทวิ · สรุปยื่นภงด. · อ้างอิงแบบสรรพากร</div>
+      </div>
+    </div>
+    <nav class="flex items-center gap-1 text-xs">
+      <a href="index.html" class="px-3 py-1.5 rounded hover:bg-stone-800">🏠 Hub</a>
+      <button class="px-3 py-1.5 rounded bg-amber-600 text-white" data-view="record" onclick="switchView(event,'record')">📝 บันทึก</button>
+      <button class="px-3 py-1.5 rounded hover:bg-stone-800" data-view="list" onclick="switchView(event,'list')">📋 รายการ</button>
+      <button class="px-3 py-1.5 rounded hover:bg-stone-800" data-view="cert" onclick="switchView(event,'cert')">📄 ใบ 50ทวิ</button>
+      <button class="px-3 py-1.5 rounded hover:bg-stone-800" data-view="filing" onclick="switchView(event,'filing')">🏛️ สรุปยื่น ภงด.</button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-6 no-print">
+
+  <!-- KPI Strip -->
+  <div class="grid grid-cols-4 gap-3 mb-6">
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">📝 รายการเดือนนี้</div>
+      <div class="text-2xl font-bold text-amber-600 mt-1" id="k-records">-</div>
+      <div class="text-[10px] text-stone-400" id="k-records-sub">-</div>
+    </div>
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">💰 ยอดหัก WHT รวม</div>
+      <div class="text-2xl font-bold text-red-600 mt-1" id="k-wht">-</div>
+      <div class="text-[10px] text-stone-400">ส่งสรรพากร</div>
+    </div>
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">📑 ภงด.3 (บุคคล)</div>
+      <div class="text-2xl font-bold text-blue-600 mt-1" id="k-pnd3">-</div>
+      <div class="text-[10px] text-stone-400" id="k-pnd3-sub">-</div>
+    </div>
+    <div class="bg-white border border-stone-200 rounded-xl p-4">
+      <div class="text-xs text-stone-500">📑 ภงด.53 (บริษัท)</div>
+      <div class="text-2xl font-bold text-emerald-600 mt-1" id="k-pnd53">-</div>
+      <div class="text-[10px] text-stone-400" id="k-pnd53-sub">-</div>
+    </div>
+  </div>
+
+  <!-- VIEW 1: Record new WHT -->
+  <section id="view-record" class="view">
+    <div class="bg-white border border-stone-200 rounded-2xl p-6">
+      <h2 class="serif text-xl text-stone-800 mb-4">📝 บันทึกหัก ณ ที่จ่ายใหม่</h2>
+      <div class="grid grid-cols-2 gap-5">
+
+        <!-- Left: Recipient -->
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-stone-500 mb-1 block">ประเภทผู้รับเงิน *</label>
+            <select id="r-type" class="w-full px-3 py-2 border border-stone-300 rounded text-sm">
+              <option value="บุคคล">บุคคลธรรมดา (ภงด.3)</option>
+              <option value="นิติบุคคล">นิติบุคคล (ภงด.53)</option>
+              <option value="พนักงาน">พนักงาน (ภงด.1)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 mb-1 block">ชื่อ-นามสกุล / บริษัท *</label>
+            <input id="r-name" type="text" placeholder="เช่น นายสมชาย ทำของ / บ.XXX จำกัด" class="w-full px-3 py-2 border border-stone-300 rounded text-sm"/>
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 mb-1 block">เลขประจำตัวผู้เสียภาษี 13 หลัก *</label>
+            <input id="r-taxid" type="text" maxlength="13" pattern="[0-9]{13}" placeholder="0205541008888" class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono"/>
+            <div class="text-[10px] text-stone-400 mt-0.5">13 หลัก ติดกัน ไม่ต้องเว้น</div>
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 mb-1 block">ที่อยู่</label>
+            <textarea id="r-address" rows="2" placeholder="ที่อยู่ของผู้รับเงิน" class="w-full px-3 py-2 border border-stone-300 rounded text-sm"></textarea>
+          </div>
+        </div>
+
+        <!-- Right: Income + WHT -->
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-stone-500 mb-1 block">วันที่จ่ายเงิน *</label>
+            <input id="r-date" type="text" placeholder="2569-06-15" class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono"/>
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 mb-1 block">ประเภทเงินได้ (มาตรา 40) *</label>
+            <select id="r-income-code" class="w-full px-3 py-2 border border-stone-300 rounded text-sm" onchange="onIncomeChange()">
+              <option value="">— เลือกประเภท —</option>
+            </select>
+            <div class="text-[10px] text-amber-700 mt-1" id="r-income-info"></div>
+          </div>
+          <div>
+            <label class="text-xs text-stone-500 mb-1 block">รายละเอียดเงินได้</label>
+            <input id="r-income-desc" type="text" placeholder="เช่น ค่าฉาบปูนแปลง 89/5" class="w-full px-3 py-2 border border-stone-300 rounded text-sm"/>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-xs text-stone-500 mb-1 block">ยอดก่อนหัก ฿ *</label>
+              <input id="r-gross" type="number" step="0.01" placeholder="45000" class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono" oninput="calcWHT()"/>
+            </div>
+            <div>
+              <label class="text-xs text-stone-500 mb-1 block">อัตรา %</label>
+              <input id="r-rate" type="number" step="0.001" placeholder="3" class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono" oninput="calcWHT()"/>
+            </div>
+            <div>
+              <label class="text-xs text-stone-500 mb-1 block">หัก ฿</label>
+              <input id="r-wht" type="number" step="0.01" readonly class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono bg-stone-50 font-bold text-red-700"/>
+            </div>
+          </div>
+          <div class="bg-emerald-50 border border-emerald-300 rounded-lg p-3 text-sm">
+            <div class="text-xs text-emerald-700 mb-1">💰 ยอดจ่ายจริง (Net Paid)</div>
+            <div class="font-bold text-emerald-700 text-xl" id="r-net">฿0.00</div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-stone-500 mb-1 block">โครงการ</label>
+              <select id="r-project" class="w-full px-3 py-2 border border-stone-300 rounded text-sm">
+                <option value="OV">OV - One Vela</option>
+                <option value="WW">WW - วันเวลา</option>
+                <option value="OX3">OX3 - Oxygen 3</option>
+                <option value="OX4">OX4 - Oxygen 4</option>
+                <option value="HQ">HQ - สำนักงาน</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-stone-500 mb-1 block">อ้างอิงเอกสาร</label>
+              <input id="r-ref" type="text" placeholder="PO-2569-XXXX" class="w-full px-3 py-2 border border-stone-300 rounded text-sm font-mono"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-2 pt-4 border-t border-stone-200">
+        <button onclick="resetForm()" class="px-4 py-2 text-sm text-stone-600 hover:text-stone-900">รีเซ็ต</button>
+        <button onclick="saveWHT()" class="px-6 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700">💾 บันทึก WHT</button>
+        <button onclick="saveAndIssueCert()" class="px-6 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700">💾 บันทึก + ออกใบ 50ทวิ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 2: List records -->
+  <section id="view-list" class="view hidden">
+    <div class="bg-white border border-stone-200 rounded-2xl p-5">
+      <div class="flex items-end justify-between mb-4">
+        <h2 class="serif text-xl text-stone-800">📋 รายการ WHT ทั้งหมด</h2>
+        <div class="flex gap-2">
+          <select id="filter-period" class="px-3 py-1.5 border border-stone-300 rounded text-xs" onchange="renderList()">
+            <option value="">ทุกงวด</option>
+          </select>
+          <select id="filter-form" class="px-3 py-1.5 border border-stone-300 rounded text-xs" onchange="renderList()">
+            <option value="">ทุกแบบ</option>
+            <option value="ภงด.1">ภงด.1</option>
+            <option value="ภงด.3">ภงด.3</option>
+            <option value="ภงด.53">ภงด.53</option>
+          </select>
+        </div>
+      </div>
+      <div id="list-table">⏳ กำลังโหลด...</div>
+    </div>
+  </section>
+
+  <!-- VIEW 3: Generate Certificate -->
+  <section id="view-cert" class="view hidden">
+    <div class="bg-white border border-stone-200 rounded-2xl p-5 mb-5">
+      <h2 class="serif text-xl text-stone-800 mb-3">📄 สร้างใบ 50ทวิ</h2>
+      <div class="text-sm text-stone-600 mb-4">เลือก WHT record ที่ต้องการออกใบ — จะคลิ๊กพรีวิวก่อน ปริ้นทีหลัง</div>
+      <div id="cert-table">⏳ กำลังโหลด...</div>
+    </div>
+    <div id="cert-preview"></div>
+  </section>
+
+  <!-- VIEW 4: Filing Summary -->
+  <section id="view-filing" class="view hidden">
+    <div class="bg-white border border-stone-200 rounded-2xl p-5 mb-5">
+      <h2 class="serif text-xl text-stone-800 mb-3">🏛️ สรุปยื่น ภงด. รายเดือน</h2>
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <label class="text-xs text-stone-500 col-span-3">เลือกงวด</label>
+        <select id="filing-period" class="px-3 py-2 border border-stone-300 rounded text-sm" onchange="renderFiling()"></select>
+      </div>
+      <div id="filing-summary">⏳ กำลังโหลด...</div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+      <h3 class="font-bold text-blue-900 mb-2">📅 ปฏิทินยื่นภาษีรายเดือน</h3>
+      <div class="grid grid-cols-3 gap-3 text-sm">
+        <div class="bg-white rounded p-3 border border-blue-200">
+          <div class="font-bold text-blue-700">ภงด.1 · ภงด.3 · ภงด.53</div>
+          <div class="text-xs text-stone-600 mt-1">หัก ณ ที่จ่าย รายเดือน</div>
+          <div class="text-xs font-bold text-red-600 mt-2">⏰ ภายในวันที่ 7 ของเดือนถัดไป</div>
+        </div>
+        <div class="bg-white rounded p-3 border border-blue-200">
+          <div class="font-bold text-blue-700">ภพ.30 (VAT)</div>
+          <div class="text-xs text-stone-600 mt-1">VAT ขาย − VAT ซื้อ</div>
+          <div class="text-xs font-bold text-red-600 mt-2">⏰ ภายในวันที่ 15 ของเดือนถัดไป</div>
+        </div>
+        <div class="bg-white rounded p-3 border border-blue-200">
+          <div class="font-bold text-blue-700">ภงด.1ก</div>
+          <div class="text-xs text-stone-600 mt-1">สรุปเงินเดือนทั้งปี</div>
+          <div class="text-xs font-bold text-red-600 mt-2">⏰ ภายในเดือนกุมภาพันธ์ ปีถัดไป</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== Certificate (50ทวิ) Print Layout ===== -->
+<div id="cert-print" class="print-only"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script>
+let DATA = { whts: [], certs: [], incomeTypes: {} };
+
+(async () => {
+  try {
+    const [whts, certs, types] = await Promise.all([
+      API.read('WHT-Records'),
+      API.read('WHT-Certificates'),
+      fetch(FINANCE_API_URL + '?action=getIncomeTypes').then(r => r.json())
+    ]);
+    DATA.whts = whts.rows || [];
+    DATA.certs = certs.rows || [];
+    DATA.incomeTypes = types.types || {};
+    setupIncomeDropdown();
+    setupPeriodDropdowns();
+    updateKPIs();
+    setDefaultDate();
+  } catch (err) {
+    alert('❌ ' + err.message);
+  }
+})();
+
+function setDefaultDate() {
+  const d = new Date();
+  const be = (d.getFullYear()+543) + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  document.getElementById('r-date').value = be;
+}
+
+function setupIncomeDropdown() {
+  const sel = document.getElementById('r-income-code');
+  Object.entries(DATA.incomeTypes).forEach(([code, info]) => {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.dataset.rate = info.wht_rate || 0;
+    opt.dataset.name = info.name;
+    opt.dataset.note = info.note || '';
+    opt.dataset.form = info.form || '';
+    opt.textContent = code + ' · ' + info.name;
+    sel.appendChild(opt);
+  });
+}
+
+function onIncomeChange() {
+  const sel = document.getElementById('r-income-code');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) {
+    document.getElementById('r-income-info').textContent = '';
+    return;
+  }
+  if (opt.dataset.rate) {
+    document.getElementById('r-rate').value = (parseFloat(opt.dataset.rate) * 100).toFixed(opt.dataset.rate < 0.01 ? 1 : 0);
+    calcWHT();
+  }
+  document.getElementById('r-income-info').textContent = '💡 ' + (opt.dataset.form || '') + ' · ' + (opt.dataset.note || '');
+  document.getElementById('r-income-desc').value = opt.dataset.name;
+}
+
+function calcWHT() {
+  const gross = parseFloat(document.getElementById('r-gross').value) || 0;
+  const rate = parseFloat(document.getElementById('r-rate').value) || 0;
+  const wht = gross * (rate / 100);
+  const net = gross - wht;
+  document.getElementById('r-wht').value = wht.toFixed(2);
+  document.getElementById('r-net').textContent = fmt.money(net);
+}
+
+function updateKPIs() {
+  const currentPeriod = (new Date().getFullYear()+543) + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+  const thisMonth = DATA.whts.filter(r => String(r.period).slice(0,7) === currentPeriod);
+  const totalWHT = thisMonth.reduce((s, r) => s + (Number(r.wht_amount)||0), 0);
+  const pnd3 = thisMonth.filter(r => String(r.form_type).includes('3') && !String(r.form_type).includes('53'));
+  const pnd53 = thisMonth.filter(r => String(r.form_type).includes('53'));
+  document.getElementById('k-records').textContent = thisMonth.length;
+  document.getElementById('k-records-sub').textContent = currentPeriod;
+  document.getElementById('k-wht').textContent = fmt.money(totalWHT).replace('.00','');
+  document.getElementById('k-pnd3').textContent = fmt.money(pnd3.reduce((s,r)=>s+(Number(r.wht_amount)||0),0)).replace('.00','');
+  document.getElementById('k-pnd3-sub').textContent = pnd3.length + ' รายการ';
+  document.getElementById('k-pnd53').textContent = fmt.money(pnd53.reduce((s,r)=>s+(Number(r.wht_amount)||0),0)).replace('.00','');
+  document.getElementById('k-pnd53-sub').textContent = pnd53.length + ' รายการ';
+}
+
+function setupPeriodDropdowns() {
+  const periods = [...new Set(DATA.whts.map(r => String(r.period).slice(0,7)))].sort().reverse();
+  ['filter-period', 'filing-period'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (id === 'filing-period') sel.innerHTML = '';
+    periods.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p; opt.textContent = p;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function switchView(e, name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  document.getElementById('view-' + name).classList.remove('hidden');
+  document.querySelectorAll('nav button').forEach(b => {
+    b.classList.remove('bg-amber-600','text-white');
+    b.classList.add('hover:bg-stone-800');
+  });
+  e.target.classList.add('bg-amber-600','text-white');
+  e.target.classList.remove('hover:bg-stone-800');
+  if (name === 'list') renderList();
+  else if (name === 'cert') renderCertList();
+  else if (name === 'filing') renderFiling();
+}
+
+function renderList() {
+  const period = document.getElementById('filter-period').value;
+  const formType = document.getElementById('filter-form').value;
+  let items = [...DATA.whts];
+  if (period) items = items.filter(r => String(r.period).slice(0,7) === period);
+  if (formType) items = items.filter(r => String(r.form_type).includes(formType.replace('ภงด.','')));
+  items.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+  let html = '<table class="w-full text-sm"><thead class="bg-stone-50"><tr class="text-xs text-stone-600">' +
+    '<th class="px-3 py-2 text-left">WHT ID</th>' +
+    '<th class="px-3 py-2 text-left">วันที่</th>' +
+    '<th class="px-3 py-2 text-left">ผู้รับเงิน</th>' +
+    '<th class="px-3 py-2 text-center">ม.</th>' +
+    '<th class="px-3 py-2 text-right">ก่อนหัก</th>' +
+    '<th class="px-3 py-2 text-right">%</th>' +
+    '<th class="px-3 py-2 text-right">หัก</th>' +
+    '<th class="px-3 py-2 text-right">Net</th>' +
+    '<th class="px-3 py-2 text-center">แบบ</th>' +
+    '<th class="px-3 py-2 text-center">ใบ 50ทวิ</th>' +
+    '<th class="px-3 py-2 text-center">สถานะ</th>' +
+    '</tr></thead><tbody>';
+  items.forEach(r => {
+    html += '<tr class="border-t border-stone-100 hover:bg-stone-50">' +
+      '<td class="px-3 py-2 font-mono text-xs text-blue-600">' + r.wht_id + '</td>' +
+      '<td class="px-3 py-2 text-xs">' + fmt.thaiDate(r.date) + '</td>' +
+      '<td class="px-3 py-2"><div class="font-semibold text-sm">' + r.recipient_name + '</div><div class="text-[10px] text-stone-500 font-mono">' + r.recipient_taxid + '</div></td>' +
+      '<td class="px-3 py-2 text-center text-xs font-mono">' + r.income_type_code + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs">' + fmt.money(r.gross_amount) + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs">' + (Number(r.wht_rate)*100).toFixed(1) + '%</td>' +
+      '<td class="px-3 py-2 text-right font-bold text-red-700">' + fmt.money(r.wht_amount) + '</td>' +
+      '<td class="px-3 py-2 text-right text-xs text-emerald-700">' + fmt.money(r.net_paid) + '</td>' +
+      '<td class="px-3 py-2 text-center text-xs">' + r.form_type + '</td>' +
+      '<td class="px-3 py-2 text-center text-xs font-mono">' + (r.cert_no ? '<span class="text-emerald-600">' + r.cert_no + '</span>' : '<button class="text-blue-600 hover:underline" onclick="generateCert(\'' + r.wht_id + '\')">+ออก</button>') + '</td>' +
+      '<td class="px-3 py-2 text-center">' + fmt.statusBadge(r.status) + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('list-table').innerHTML = items.length ? html : '<div class="text-center text-stone-400 py-12">ไม่มีรายการ</div>';
+}
+
+function renderCertList() {
+  let html = '<table class="w-full text-sm"><thead class="bg-stone-50"><tr class="text-xs"><th class="px-3 py-2 text-left">WHT ID</th><th class="px-3 py-2 text-left">ผู้รับเงิน</th><th class="px-3 py-2 text-right">ยอดหัก</th><th class="px-3 py-2 text-center">ใบ 50ทวิ</th><th class="px-3 py-2 text-center">Action</th></tr></thead><tbody>';
+  DATA.whts.forEach(r => {
+    html += '<tr class="border-t border-stone-100">' +
+      '<td class="px-3 py-2 font-mono text-xs">' + r.wht_id + '</td>' +
+      '<td class="px-3 py-2"><div class="font-semibold text-sm">' + r.recipient_name + '</div></td>' +
+      '<td class="px-3 py-2 text-right font-bold text-red-700">' + fmt.money(r.wht_amount) + '</td>' +
+      '<td class="px-3 py-2 text-center text-xs font-mono">' + (r.cert_no || '-') + '</td>' +
+      '<td class="px-3 py-2 text-center">' +
+        '<button class="text-blue-600 hover:underline text-xs" onclick="previewCert(\'' + r.wht_id + '\')">👁️ ดู</button>' +
+        ' · <button class="text-emerald-600 hover:underline text-xs" onclick="printCert(\'' + r.wht_id + '\')">🖨️ พิมพ์</button>' +
+      '</td></tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('cert-table').innerHTML = html;
+}
+
+function previewCert(whtId) {
+  const r = DATA.whts.find(x => x.wht_id === whtId);
+  if (!r) return;
+  document.getElementById('cert-preview').innerHTML = buildCertHTML(r);
+  document.getElementById('cert-preview').scrollIntoView({ behavior: 'smooth' });
+}
+
+function printCert(whtId) {
+  const r = DATA.whts.find(x => x.wht_id === whtId);
+  if (!r) return;
+  document.getElementById('cert-print').innerHTML = buildCertHTML(r);
+  setTimeout(() => window.print(), 100);
+}
+
+function buildCertHTML(r) {
+  const taxId = String(r.recipient_taxid).padStart(13, '0').split('');
+  const taxIdBoxes = taxId.map(d => `<span style="display:inline-block;width:18px;height:22px;border:1px solid #333;text-align:center;line-height:22px;margin:0 1px;font-weight:bold;">${d}</span>`).join('');
+
+  // Determine income type checkboxes
+  const code = String(r.income_type_code);
+  const isType = (c) => code === c ? 'x' : '';
+
+  return `
+    <div class="cert-form cert-page">
+      <div style="text-align:center;font-weight:bold;margin-bottom:8px;">
+        <div style="font-size:14pt;">หนังสือรับรองการหักภาษี ณ ที่จ่าย</div>
+        <div style="font-size:10pt;font-weight:normal;">ตามมาตรา 50 ทวิ แห่งประมวลรัษฎากร</div>
+      </div>
+      <div style="border:2px solid #333;padding:8px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:10pt;">
+          <div><strong>เลขที่ใบรับรอง:</strong> ${r.cert_no || 'รอออกใบ'}</div>
+          <div><strong>เลขประจำตัวผู้เสียภาษีของผู้จ่ายเงิน:</strong></div>
+        </div>
+      </div>
+
+      <table style="margin-bottom:8px;">
+        <tr>
+          <td style="width:50%;vertical-align:top;">
+            <strong>ผู้จ่ายเงิน:</strong><br/>
+            บจก. ทู บิลด์ ดีเวลลอปเมนท์<br/>
+            ที่อยู่: 9/9 หมู่ 9 ต.อมตะ อ.เมือง จ.ชลบุรี<br/>
+            เลขประจำตัวผู้เสียภาษี: 0205565000123
+          </td>
+          <td style="width:50%;vertical-align:top;">
+            <strong>ผู้ถูกหักภาษี:</strong><br/>
+            ${r.recipient_name}<br/>
+            ที่อยู่: ${r.recipient_address || '-'}<br/>
+            เลขประจำตัวผู้เสียภาษี: ${taxIdBoxes}
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-bottom:6px;font-weight:bold;font-size:11pt;">ประเภทเงินได้พึงประเมินที่จ่าย:</div>
+      <table style="margin-bottom:10px;font-size:9pt;">
+        <tr><td style="width:5%;text-align:center;"><span class="check ${isType('40(1)')}"></span></td><td style="width:45%;">1. เงินเดือน ค่าจ้าง โบนัส (ม.40(1))</td>
+            <td style="width:5%;text-align:center;"><span class="check ${isType('40(2)')}"></span></td><td>2. ค่าธรรมเนียม นายหน้า (ม.40(2))</td></tr>
+        <tr><td style="text-align:center;"><span class="check ${isType('40(3)')}"></span></td><td>3. ค่าแห่งกู๊ดวิลล์ ค่าลิขสิทธิ์ (ม.40(3))</td>
+            <td style="text-align:center;"><span class="check ${isType('40(4a)') || isType('40(4b)')}"></span></td><td>4. (ก) ดอกเบี้ย (ข) เงินปันผล (ม.40(4))</td></tr>
+        <tr><td style="text-align:center;"><span class="check ${isType('40(5)')}"></span></td><td>5. ค่าเช่าทรัพย์สิน (ม.40(5))</td>
+            <td style="text-align:center;"><span class="check ${isType('40(6)')}"></span></td><td>6. วิชาชีพอิสระ (ม.40(6))</td></tr>
+        <tr><td style="text-align:center;"><span class="check ${isType('40(7)')}"></span></td><td>7. ค่ารับเหมาก่อสร้าง / จ้างทำของ (ม.40(7))</td>
+            <td style="text-align:center;"><span class="check ${isType('40(8)')}"></span></td><td>8. รายได้อื่น (ม.40(8))</td></tr>
+      </table>
+
+      <table style="margin-bottom:10px;">
+        <thead>
+          <tr style="background:#f0f0f0;">
+            <th style="width:8%;">ลำดับที่</th>
+            <th style="width:25%;">วันเดือนปีที่จ่าย</th>
+            <th style="width:30%;">จำนวนเงินที่จ่าย</th>
+            <th style="width:15%;">อัตรา %</th>
+            <th style="width:22%;">จำนวนภาษีที่หักและนำส่ง</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="text-align:center;">1</td>
+            <td style="text-align:center;">${fmt.thaiDate(r.date)}</td>
+            <td style="text-align:right;">฿${Number(r.gross_amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+            <td style="text-align:center;">${(Number(r.wht_rate)*100).toFixed(2)}%</td>
+            <td style="text-align:right;font-weight:bold;">฿${Number(r.wht_amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+          </tr>
+          <tr style="background:#fef3c7;font-weight:bold;">
+            <td colspan="2" style="text-align:right;">รวม</td>
+            <td style="text-align:right;">฿${Number(r.gross_amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+            <td></td>
+            <td style="text-align:right;">฿${Number(r.wht_amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="font-size:10pt;margin-bottom:8px;">
+        <strong>(จำนวนเงินภาษีที่หักและนำส่งเป็นตัวอักษร):</strong> ${numberToThaiText(Number(r.wht_amount))}
+      </div>
+
+      <div style="font-size:10pt;margin-bottom:15px;border:1px solid #333;padding:6px;">
+        <strong>แบบที่ใช้นำส่ง:</strong>
+        <span class="check ${r.form_type === 'ภงด.1' ? 'x' : ''}"></span> ภงด.1
+        <span class="check ${String(r.form_type).startsWith('ภงด.3') ? 'x' : ''}"></span> ภงด.3
+        <span class="check ${r.form_type === 'ภงด.53' ? 'x' : ''}"></span> ภงด.53
+        <span class="check ${r.form_type === 'ภงด.2' ? 'x' : ''}"></span> ภงด.2
+        &nbsp;&nbsp; <strong>งวด:</strong> ${String(r.period).slice(0,7)}
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:30px;">
+        <div style="text-align:center;width:45%;">
+          <div style="border-top:1px solid #333;padding-top:4px;font-size:10pt;">
+            <strong>ผู้จ่ายเงิน</strong><br/>
+            (คุณไอซ์ Iceberg) ผู้บริหาร<br/>
+            วันที่ ${fmt.thaiDate(r.date)}
+          </div>
+        </div>
+        <div style="text-align:center;width:45%;">
+          <div style="border-top:1px solid #333;padding-top:4px;font-size:10pt;">
+            <strong>ผู้รับเงิน / ผู้ถูกหักภาษี</strong><br/>
+            (___________________________)<br/>
+            วันที่ ___ / ___ / ______
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;font-size:8pt;color:#666;text-align:center;border-top:1px dashed #aaa;padding-top:6px;">
+        เอกสารนี้พิมพ์จากระบบ Two Build Finance V4 — สร้าง ${new Date().toLocaleString('th-TH')}
+      </div>
+    </div>
+  `;
+}
+
+// Thai number to text (simplified — handles up to millions)
+function numberToThaiText(n) {
+  if (n === 0) return 'ศูนย์บาทถ้วน';
+  const txt = ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+  const pos = ['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน'];
+  const baht = Math.floor(n);
+  const satang = Math.round((n - baht) * 100);
+  let s = '';
+  const ds = String(baht).split('').reverse();
+  ds.forEach((d, i) => {
+    if (d === '0') return;
+    if (i === 0 && d === '1' && ds.length > 1) s = 'เอ็ด' + s;
+    else if (i === 1 && d === '2') s = 'ยี่' + pos[i] + s;
+    else if (i === 1 && d === '1') s = pos[i] + s;
+    else s = txt[Number(d)] + pos[i] + s;
+  });
+  s += 'บาท';
+  if (satang > 0) {
+    const sat = String(satang).padStart(2, '0').split('');
+    if (sat[0] !== '0') s += (sat[0] === '2' ? 'ยี่' : (sat[0] === '1' ? '' : txt[Number(sat[0])])) + 'สิบ';
+    if (sat[1] !== '0') s += (sat[0] === '0' || sat[0] === '1') && sat[1] === '1' ? 'เอ็ด' : txt[Number(sat[1])];
+    s += 'สตางค์';
+  } else {
+    s += 'ถ้วน';
+  }
+  return s;
+}
+
+function renderFiling() {
+  const period = document.getElementById('filing-period').value;
+  if (!period) {
+    document.getElementById('filing-summary').innerHTML = '<div class="text-center text-stone-400 py-8">เลือกงวดก่อน</div>';
+    return;
+  }
+  document.getElementById('filing-summary').innerHTML = '⏳ กำลังโหลด...';
+
+  fetch(FINANCE_API_URL + '?action=getWHTSummary&period=' + period)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.ok) { document.getElementById('filing-summary').innerHTML = 'Error: ' + data.error; return; }
+      let html = `<div class="mb-3 text-sm text-stone-600">งวด <strong>${period}</strong> · รวม ${data.total_records} รายการ · ยอดหักรวม <strong class="text-red-700">${fmt.money(data.total_wht)}</strong></div>`;
+      html += '<table class="w-full text-sm"><thead class="bg-stone-50"><tr class="text-xs"><th class="px-3 py-2 text-left">แบบ</th><th class="px-3 py-2 text-right">จำนวนรายการ</th><th class="px-3 py-2 text-right">ยอดก่อนหัก</th><th class="px-3 py-2 text-right">ยอดหัก WHT</th><th class="px-3 py-2 text-center">วันครบกำหนดยื่น</th></tr></thead><tbody>';
+      Object.entries(data.summary).forEach(([form, info]) => {
+        // Due date = 7th of next month
+        const [y, m] = period.split('-').map(Number);
+        const nextM = m === 12 ? 1 : m + 1;
+        const nextY = m === 12 ? y + 1 : y;
+        const due = nextY + '-' + String(nextM).padStart(2,'0') + '-07';
+        html += `<tr class="border-t border-stone-100">
+          <td class="px-3 py-2 font-semibold">${form}</td>
+          <td class="px-3 py-2 text-right">${info.count}</td>
+          <td class="px-3 py-2 text-right">${fmt.money(info.gross)}</td>
+          <td class="px-3 py-2 text-right font-bold text-red-700">${fmt.money(info.wht)}</td>
+          <td class="px-3 py-2 text-center text-xs font-bold text-amber-700">${fmt.thaiDate(due)}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      html += '<div class="mt-4 bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-800">💡 <strong>วิธียื่น:</strong> เข้าเว็บ <a href="https://efiling.rd.go.th/" target="_blank" class="underline">efiling.rd.go.th</a> → เลือกแบบ → กรอกข้อมูลจากตารางด้านบน → จ่ายภาษี → ระบบจะ confirm กลับ</div>';
+      document.getElementById('filing-summary').innerHTML = html;
+    });
+}
+
+async function saveWHT(genCert) {
+  const t = document.getElementById('r-type').value;
+  const data = {
+    wht_id: 'WHT-' + Date.now().toString().slice(-10),
+    date: document.getElementById('r-date').value,
+    recipient_type: t,
+    recipient_name: document.getElementById('r-name').value.trim(),
+    recipient_taxid: document.getElementById('r-taxid').value.trim(),
+    recipient_address: document.getElementById('r-address').value.trim(),
+    income_type_code: document.getElementById('r-income-code').value,
+    income_type: document.getElementById('r-income-desc').value.trim(),
+    gross_amount: parseFloat(document.getElementById('r-gross').value) || 0,
+    wht_rate: parseFloat(document.getElementById('r-rate').value) / 100,
+    wht_amount: parseFloat(document.getElementById('r-wht').value) || 0,
+    net_paid: parseFloat(document.getElementById('r-gross').value) - parseFloat(document.getElementById('r-wht').value),
+    form_type: t === 'พนักงาน' ? 'ภงด.1' : (t === 'บุคคล' ? 'ภงด.3' : 'ภงด.53'),
+    period: String(document.getElementById('r-date').value).slice(0, 7),
+    cert_no: genCert ? 'CERT-' + Date.now().toString().slice(-10) : '',
+    status: genCert ? 'certified' : 'pending',
+    ref_doc: document.getElementById('r-ref').value.trim(),
+    project: document.getElementById('r-project').value,
+    notes: '',
+    created_by: 'Ice',
+    created_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
+  };
+
+  if (!data.recipient_name || !data.recipient_taxid || !data.gross_amount) {
+    alert('กรอกข้อมูลให้ครบ: ชื่อ + เลขประจำตัว + ยอดเงิน');
+    return;
+  }
+
+  const res = await API.append('WHT-Records', data);
+  if (res.ok) {
+    alert('✅ บันทึก WHT สำเร็จ\n\n' + data.wht_id + (genCert ? '\n\nออกใบ 50ทวิ: ' + data.cert_no : ''));
+    if (genCert) printCertFromData(data);
+    location.reload();
+  } else {
+    alert('❌ ' + res.error);
+  }
+}
+
+function saveAndIssueCert() { saveWHT(true); }
+
+function printCertFromData(r) {
+  document.getElementById('cert-print').innerHTML = buildCertHTML(r);
+  setTimeout(() => window.print(), 200);
+}
+
+function generateCert(whtId) {
+  const r = DATA.whts.find(x => x.wht_id === whtId);
+  if (!r) return;
+  const certNo = 'CERT-' + Date.now().toString().slice(-10);
+  API.update('WHT-Records', 'wht_id', whtId, { cert_no: certNo, status: 'certified' })
+    .then(res => {
+      if (res.ok) {
+        r.cert_no = certNo; r.status = 'certified';
+        alert('✅ ออกใบ 50ทวิ: ' + certNo);
+        renderList();
+      } else alert(res.error);
+    });
+}
+
+function resetForm() {
+  ['r-name','r-taxid','r-address','r-gross','r-rate','r-wht','r-income-desc','r-ref'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('r-income-code').selectedIndex = 0;
+  document.getElementById('r-income-info').textContent = '';
+  document.getElementById('r-net').textContent = '฿0.00';
+  setDefaultDate();
+}
+</script>
+
+</body>
+</html>
