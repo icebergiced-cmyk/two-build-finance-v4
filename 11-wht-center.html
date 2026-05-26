@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>WHT Center · Finance V4</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
   body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
@@ -51,7 +50,6 @@
       <button class="px-3 py-1.5 rounded hover:bg-stone-800" data-view="list" onclick="switchView(event,'list')">📋 รายการ</button>
       <button class="px-3 py-1.5 rounded hover:bg-stone-800" data-view="cert" onclick="switchView(event,'cert')">📄 ใบ 50ทวิ</button>
       <button class="px-3 py-1.5 rounded hover:bg-stone-800" data-view="filing" onclick="switchView(event,'filing')">🏛️ สรุปยื่น ภงด.</button>
-      <button class="px-3 py-1.5 rounded hover:bg-stone-800" data-view="drive" onclick="switchView(event,'drive')">📁 Drive</button>
     </nav>
   </div>
 </header>
@@ -198,27 +196,20 @@
 
   <!-- VIEW 3: Generate Certificate -->
   <section id="view-cert" class="view hidden">
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-sm">
+      <div class="font-semibold text-amber-800 mb-1">💡 วิธีเก็บใบ 50ทวิ เป็น PDF</div>
+      <div class="text-amber-700 text-xs leading-relaxed">
+        กดปุ่ม <strong>🖨️ พิมพ์</strong> → ในหน้าต่าง print dialog → ที่ <strong>"Destination"</strong> เลือก
+        <strong>"Save as PDF"</strong> แทน Printer → กด <strong>Save</strong> → ได้ไฟล์ PDF
+        <br>จากนั้นลากไฟล์เข้า Google Drive โฟลเดอร์ที่เก็บใบ 50ทวิ (จัดเป็นเดือนได้ตามต้องการ)
+      </div>
+    </div>
     <div class="bg-white border border-stone-200 rounded-2xl p-5 mb-5">
       <h2 class="serif text-xl text-stone-800 mb-3">📄 สร้างใบ 50ทวิ</h2>
-      <div class="text-sm text-stone-600 mb-4">เลือก WHT record ที่ต้องการออกใบ — จะคลิ๊กพรีวิวก่อน ปริ้นทีหลัง</div>
+      <div class="text-sm text-stone-600 mb-4">เลือก WHT record → คลิก "ดู" พรีวิวก่อน หรือ "พิมพ์" เปิด print dialog ทันที</div>
       <div id="cert-table">⏳ กำลังโหลด...</div>
     </div>
     <div id="cert-preview"></div>
-  </section>
-
-  <!-- VIEW 5: Drive folder browser -->
-  <section id="view-drive" class="view hidden">
-    <div class="bg-white border border-stone-200 rounded-2xl p-5">
-      <div class="flex items-end justify-between mb-3">
-        <div>
-          <h2 class="serif text-xl text-stone-800">📁 ใบ 50ทวิ ใน Google Drive</h2>
-          <div class="text-xs text-stone-500 mt-1">โฟลเดอร์: Two Build Finance V4 / WHT Certificates / YYYY / YYYY-MM</div>
-        </div>
-        <select id="drive-period" class="px-3 py-2 border border-stone-300 rounded text-sm" onchange="loadDriveFolder()"></select>
-      </div>
-      <div id="drive-folder-info" class="mb-3"></div>
-      <div id="drive-files">⏳ กำลังโหลด...</div>
-    </div>
   </section>
 
   <!-- VIEW 4: Filing Summary -->
@@ -367,56 +358,6 @@ function switchView(e, name) {
   if (name === 'list') renderList();
   else if (name === 'cert') renderCertList();
   else if (name === 'filing') renderFiling();
-  else if (name === 'drive') setupDriveView();
-}
-
-function setupDriveView() {
-  const sel = document.getElementById('drive-period');
-  if (sel.options.length === 0) {
-    const periods = [...new Set(DATA.whts.map(r => String(r.period).slice(0,7)))].sort().reverse();
-    periods.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p; opt.textContent = p;
-      sel.appendChild(opt);
-    });
-  }
-  loadDriveFolder();
-}
-
-function loadDriveFolder() {
-  const period = document.getElementById('drive-period').value;
-  document.getElementById('drive-files').innerHTML = '⏳ กำลังโหลดจาก Drive...';
-  document.getElementById('drive-folder-info').innerHTML = '';
-  fetch(FINANCE_API_URL + '?action=listCertFolder&period=' + period)
-    .then(r => r.json())
-    .then(d => {
-      if (!d.ok) {
-        document.getElementById('drive-files').innerHTML = '<div class="text-red-600 p-4 bg-red-50 rounded">❌ ' + d.error + '<br><br>💡 ถ้าเป็นครั้งแรก ต้อง grant Drive permission ผ่าน Apps Script editor</div>';
-        return;
-      }
-      document.getElementById('drive-folder-info').innerHTML =
-        '<a href="' + d.folder_url + '" target="_blank" class="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded text-sm hover:bg-blue-100">' +
-        '📁 เปิดโฟลเดอร์ ' + period + ' ใน Drive (' + d.count + ' ไฟล์)</a>';
-      if (d.files.length === 0) {
-        document.getElementById('drive-files').innerHTML = '<div class="text-center text-stone-400 py-12">ยังไม่มีใบ 50ทวิ ในโฟลเดอร์นี้<br><span class="text-xs">ออกใบใหม่ที่หน้า "📝 บันทึก" → กด "บันทึก + ออกใบ 50ทวิ"</span></div>';
-        return;
-      }
-      let html = '<table class="w-full text-sm"><thead class="bg-stone-50"><tr class="text-xs"><th class="px-3 py-2 text-left">ชื่อไฟล์</th><th class="px-3 py-2 text-right">ขนาด</th><th class="px-3 py-2 text-left">วันที่</th><th class="px-3 py-2 text-center">Action</th></tr></thead><tbody>';
-      d.files.forEach(f => {
-        html += '<tr class="border-t border-stone-100">' +
-          '<td class="px-3 py-2 font-mono text-xs">📄 ' + f.name + '</td>' +
-          '<td class="px-3 py-2 text-right text-xs text-stone-600">' + (f.size/1024).toFixed(1) + ' KB</td>' +
-          '<td class="px-3 py-2 text-xs text-stone-500">' + f.created + '</td>' +
-          '<td class="px-3 py-2 text-center">' +
-            '<a href="' + f.url + '" target="_blank" class="text-blue-600 hover:underline text-xs">👁️ เปิด</a>' +
-          '</td></tr>';
-      });
-      html += '</tbody></table>';
-      document.getElementById('drive-files').innerHTML = html;
-    })
-    .catch(e => {
-      document.getElementById('drive-files').innerHTML = '<div class="text-red-600 p-4">❌ ' + e.message + '</div>';
-    });
 }
 
 function renderList() {
@@ -701,7 +642,7 @@ async function saveWHT(genCert) {
   if (!res.ok) { alert('❌ ' + res.error); return; }
 
   if (genCert) {
-    // 1. Also append to WHT-Certificates
+    // Also append to WHT-Certificates tab
     await API.append('WHT-Certificates', {
       cert_no: data.cert_no,
       issue_date: data.date,
@@ -721,20 +662,13 @@ async function saveWHT(genCert) {
       notes: data.notes || ''
     });
 
-    // 2. Generate PDF + upload to Drive
-    document.body.style.cursor = 'wait';
-    try {
-      await generatePDFAndUpload(data);
-      alert('✅ บันทึก WHT + ออกใบ 50ทวิ + อัพ PDF เข้า Drive สำเร็จ!\n\n' +
-            'WHT: ' + data.wht_id + '\n' +
-            'Cert: ' + data.cert_no + '\n' +
-            'โฟลเดอร์ Drive: WHT Certificates / ' + data.period.slice(0,4) + ' / ' + data.period);
-    } catch (e) {
-      alert('⚠️ บันทึกใน Sheet สำเร็จ แต่ upload PDF ผิดพลาด:\n' + e.message + '\n\nลองพิมพ์ใหม่ภายหลังได้ที่หน้า "📄 ใบ 50ทวิ"');
-    } finally {
-      document.body.style.cursor = 'default';
-    }
-    // Also open print dialog for hand-printing
+    alert('✅ บันทึก WHT + ใบ 50ทวิ สำเร็จ!\n\n' +
+          'WHT: ' + data.wht_id + '\n' +
+          'Cert: ' + data.cert_no + '\n\n' +
+          '📄 หน้าต่างพิมพ์จะเปิดต่อ\n' +
+          '💡 ทิป: เลือก "Save as PDF" แทน Printer → จะได้ไฟล์ PDF เก็บ/แชร์ได้\n' +
+          'แล้วลากเข้า Drive โฟลเดอร์: WHT Certificates / ' + data.period.slice(0,4) + ' / ' + data.period);
+    // Open browser print dialog (user can save as PDF or print)
     printCertFromData(data);
   } else {
     alert('✅ บันทึก WHT สำเร็จ: ' + data.wht_id);
@@ -749,95 +683,8 @@ function printCertFromData(r) {
   setTimeout(() => window.print(), 200);
 }
 
-// === Generate PDF + Upload to Drive ===
-async function generatePDFAndUpload(r) {
-  return new Promise((resolve, reject) => {
-    // Create off-screen div with cert HTML
-    const wrapper = document.createElement('div');
-    wrapper.style.position = 'absolute';
-    wrapper.style.left = '-9999px';
-    wrapper.style.top = '0';
-    wrapper.innerHTML = buildCertHTML(r);
-    document.body.appendChild(wrapper);
-
-    const opt = {
-      margin: 0,
-      filename: r.cert_no + '_' + r.recipient_name.replace(/[^a-zA-Z0-9ก-๙\s]/g, '').slice(0, 30) + '.pdf',
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().from(wrapper.firstElementChild).set(opt).outputPdf('arraybuffer')
-      .then(buf => {
-        document.body.removeChild(wrapper);
-        // Convert to base64
-        const bytes = new Uint8Array(buf);
-        let bin = '';
-        for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-        const b64 = btoa(bin);
-
-        // POST to Apps Script via form+iframe (mode no-cors workaround for large payloads)
-        uploadPDFToDrive(r, b64).then(resolve).catch(reject);
-      })
-      .catch(err => {
-        document.body.removeChild(wrapper);
-        reject(err);
-      });
-  });
-}
-
-function uploadPDFToDrive(r, base64_pdf) {
-  return new Promise((resolve, reject) => {
-    // Use form + iframe trick (works for large POST bodies)
-    const iframeId = 'pdfupload_' + Date.now();
-    const iframe = document.createElement('iframe');
-    iframe.name = iframeId;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = FINANCE_API_URL;
-    form.target = iframeId;
-    form.enctype = 'text/plain';
-    form.style.display = 'none';
-
-    const payload = {
-      action: 'uploadCertPDF',
-      cert_no: r.cert_no,
-      period: String(r.period).slice(0, 7),
-      recipient_name: r.recipient_name,
-      wht_id: r.wht_id,
-      base64_pdf: base64_pdf
-    };
-
-    const input = document.createElement('input');
-    input.name = 'd';
-    input.value = encodeURIComponent(JSON.stringify(payload));
-    form.appendChild(input);
-    document.body.appendChild(form);
-
-    let cleaned = false;
-    const cleanup = () => {
-      if (cleaned) return;
-      cleaned = true;
-      try { document.body.removeChild(form); } catch (e) {}
-      try { document.body.removeChild(iframe); } catch (e) {}
-    };
-
-    iframe.onload = () => {
-      // Can't read iframe content due to CORS, but file was uploaded if no error
-      setTimeout(() => { cleanup(); resolve({ ok: true, note: 'submitted (response not readable)' }); }, 500);
-    };
-
-    setTimeout(() => {
-      if (!cleaned) { cleanup(); reject(new Error('timeout')); }
-    }, 30000);
-
-    form.submit();
-  });
-}
+// Print uses browser native print dialog — user chooses Printer or "Save as PDF"
+// (Drive auto-upload removed — Google security blocks anonymous web apps from writing Drive)
 
 function generateCert(whtId) {
   const r = DATA.whts.find(x => x.wht_id === whtId);
