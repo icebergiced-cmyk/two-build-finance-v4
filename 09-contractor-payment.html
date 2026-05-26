@@ -8,20 +8,34 @@
 <style>
   body { font-family: 'Sarabun', sans-serif; background: #fafaf9; }
   .serif { font-family: 'Playfair Display', serif; }
+  .workflow-step { position: relative; }
+  .workflow-step::after { content: '→'; position: absolute; right: -18px; top: 12px; color: #d6d3d1; font-size: 18px; }
+  .workflow-step:last-child::after { display: none; }
+  @media print {
+    body { background: white; }
+    .no-print { display: none !important; }
+    .ms-fab, .ms-panel { display: none !important; }
+  }
 </style>
 </head>
-<body>
+<body data-module-shell='{"module":"09","live":true}'>
 
-<header class="bg-white border-b border-stone-200 sticky top-0 z-40">
+<header class="bg-white border-b border-stone-200 sticky top-0 z-40 no-print">
   <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-4">
       <a href="index.html" class="text-stone-500 hover:text-stone-800 flex items-center gap-1 text-sm"><span>←</span><span>Hub</span></a>
       <div class="border-l border-stone-300 pl-4">
-        <h1 class="font-bold text-stone-800">🔨 Contractor Payment + Foreman QC</h1>
-        <p class="text-xs text-stone-500">Module 09 · 📊 Sheet: <code>Contractor + PO-Tracker</code></p>
+        <h1 class="font-bold text-stone-800">🔨 Contractor Payment · ใบสรุปยอดค่าแรง</h1>
+        <p class="text-xs text-stone-500">Module 09 · 📊 <code>Contractor-Master + PO-Tracker</code> · template จริง เม.ย. 2569</p>
       </div>
     </div>
-    <div class="text-xs text-stone-500">👤 ผู้อนุมัติ: คุณไอซ์</div>
+    <div class="flex items-center gap-3 text-sm">
+      <select id="filter-period" onchange="render()" class="bg-stone-50 border border-stone-200 rounded px-3 py-1.5 text-sm">
+        <option value="2569-04">งวด เม.ย. 2569</option>
+        <option value="2569-05" selected>งวด พ.ค. 2569</option>
+      </select>
+      <span class="text-xs text-stone-500">👤 ผู้อนุมัติ: คุณไอซ์</span>
+    </div>
   </div>
 </header>
 
@@ -30,152 +44,238 @@
   <!-- KPI -->
   <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
     <div class="bg-white rounded-xl p-4 border border-stone-200">
-      <div class="text-xs text-stone-500">📥 งวดรอตรวจ</div>
-      <div class="text-2xl font-bold text-stone-800 mt-1">2</div>
+      <div class="text-xs text-stone-500">👷 ทีมช่างทั้งหมด</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1" id="k-teams">-</div>
+      <div class="text-xs text-stone-500 mt-1">ทีมหลัก + งานพิเศษ</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-stone-200">
+      <div class="text-xs text-stone-500">📥 ใบส่งงานรอตรวจ</div>
+      <div class="text-2xl font-bold text-amber-600 mt-1" id="k-pending">-</div>
       <div class="text-xs text-amber-600 mt-1">โฟร์แมนตรวจ</div>
     </div>
     <div class="bg-white rounded-xl p-4 border border-stone-200">
-      <div class="text-xs text-stone-500">✅ ผ่าน QC · รออนุมัติ</div>
-      <div class="text-2xl font-bold text-emerald-600 mt-1">3</div>
-    </div>
-    <div class="bg-white rounded-xl p-4 border border-stone-200">
-      <div class="text-xs text-stone-500">💸 รวมรอจ่าย</div>
-      <div class="text-2xl font-bold text-stone-800 mt-1">฿687K</div>
+      <div class="text-xs text-stone-500">💸 ยอดเดือน เม.ย.</div>
+      <div class="text-2xl font-bold text-stone-800 mt-1">฿929K</div>
+      <div class="text-xs text-stone-500 mt-1">8 ทีมรวม</div>
     </div>
     <div class="bg-white rounded-xl p-4 border border-stone-200">
       <div class="text-xs text-stone-500">🛡️ ประกันงาน 5%</div>
-      <div class="text-2xl font-bold text-blue-600 mt-1">฿34K</div>
-      <div class="text-xs text-stone-500 mt-1">คืนเมื่อตรวจรับงาน</div>
+      <div class="text-2xl font-bold text-blue-600 mt-1">฿46.5K</div>
+      <div class="text-xs text-stone-500 mt-1">คืนเมื่อตรวจรับ</div>
     </div>
     <div class="bg-white rounded-xl p-4 border border-stone-200">
       <div class="text-xs text-stone-500">💼 WHT 3%</div>
-      <div class="text-2xl font-bold text-purple-600 mt-1">฿20K</div>
+      <div class="text-2xl font-bold text-purple-600 mt-1">฿27.9K</div>
+      <div class="text-xs text-stone-500 mt-1">หัก ณ ที่จ่าย</div>
+    </div>
+  </div>
+
+  <!-- Workflow 5 steps -->
+  <div class="bg-white rounded-xl p-5 border border-stone-200 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold text-stone-800">📋 Workflow ส่งงวดงาน · 5 ขั้นตอนจริง</h3>
+      <a href="#" onclick="event.preventDefault();openWorkflowHelp()" class="text-xs text-blue-600">ดูตัวอย่างใบ →</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
+      <div class="workflow-step">
+        <div class="bg-gradient-to-br from-blue-50 to-white rounded-lg p-3 border border-blue-200">
+          <div class="text-blue-600 font-bold text-sm">1. ทำงาน + ตรวจ</div>
+          <div class="text-xs text-stone-600 mt-1">ช่างทำงาน → โฟร์แมนตรวจรับ</div>
+          <div class="text-[10px] text-stone-400 mt-2">โฟร์แมน: นายโกวิท ราษีทอง</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="bg-gradient-to-br from-emerald-50 to-white rounded-lg p-3 border border-emerald-200">
+          <div class="text-emerald-700 font-bold text-sm">2. ใบส่งงาน</div>
+          <div class="text-xs text-stone-600 mt-1">ออกใบส่งงาน + รูปงาน</div>
+          <div class="text-[10px] text-stone-400 mt-2">ระบุแปลง/แบบบ้าน/หน่วย</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="bg-gradient-to-br from-amber-50 to-white rounded-lg p-3 border border-amber-200">
+          <div class="text-amber-700 font-bold text-sm">3. ใบสรุปยอด</div>
+          <div class="text-xs text-stone-600 mt-1">รวมงวดรายเดือนต่อทีม</div>
+          <div class="text-[10px] text-stone-400 mt-2">"สรุปใบส่งงาน ค่าแรง ประจำงวด ..."</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="bg-gradient-to-br from-purple-50 to-white rounded-lg p-3 border border-purple-200">
+          <div class="text-purple-700 font-bold text-sm">4. ส่งมอบงาน</div>
+          <div class="text-xs text-stone-600 mt-1">หนังสือส่งมอบ → กรรมการ + บัญชี</div>
+          <div class="text-[10px] text-stone-400 mt-2">นายเฉลิมไชย ดีแสน อนุมัติ</div>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="bg-gradient-to-br from-red-50 to-white rounded-lg p-3 border border-red-200">
+          <div class="text-red-700 font-bold text-sm">5. ออกเช็ค</div>
+          <div class="text-xs text-stone-600 mt-1">บัญชีออกเช็คให้ทีมช่าง</div>
+          <div class="text-[10px] text-stone-400 mt-2">ลง Cash-Book + Cheque-Schedule</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Tabs -->
   <div class="border-b border-stone-200 mb-4 flex gap-1 overflow-x-auto">
-    <button onclick="switchTab('pending')" id="t-pending" class="px-4 py-2 font-medium text-sm border-b-2 border-stone-800 text-stone-800 whitespace-nowrap">📥 งวดรอตรวจ (2)</button>
-    <button onclick="switchTab('approved')" id="t-approved" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">✅ ผ่าน QC · รอจ่าย (3)</button>
-    <button onclick="switchTab('contractors')" id="t-contractors" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">👷 ผู้รับเหมาทั้งหมด</button>
-    <button onclick="switchTab('history')" id="t-history" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">📜 ประวัติจ่ายงวด</button>
+    <button onclick="switchTab('teams')" id="t-teams" class="px-4 py-2 font-medium text-sm border-b-2 border-stone-800 text-stone-800 whitespace-nowrap">👷 8 ทีมช่าง (เม.ย.69)</button>
+    <button onclick="switchTab('summary')" id="t-summary" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">📄 ใบสรุปยอด</button>
+    <button onclick="switchTab('jturian')" id="t-jturian" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">🏠 เจ้ทุเรียน · ราคา 6 งวด</button>
+    <button onclick="switchTab('history')" id="t-history" class="px-4 py-2 font-medium text-sm border-b-2 border-transparent text-stone-500 whitespace-nowrap">📜 ประวัติจ่าย</button>
   </div>
 
-  <!-- Tab: Pending -->
-  <div id="pane-pending" class="space-y-4"></div>
-
-  <!-- Tab: Approved -->
-  <div id="pane-approved" class="hidden space-y-4"></div>
-
-  <!-- Tab: Contractors -->
-  <div id="pane-contractors" class="hidden">
-    <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+  <!-- Tab: Teams -->
+  <div id="pane-teams" class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+    <div class="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs text-amber-800 flex items-center gap-2">
+      <span>📁</span>
+      <span><b>Template จริงเดือน เม.ย. 2569:</b> /Users/twobuild/Downloads/เดือน เมษายน/ · 8 ทีม · รวม ฿929,310</span>
+    </div>
+    <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-stone-50 border-b border-stone-200">
           <tr>
-            <th class="text-left px-3 py-2.5">ผู้รับเหมา</th>
-            <th class="text-left px-3 py-2.5">ประเภทงาน</th>
-            <th class="text-right px-3 py-2.5">งานรวม</th>
-            <th class="text-right px-3 py-2.5">จ่ายแล้ว</th>
-            <th class="text-right px-3 py-2.5">ค้างจ่าย</th>
-            <th class="text-right px-3 py-2.5">ประกันค้าง</th>
+            <th class="text-left px-3 py-2.5">ID</th>
+            <th class="text-left px-3 py-2.5">ช่าง / ทีม</th>
+            <th class="text-left px-3 py-2.5">งานหลัก</th>
+            <th class="text-left px-3 py-2.5">ขอบเขต</th>
+            <th class="text-right px-3 py-2.5">ราคา/หน่วย</th>
             <th class="text-center px-3 py-2.5">เรตติ้ง</th>
             <th class="text-center px-3 py-2.5">สถานะ</th>
+            <th class="text-center px-3 py-2.5">การกระทำ</th>
           </tr>
         </thead>
-        <tbody>
-          <tr class="border-b border-stone-100 hover:bg-stone-50">
-            <td class="px-3 py-2.5">
-              <div class="font-bold">นายสมชาย รับเหมา</div>
-              <div class="text-xs text-stone-500">โทร 081-234-5678 · บุคคลธรรมดา</div>
-            </td>
-            <td class="px-3 py-2.5"><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">ก่ออิฐ · ฉาบปูน</span></td>
-            <td class="px-3 py-2.5 text-right font-mono">฿2,850,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-emerald-700">฿1,840,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-amber-700 font-bold">฿1,010,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-blue-700">฿142,500</td>
-            <td class="px-3 py-2.5 text-center">⭐⭐⭐⭐⭐</td>
-            <td class="px-3 py-2.5 text-center"><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🟢 ใช้งาน</span></td>
-          </tr>
-          <tr class="border-b border-stone-100 hover:bg-stone-50">
-            <td class="px-3 py-2.5">
-              <div class="font-bold">นายประยุทธ์ ช่างหลังคา</div>
-              <div class="text-xs text-stone-500">โทร 082-345-6789 · บุคคลธรรมดา</div>
-            </td>
-            <td class="px-3 py-2.5"><span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">มุงหลังคา</span></td>
-            <td class="px-3 py-2.5 text-right font-mono">฿1,560,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-emerald-700">฿1,170,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-amber-700 font-bold">฿390,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-blue-700">฿78,000</td>
-            <td class="px-3 py-2.5 text-center">⭐⭐⭐⭐</td>
-            <td class="px-3 py-2.5 text-center"><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🟢 ใช้งาน</span></td>
-          </tr>
-          <tr class="border-b border-stone-100 hover:bg-stone-50">
-            <td class="px-3 py-2.5">
-              <div class="font-bold">บจก. ไทยอินสตอลล์ จำกัด</div>
-              <div class="text-xs text-stone-500">เลขผู้เสียภาษี · นิติบุคคล</div>
-            </td>
-            <td class="px-3 py-2.5"><span class="text-xs bg-cyan-100 text-cyan-700 px-2 py-0.5 rounded">ระบบไฟฟ้า + ประปา</span></td>
-            <td class="px-3 py-2.5 text-right font-mono">฿3,200,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-emerald-700">฿2,560,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-amber-700 font-bold">฿640,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-blue-700">฿160,000</td>
-            <td class="px-3 py-2.5 text-center">⭐⭐⭐⭐⭐</td>
-            <td class="px-3 py-2.5 text-center"><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🟢 ใช้งาน</span></td>
-          </tr>
-          <tr class="border-b border-stone-100 hover:bg-stone-50 opacity-60">
-            <td class="px-3 py-2.5">
-              <div class="font-bold">นายอำนาจ ปูกระเบื้อง</div>
-              <div class="text-xs text-stone-500">โทร 083-456-7890</div>
-            </td>
-            <td class="px-3 py-2.5"><span class="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">ปูกระเบื้อง</span></td>
-            <td class="px-3 py-2.5 text-right font-mono">฿850,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-emerald-700">฿850,000</td>
-            <td class="px-3 py-2.5 text-right font-mono">฿0</td>
-            <td class="px-3 py-2.5 text-right font-mono">฿0</td>
-            <td class="px-3 py-2.5 text-center">⭐⭐</td>
-            <td class="px-3 py-2.5 text-center"><span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">🚫 บัญชีดำ</span></td>
-          </tr>
-          <tr class="border-b border-stone-100 hover:bg-stone-50">
-            <td class="px-3 py-2.5">
-              <div class="font-bold">นายตู่ ทาสี</div>
-              <div class="text-xs text-stone-500">โทร 084-567-8901</div>
-            </td>
-            <td class="px-3 py-2.5"><span class="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded">ทาสี ทั้งใน-นอก</span></td>
-            <td class="px-3 py-2.5 text-right font-mono">฿420,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-emerald-700">฿252,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-amber-700 font-bold">฿168,000</td>
-            <td class="px-3 py-2.5 text-right font-mono text-blue-700">฿21,000</td>
-            <td class="px-3 py-2.5 text-center">⭐⭐⭐⭐</td>
-            <td class="px-3 py-2.5 text-center"><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🟢 ใช้งาน</span></td>
-          </tr>
+        <tbody id="teams-body">
+          <tr><td colspan="8" class="text-center py-8 text-stone-400">กำลังโหลด...</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Tab: Summary form template -->
+  <div id="pane-summary" class="hidden">
+    <div class="bg-white rounded-xl p-6 border border-stone-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-stone-800">📄 ใบสรุปยอด · ทีม <select id="sum-team" onchange="renderSummary()" class="ml-1 border border-stone-300 rounded px-2 py-1 text-sm"></select></h3>
+        <div class="flex gap-2">
+          <button onclick="window.print()" class="bg-stone-800 hover:bg-stone-900 text-white px-3 py-1.5 rounded text-sm font-medium">🖨️ พิมพ์</button>
+          <button onclick="alert('💾 บันทึกเข้า Contractor-Master + PO-Tracker')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm font-medium">💾 บันทึก Sheet</button>
+        </div>
+      </div>
+
+      <!-- Header ของใบ (matches real template) -->
+      <div class="border-2 border-stone-300 p-5 rounded">
+        <div class="text-center mb-4">
+          <div class="serif text-xl font-bold">บจก. ทู บิลด์ ดีเวลลอปเมนท์</div>
+          <div class="text-xs text-stone-600">1/88 หมู่ที่ 1 ต.หนองแหน อ.พนมสารคาม จ.ฉะเชิงเทรา 24120 · เลข ผปภ. 0245566004014</div>
+          <div class="font-bold text-lg mt-3" id="sum-title">สรุปใบส่งงาน ค่าแรง ประจำงวด -</div>
+        </div>
+
+        <table class="w-full text-xs border border-stone-400" id="sum-table">
+          <thead class="bg-stone-100">
+            <tr>
+              <th class="border border-stone-400 px-2 py-1 w-10">ลำดับ</th>
+              <th class="border border-stone-400 px-2 py-1">ช่าง</th>
+              <th class="border border-stone-400 px-2 py-1 w-16">แปลง</th>
+              <th class="border border-stone-400 px-2 py-1">แบบบ้าน</th>
+              <th class="border border-stone-400 px-2 py-1">รายการ</th>
+              <th class="border border-stone-400 px-2 py-1 w-14">หน่วย</th>
+              <th class="border border-stone-400 px-2 py-1 w-14">จำนวน</th>
+              <th class="border border-stone-400 px-2 py-1 w-20">ราคา/หน่วย</th>
+              <th class="border border-stone-400 px-2 py-1 w-24">เป็นเงิน</th>
+              <th class="border border-stone-400 px-2 py-1">หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody id="sum-body"></tbody>
+          <tfoot id="sum-foot" class="bg-stone-50 font-bold"></tfoot>
+        </table>
+
+        <div class="grid grid-cols-3 gap-6 mt-6 text-xs">
+          <div class="text-center">
+            <div class="border-t border-stone-400 pt-1 mt-12">ผู้ส่งงาน · หัวหน้าทีม</div>
+            <div class="text-stone-500 mt-1">วันที่ ........../........../..........</div>
+          </div>
+          <div class="text-center">
+            <div class="border-t border-stone-400 pt-1 mt-12">ผู้ตรวจรับงาน · โฟร์แมน</div>
+            <div class="text-stone-500 mt-1">นายโกวิท ราษีทอง</div>
+          </div>
+          <div class="text-center">
+            <div class="border-t border-stone-400 pt-1 mt-12">ผู้อนุมัติ · กรรมการผู้จัดการ</div>
+            <div class="text-stone-500 mt-1">นายเฉลิมไชย ดีแสน</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: เจ้ทุเรียน 6 งวด -->
+  <div id="pane-jturian" class="hidden">
+    <div class="bg-gradient-to-br from-amber-50 to-white rounded-xl p-6 border border-amber-200">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-bold text-stone-800 text-lg">🏠 ทีมเจ้ทุเรียน · ราคาบ้านเดี่ยว 2 ชั้น</h3>
+          <p class="text-xs text-stone-500 mt-1">งานหลัก: โครงสร้าง + ก่ออิฐ + ฉาบปูน · รวม ฿300,000/หลัง</p>
+        </div>
+        <div class="text-right">
+          <div class="text-xs text-stone-500">ราคาเหมา/หลัง</div>
+          <div class="text-3xl font-bold text-amber-700">฿300,000</div>
+        </div>
+      </div>
+
+      <table class="w-full text-sm bg-white rounded overflow-hidden border border-stone-200">
+        <thead class="bg-stone-100">
+          <tr>
+            <th class="text-left px-3 py-2 w-16">งวด</th>
+            <th class="text-center px-3 py-2 w-20">% งาน</th>
+            <th class="text-left px-3 py-2">ขอบเขตงาน</th>
+            <th class="text-right px-3 py-2 w-32">ราคา</th>
+            <th class="text-right px-3 py-2 w-32">ยอดสะสม</th>
+            <th class="text-center px-3 py-2">การกระทำ</th>
+          </tr>
+        </thead>
+        <tbody id="jturian-body"></tbody>
+      </table>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+        <div class="bg-white rounded-lg p-3 border border-stone-200">
+          <div class="text-xs text-stone-500">หัก ปก. 5%</div>
+          <div class="text-lg font-bold text-blue-600">฿15,000</div>
+        </div>
+        <div class="bg-white rounded-lg p-3 border border-stone-200">
+          <div class="text-xs text-stone-500">WHT 3%</div>
+          <div class="text-lg font-bold text-purple-600">฿9,000</div>
+        </div>
+        <div class="bg-white rounded-lg p-3 border border-stone-200">
+          <div class="text-xs text-stone-500">สุทธิจ่าย/หลัง</div>
+          <div class="text-lg font-bold text-emerald-600">฿276,000</div>
+        </div>
+        <div class="bg-white rounded-lg p-3 border border-stone-200">
+          <div class="text-xs text-stone-500">รวมต่อหลัง (รวมหัก)</div>
+          <div class="text-lg font-bold text-stone-800">฿300,000</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Tab: History -->
   <div id="pane-history" class="hidden">
     <div class="bg-white rounded-xl border border-stone-200 overflow-hidden">
+      <div class="px-4 py-3 border-b border-stone-200 text-xs text-stone-500">
+        📊 อ่านจาก Sheet "Contractor-Master" — ประวัติงวดงานทั้งหมด
+      </div>
       <table class="w-full text-sm">
         <thead class="bg-stone-50 border-b border-stone-200">
           <tr>
-            <th class="text-left px-3 py-2.5">วันที่จ่าย</th>
+            <th class="text-left px-3 py-2.5">วันที่</th>
             <th class="text-left px-3 py-2.5">CTR No.</th>
-            <th class="text-left px-3 py-2.5">ผู้รับเหมา</th>
-            <th class="text-left px-3 py-2.5">งาน · งวด</th>
+            <th class="text-left px-3 py-2.5">ทีม</th>
+            <th class="text-left px-3 py-2.5">งาน · งวด · แปลง</th>
             <th class="text-right px-3 py-2.5">ยอดงวด</th>
             <th class="text-right px-3 py-2.5">หัก ปก. + WHT</th>
             <th class="text-right px-3 py-2.5">สุทธิจ่าย</th>
             <th class="text-center px-3 py-2.5">QC</th>
           </tr>
         </thead>
-        <tbody>
-          <tr class="border-b border-stone-100"><td class="px-3 py-2">24/05/2569</td><td class="px-3 py-2 font-mono text-xs">CTR-0089</td><td class="px-3 py-2">นายสมชาย</td><td class="px-3 py-2 text-xs">ก่ออิฐ A-15,16 · งวด 3/5</td><td class="px-3 py-2 text-right font-mono">฿145,000</td><td class="px-3 py-2 text-right font-mono text-red-700">(฿11,600)</td><td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">฿133,400</td><td class="px-3 py-2 text-center text-emerald-700">✅</td></tr>
-          <tr class="border-b border-stone-100"><td class="px-3 py-2">20/05/2569</td><td class="px-3 py-2 font-mono text-xs">CTR-0087</td><td class="px-3 py-2">นายประยุทธ์</td><td class="px-3 py-2 text-xs">มุงหลังคา C-01 · งวด 1/3</td><td class="px-3 py-2 text-right font-mono">฿78,000</td><td class="px-3 py-2 text-right font-mono text-red-700">(฿6,240)</td><td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">฿71,760</td><td class="px-3 py-2 text-center text-emerald-700">✅</td></tr>
-          <tr class="border-b border-stone-100"><td class="px-3 py-2">15/05/2569</td><td class="px-3 py-2 font-mono text-xs">CTR-0085</td><td class="px-3 py-2">นายสมชาย</td><td class="px-3 py-2 text-xs">ก่ออิฐ A-10,11 · งวด 2/5</td><td class="px-3 py-2 text-right font-mono">฿120,000</td><td class="px-3 py-2 text-right font-mono text-red-700">(฿9,600)</td><td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">฿110,400</td><td class="px-3 py-2 text-center text-emerald-700">✅</td></tr>
-          <tr class="border-b border-stone-100"><td class="px-3 py-2">12/05/2569</td><td class="px-3 py-2 font-mono text-xs">CTR-0082</td><td class="px-3 py-2">บจก. ไทยอินสตอลล์</td><td class="px-3 py-2 text-xs">ระบบไฟฟ้า B-23,24 · งวด 2/3</td><td class="px-3 py-2 text-right font-mono">฿320,000</td><td class="px-3 py-2 text-right font-mono text-red-700">(฿25,600)</td><td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">฿294,400</td><td class="px-3 py-2 text-center text-emerald-700">✅</td></tr>
-          <tr class="border-b border-stone-100"><td class="px-3 py-2">08/05/2569</td><td class="px-3 py-2 font-mono text-xs">CTR-0080</td><td class="px-3 py-2">นายตู่</td><td class="px-3 py-2 text-xs">ทาสี B-23 · งวด 1/2</td><td class="px-3 py-2 text-right font-mono">฿42,000</td><td class="px-3 py-2 text-right font-mono text-red-700">(฿3,360)</td><td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">฿38,640</td><td class="px-3 py-2 text-center text-emerald-700">✅</td></tr>
+        <tbody id="history-body">
+          <tr><td colspan="8" class="text-center py-8 text-stone-400">อ่านจาก Sheet... (ถ้ายังไม่มีข้อมูล จะแสดงว่างเปล่า)</td></tr>
         </tbody>
       </table>
     </div>
@@ -183,273 +283,203 @@
 
 </main>
 
-<!-- QC Modal -->
-<div id="qc-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeQC()">
-  <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" id="qc-content"></div>
-</div>
-
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
-const fmt = n => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = n => '฿' + (Number(n) || 0).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-const pending = [
-  {
-    id: 'CTR-2026-0091',
-    contractor: 'นายสมชาย รับเหมา',
-    contractorType: 'person',
-    work: 'ก่ออิฐ + ฉาบปูน',
-    period: 'งวด 4/5',
-    house: 'บ้าน A-15, A-16',
-    project: 'One Vela',
-    requested: '23/05/2569',
-    amount: 145000,
-    foreman: 'นายนิว',
-    qcStatus: 'รอตรวจ',
-    checklist: [
-      { item: 'ก่ออิฐมอญตามแบบ', done: false },
-      { item: 'ระดับน้ำได้มาตรฐาน', done: false },
-      { item: 'ฉาบปูนเรียบ ไม่มีรอยร้าว', done: false },
-      { item: 'มุมเสาตรง 90 องศา', done: false },
-      { item: 'ทำความสะอาดหน้างาน', done: false }
-    ]
-  },
-  {
-    id: 'CTR-2026-0092',
-    contractor: 'นายประยุทธ์ ช่างหลังคา',
-    contractorType: 'person',
-    work: 'มุงหลังคา + ระแนง',
-    period: 'งวด 2/3',
-    house: 'บ้าน C-02, C-03',
-    project: 'Oxygen 3',
-    requested: '24/05/2569',
-    amount: 78000,
-    foreman: 'นายเอก',
-    qcStatus: 'รอตรวจ',
-    checklist: [
-      { item: 'ระแนงระยะตามแบบ', done: false },
-      { item: 'มุงกระเบื้องครบ', done: false },
-      { item: 'รอยต่อสันหลังคาแน่น', done: false },
-      { item: 'รางน้ำเชื่อมเรียบ', done: false }
-    ]
+let teams = [];
+
+async function loadTeams() {
+  try {
+    const r = await API.getContractorTeams();
+    if (r.ok) {
+      teams = r.teams;
+      renderTeams();
+      populateSummarySelect();
+      renderSummary();
+      renderJturian();
+      document.getElementById('k-teams').textContent = teams.length;
+      // Also load history from Contractor-Master tab
+      loadHistory();
+    }
+  } catch (e) {
+    console.error('loadTeams', e);
   }
-];
-
-const approved = [
-  {
-    id: 'CTR-2026-0093', contractor: 'นายสมชาย รับเหมา', contractorType: 'person',
-    work: 'ก่ออิฐ', period: 'งวด 4/5', house: 'A-12,13,14', project: 'One Vela',
-    amount: 165000, foreman: 'นายนิว', qcDate: '24/05/2569',
-    notes: 'งานดีมาก · ผ่านทุกข้อ · ขอตรวจรับ'
-  },
-  {
-    id: 'CTR-2026-0094', contractor: 'บจก. ไทยอินสตอลล์', contractorType: 'company',
-    work: 'ระบบไฟฟ้า', period: 'งวด 2/3', house: 'A-15,16', project: 'One Vela',
-    amount: 285000, foreman: 'นายเอก', qcDate: '23/05/2569',
-    notes: 'ครบทุกจุดตามแบบ · ทดสอบไฟฟ้าแล้ว'
-  },
-  {
-    id: 'CTR-2026-0095', contractor: 'นายตู่ ทาสี', contractorType: 'person',
-    work: 'ทาสีภายใน', period: 'งวด 1/2', house: 'A-12', project: 'One Vela',
-    amount: 237000, foreman: 'นายแบงค์', qcDate: '23/05/2569',
-    notes: 'สีเรียบ · ครอบคลุมทั่วถึง'
-  }
-];
-
-function calcDeductions(amount, type) {
-  const retention = amount * 0.05;
-  const whtRate = type === 'company' ? 0.03 : 0.03;
-  const wht = amount * whtRate;
-  const net = amount - retention - wht;
-  return { retention, wht, net, whtRate };
 }
 
-function renderPending() {
-  document.getElementById('pane-pending').innerHTML = pending.map(p => {
-    const d = calcDeductions(p.amount, p.contractorType);
+async function loadHistory() {
+  try {
+    const r = await API.read('Contractor-Master');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      document.getElementById('history-body').innerHTML = r.rows.map(row => `
+        <tr class="border-b border-stone-100">
+          <td class="px-3 py-2">${row.date || row.work_date || '-'}</td>
+          <td class="px-3 py-2 font-mono text-xs">${row.ctr_no || row.contractor_id || '-'}</td>
+          <td class="px-3 py-2">${row.contractor_name || row.team || '-'}</td>
+          <td class="px-3 py-2 text-xs">${row.work || row.description || '-'} · ${row.installment || ''} · ${row.house || ''}</td>
+          <td class="px-3 py-2 text-right font-mono">${fmt(row.amount || row.gross || 0)}</td>
+          <td class="px-3 py-2 text-right font-mono text-red-700">(${fmt((row.retention||0) + (row.wht||0))})</td>
+          <td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">${fmt(row.net || row.net_paid || 0)}</td>
+          <td class="px-3 py-2 text-center">${row.qc_status === 'passed' ? '✅' : (row.qc_status || '⏳')}</td>
+        </tr>
+      `).join('');
+      document.getElementById('k-pending').textContent = r.rows.filter(x => (x.qc_status||'').toLowerCase()==='pending' || x.qc_status==='รอตรวจ').length;
+    } else {
+      document.getElementById('history-body').innerHTML = `<tr><td colspan="8" class="text-center py-8 text-stone-400">ยังไม่มีประวัติใน Sheet "Contractor-Master" · ใช้แท็บ "ใบสรุปยอด" บันทึกใบแรก</td></tr>`;
+      document.getElementById('k-pending').textContent = '0';
+    }
+  } catch (e) {
+    console.error('loadHistory', e);
+  }
+}
+
+function renderTeams() {
+  document.getElementById('teams-body').innerHTML = teams.map(t => {
+    const rate = t.unit_rate ? `${fmt(t.unit_rate)}/${t.unit}` : (t.total_per_house ? `${fmt(t.total_per_house)}/หลัง` : '-');
     return `
-      <div class="bg-white rounded-xl border border-stone-200 p-5">
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-bold text-stone-800">${p.id}</span>
-              <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">⏳ รอโฟร์แมนตรวจ</span>
-            </div>
-            <div class="font-bold text-lg">${p.contractor}</div>
-            <div class="text-sm text-stone-600">${p.work} · ${p.period} · ${p.house}</div>
-            <div class="text-xs text-stone-500 mt-1">โครงการ ${p.project} · ขอเบิกเมื่อ ${p.requested}</div>
-          </div>
-          <div class="text-right">
-            <div class="text-xs text-stone-500">ยอดขอเบิก</div>
-            <div class="text-2xl font-bold">${fmt(p.amount)}</div>
-          </div>
-        </div>
-
-        <div class="bg-stone-50 rounded p-4 mb-4">
-          <div class="font-medium text-stone-800 mb-2 text-sm">📋 Checklist ตรวจงาน · โฟร์แมน ${p.foreman}</div>
-          <div class="space-y-1.5">
-            ${p.checklist.map((c, i) => `
-              <label class="flex items-center gap-2 text-sm hover:bg-white rounded px-2 py-1 cursor-pointer">
-                <input type="checkbox" id="qc-${p.id}-${i}" class="w-4 h-4">
-                <span>${c.item}</span>
-              </label>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="bg-blue-50 border border-blue-200 rounded p-3 mb-4 grid grid-cols-3 gap-3 text-sm">
-          <div>
-            <div class="text-xs text-stone-500">หัก ปก. 5%</div>
-            <div class="font-bold text-blue-700">${fmt(d.retention)}</div>
-          </div>
-          <div>
-            <div class="text-xs text-stone-500">WHT ${(d.whtRate*100).toFixed(0)}%</div>
-            <div class="font-bold text-purple-700">${fmt(d.wht)}</div>
-          </div>
-          <div>
-            <div class="text-xs text-stone-500">สุทธิจ่าย</div>
-            <div class="font-bold text-emerald-700 text-lg">${fmt(d.net)}</div>
-          </div>
-        </div>
-
-        <div class="flex gap-2">
-          <button onclick="openQC('${p.id}')" class="flex-1 bg-stone-800 hover:bg-stone-900 text-white py-2.5 rounded font-bold">🔍 เปิดหน้าตรวจ QC</button>
-          <button onclick="rejectWork('${p.id}')" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2.5 rounded font-bold">❌ ไม่ผ่าน</button>
-        </div>
-      </div>`;
+      <tr class="border-b border-stone-100 hover:bg-stone-50">
+        <td class="px-3 py-2.5 font-mono text-xs">${t.id}</td>
+        <td class="px-3 py-2.5"><div class="font-bold">${t.name}</div><div class="text-xs text-stone-500">${t.type === 'company' ? 'นิติบุคคล' : 'บุคคลธรรมดา'}</div></td>
+        <td class="px-3 py-2.5"><span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">${t.specialty}</span></td>
+        <td class="px-3 py-2.5 text-xs text-stone-600">${t.scope || '-'}</td>
+        <td class="px-3 py-2.5 text-right font-mono text-sm">${rate}</td>
+        <td class="px-3 py-2.5 text-center">${'⭐'.repeat(t.rating || 0)}</td>
+        <td class="px-3 py-2.5 text-center"><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">🟢 ใช้งาน</span></td>
+        <td class="px-3 py-2.5 text-center">
+          <button onclick="useTeam('${t.id}')" class="text-xs bg-stone-800 hover:bg-stone-900 text-white px-2 py-1 rounded">+ ใบใหม่</button>
+        </td>
+      </tr>
+    `;
   }).join('');
 }
 
-function renderApproved() {
-  document.getElementById('pane-approved').innerHTML = approved.map(p => {
-    const d = calcDeductions(p.amount, p.contractorType);
+function populateSummarySelect() {
+  const sel = document.getElementById('sum-team');
+  sel.innerHTML = teams.map(t => `<option value="${t.id}">${t.name} · ${t.specialty}</option>`).join('');
+}
+
+function renderSummary() {
+  const teamId = document.getElementById('sum-team').value;
+  const team = teams.find(t => t.id === teamId);
+  if (!team) return;
+
+  const period = document.getElementById('filter-period').value === '2569-04' ? '27-4-69' : '27-5-69';
+  document.getElementById('sum-title').textContent = `สรุปใบส่งงาน ค่าแรง ทีม "${team.name}" ประจำงวด ${period}`;
+
+  // Sample rows depend on team
+  let rows = [];
+  if (team.id === 'C-007') {
+    rows = team.installments.map((g, i) => ({
+      no: i+1, contractor: team.name, plot: '89/5', model: 'M-A1', item: `งวด ${g.no} · ${g.scope}`,
+      unit: 'หลัง', qty: 1, rate: g.amount, total: g.amount, note: `${g.pct}%`
+    }));
+  } else if (team.unit_rate) {
+    rows = [
+      { no: 1, contractor: team.name, plot: '89/5', model: 'M-A1', item: team.scope, unit: team.unit, qty: 1, rate: team.unit_rate, total: team.unit_rate, note: '' },
+      { no: 2, contractor: team.name, plot: '90/3', model: 'M-A1', item: team.scope, unit: team.unit, qty: 1, rate: team.unit_rate, total: team.unit_rate, note: '' }
+    ];
+  } else {
+    rows = [
+      { no: 1, contractor: team.name, plot: '89/5', model: 'M-A1', item: team.scope, unit: 'งาน', qty: 1, rate: 0, total: 0, note: 'กรอกราคาที่ตกลง' }
+    ];
+  }
+
+  document.getElementById('sum-body').innerHTML = rows.map(r => `
+    <tr>
+      <td class="border border-stone-400 px-2 py-1 text-center">${r.no}</td>
+      <td class="border border-stone-400 px-2 py-1">${r.contractor}</td>
+      <td class="border border-stone-400 px-2 py-1 text-center">${r.plot}</td>
+      <td class="border border-stone-400 px-2 py-1 text-center">${r.model}</td>
+      <td class="border border-stone-400 px-2 py-1">${r.item}</td>
+      <td class="border border-stone-400 px-2 py-1 text-center">${r.unit}</td>
+      <td class="border border-stone-400 px-2 py-1 text-center">${r.qty}</td>
+      <td class="border border-stone-400 px-2 py-1 text-right">${fmt(r.rate)}</td>
+      <td class="border border-stone-400 px-2 py-1 text-right">${fmt(r.total)}</td>
+      <td class="border border-stone-400 px-2 py-1 text-xs">${r.note}</td>
+    </tr>
+  `).join('');
+
+  const total = rows.reduce((s, r) => s + r.total, 0);
+  document.getElementById('sum-foot').innerHTML = `
+    <tr>
+      <td colspan="8" class="border border-stone-400 px-2 py-1 text-right">รวมเป็นเงิน</td>
+      <td class="border border-stone-400 px-2 py-1 text-right">${fmt(total)}</td>
+      <td class="border border-stone-400 px-2 py-1"></td>
+    </tr>
+    <tr>
+      <td colspan="8" class="border border-stone-400 px-2 py-1 text-right">หัก ปก. 5%</td>
+      <td class="border border-stone-400 px-2 py-1 text-right text-blue-700">(${fmt(total*0.05)})</td>
+      <td class="border border-stone-400 px-2 py-1"></td>
+    </tr>
+    <tr>
+      <td colspan="8" class="border border-stone-400 px-2 py-1 text-right">WHT 3%</td>
+      <td class="border border-stone-400 px-2 py-1 text-right text-purple-700">(${fmt(total*0.03)})</td>
+      <td class="border border-stone-400 px-2 py-1"></td>
+    </tr>
+    <tr class="text-base">
+      <td colspan="8" class="border border-stone-400 px-2 py-2 text-right">สุทธิจ่าย</td>
+      <td class="border border-stone-400 px-2 py-2 text-right text-emerald-700">${fmt(total*0.92)}</td>
+      <td class="border border-stone-400 px-2 py-2"></td>
+    </tr>
+  `;
+}
+
+function renderJturian() {
+  const team = teams.find(t => t.id === 'C-007');
+  if (!team || !team.installments) return;
+  let cumulative = 0;
+  document.getElementById('jturian-body').innerHTML = team.installments.map(g => {
+    cumulative += g.amount;
     return `
-      <div class="bg-gradient-to-r from-emerald-50 to-white rounded-xl border-l-4 border-emerald-500 border border-emerald-200 p-5">
-        <div class="flex justify-between items-start mb-3">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-bold text-stone-800">${p.id}</span>
-              <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">✅ ผ่าน QC · รออนุมัติจ่าย</span>
-            </div>
-            <div class="font-bold">${p.contractor}</div>
-            <div class="text-sm text-stone-600">${p.work} · ${p.period} · ${p.house}</div>
-            <div class="text-xs text-stone-500 mt-1">โฟร์แมน ${p.foreman} ตรวจเมื่อ ${p.qcDate} · ${p.notes}</div>
-          </div>
-          <div class="text-right">
-            <div class="text-xs text-stone-500">ยอดสุทธิ</div>
-            <div class="text-2xl font-bold text-emerald-700">${fmt(d.net)}</div>
-            <div class="text-xs text-stone-500 mt-0.5">จากยอด ${fmt(p.amount)}</div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded p-3 mb-3 text-xs grid grid-cols-4 gap-2">
-          <div><div class="text-stone-500">ยอดงวด</div><div class="font-bold">${fmt(p.amount)}</div></div>
-          <div><div class="text-stone-500">หัก ปก. 5%</div><div class="font-bold text-blue-700">(${fmt(d.retention)})</div></div>
-          <div><div class="text-stone-500">WHT 3%</div><div class="font-bold text-purple-700">(${fmt(d.wht)})</div></div>
-          <div><div class="text-stone-500">สุทธิ</div><div class="font-bold text-emerald-700">${fmt(d.net)}</div></div>
-        </div>
-
-        <div class="flex gap-2">
-          <button onclick="approve('${p.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded font-bold">✅ อนุมัติจ่าย</button>
-          <button onclick="alert('📄 เปิดดูเอกสารแนบ + รูป QC')" class="bg-stone-100 hover:bg-stone-200 px-4 py-2.5 rounded font-medium">📎 เอกสาร</button>
-          <button onclick="alert('💬 ส่ง message ผ่าน LINE')" class="bg-stone-100 hover:bg-stone-200 px-4 py-2.5 rounded font-medium">💬 ทักผู้รับเหมา</button>
-        </div>
-      </div>`;
+      <tr class="border-b border-stone-100 hover:bg-amber-50">
+        <td class="px-3 py-2.5 font-bold text-amber-700">งวด ${g.no}</td>
+        <td class="px-3 py-2.5 text-center"><span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">${g.pct}%</span></td>
+        <td class="px-3 py-2.5">${g.scope}</td>
+        <td class="px-3 py-2.5 text-right font-mono font-bold">${fmt(g.amount)}</td>
+        <td class="px-3 py-2.5 text-right font-mono text-stone-600">${fmt(cumulative)}</td>
+        <td class="px-3 py-2.5 text-center"><button onclick="alert('สร้างใบส่งงาน · งวด ${g.no} เจ้ทุเรียน')" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded">+ ใบส่งงาน</button></td>
+      </tr>
+    `;
   }).join('');
 }
 
-function openQC(id) {
-  const p = pending.find(x => x.id === id);
-  const d = calcDeductions(p.amount, p.contractorType);
-  document.getElementById('qc-content').innerHTML = `
-    <div class="bg-gradient-to-br from-stone-700 to-stone-900 text-white p-5 rounded-t-xl flex justify-between">
-      <div>
-        <div class="text-xs text-stone-300">${p.id}</div>
-        <div class="serif text-xl font-bold mt-1">🔍 ตรวจ QC งวดงาน</div>
-        <div class="text-xs text-amber-300 mt-1">โฟร์แมน: ${p.foreman}</div>
-      </div>
-      <button onclick="closeQC()" class="text-3xl hover:text-amber-300">×</button>
-    </div>
-    <div class="p-5">
-      <div class="bg-stone-50 rounded p-3 mb-4 text-sm grid grid-cols-2 gap-2">
-        <div><div class="text-xs text-stone-500">ผู้รับเหมา</div><div class="font-bold">${p.contractor}</div></div>
-        <div><div class="text-xs text-stone-500">โครงการ</div><div class="font-bold">${p.project}</div></div>
-        <div><div class="text-xs text-stone-500">งาน</div><div class="font-bold">${p.work}</div></div>
-        <div><div class="text-xs text-stone-500">งวด</div><div class="font-bold">${p.period}</div></div>
-        <div class="col-span-2"><div class="text-xs text-stone-500">บ้าน</div><div class="font-bold">${p.house}</div></div>
-      </div>
-
-      <div class="mb-4">
-        <div class="font-bold mb-2 text-sm">📋 Checklist ตรวจงาน</div>
-        <div id="qc-checklist" class="space-y-2">
-          ${p.checklist.map((c, i) => `
-            <label class="flex items-start gap-2 p-2 bg-stone-50 rounded hover:bg-stone-100 cursor-pointer">
-              <input type="checkbox" id="mc-${i}" onchange="updateQCProgress()" class="w-5 h-5 mt-0.5">
-              <span class="text-sm flex-1">${c.item}</span>
-            </label>
-          `).join('')}
-        </div>
-        <div class="mt-3 bg-blue-50 rounded p-2 text-xs">
-          ✅ ผ่าน: <span id="qc-passed" class="font-bold">0</span>/${p.checklist.length} ข้อ
-          <div class="bg-stone-200 h-2 rounded mt-1"><div id="qc-bar" class="bg-emerald-500 h-2 rounded transition-all" style="width:0%"></div></div>
-        </div>
-      </div>
-
-      <div>
-        <label class="text-xs font-medium text-stone-600">📝 หมายเหตุ/รูปภาพ</label>
-        <textarea rows="2" placeholder="ระบุข้อสังเกต · แนบรูปได้" class="w-full mt-1 px-3 py-2 border border-stone-300 rounded text-sm"></textarea>
-        <button class="text-xs text-blue-600 mt-1">📸 แนบรูปจากมือถือ (LINE OA)</button>
-      </div>
-
-      <div class="flex gap-2 mt-4 pt-3 border-t border-stone-200">
-        <button onclick="closeQC()" class="flex-1 bg-stone-100 hover:bg-stone-200 py-2.5 rounded font-medium">ปิด</button>
-        <button onclick="approveQC('${p.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded font-bold">✅ ผ่าน QC</button>
-      </div>
-    </div>`;
-  document.getElementById('qc-modal').classList.remove('hidden');
+function useTeam(id) {
+  document.getElementById('sum-team').value = id;
+  switchTab('summary');
+  renderSummary();
 }
 
-function updateQCProgress() {
-  const total = document.querySelectorAll('#qc-checklist input').length;
-  const passed = document.querySelectorAll('#qc-checklist input:checked').length;
-  document.getElementById('qc-passed').textContent = passed;
-  document.getElementById('qc-bar').style.width = (passed/total*100) + '%';
+function openWorkflowHelp() {
+  alert(`📋 Workflow ส่งงวดงาน — 5 ขั้นจริงของบริษัท
+
+1️⃣ ทำงาน → โฟร์แมนตรวจรับ
+   • ช่างทำงานตามขอบเขต
+   • โฟร์แมน (นายโกวิท ราษีทอง) ตรวจรับ
+
+2️⃣ ออกใบส่งงาน + รูป
+   • ระบุแปลง/แบบบ้าน/หน่วย
+   • แนบรูปงานที่เสร็จ
+
+3️⃣ ใบสรุปยอด (รายเดือน)
+   • รวมงวดทั้งหมดในเดือน
+   • Format: "สรุปใบส่งงาน ค่าแรง ประจำงวด ..."
+
+4️⃣ หนังสือส่งมอบงาน
+   • ส่งให้ประธานกรรมการ (นายเฉลิมไชย ดีแสน)
+   • + บัญชี เพื่อตั้งจ่าย
+
+5️⃣ บัญชีออกเช็ค
+   • ลง Cash-Book
+   • ลง Cheque-Schedule
+   • หัก ปก. 5% + WHT 3%`);
 }
 
-function approveQC(id) {
-  const total = document.querySelectorAll('#qc-checklist input').length;
-  const passed = document.querySelectorAll('#qc-checklist input:checked').length;
-  if (passed < total) {
-    if (!confirm(`เลือกผ่านเพียง ${passed}/${total} ข้อ\nยืนยันส่งต่อให้ผู้บริหารอนุมัติ?`)) return;
-  }
-  const idx = pending.findIndex(p => p.id === id);
-  if (idx > -1) {
-    const p = pending[idx];
-    approved.push({ ...p, qcDate:'25/05/2569', notes:`ผ่าน ${passed}/${total} ข้อ · ส่งต่อผู้บริหาร` });
-    pending.splice(idx, 1);
-  }
-  closeQC();
-  renderPending();
-  renderApproved();
-  alert('✅ ผ่าน QC สำเร็จ\n\n• ส่งต่อให้คุณไอซ์อนุมัติ\n• แจ้งเตือนทาง LINE\n• สถานะ → "รออนุมัติจ่าย"');
-}
-
-function rejectWork(id) {
-  const reason = prompt('เหตุผลที่ไม่ผ่าน QC:');
-  if (!reason) return;
-  alert(`❌ ส่งกลับให้แก้ไข\n\n• แจ้งผู้รับเหมาทาง LINE\n• เหตุผล: ${reason}\n• สถานะ → "รอแก้ไข"`);
-}
-
-function approve(id) {
-  if (!confirm(`อนุมัติจ่าย ${id}?\n\n• สร้าง Payment Voucher\n• ลง Cash Book\n• ออกหัก ณ ที่จ่าย\n• แจ้งสร้างสลิป`)) return;
-  const idx = approved.findIndex(p => p.id === id);
-  if (idx > -1) approved.splice(idx, 1);
-  renderApproved();
-  alert(`💸 อนุมัติจ่าย ${id} สำเร็จ\n\n✅ บันทึก Sheet "PO-Tracker" → status: รอชำระ\n✅ ส่งต่อ Sheet "Cash-Book" (Module 02)\n✅ Update Sheet "Journal-2569" (Module 04)\n✅ รอแนบสลิปจาก Module 01\n\nระบบบัญชีภายใน · Sheet เป็น single source of truth`);
-}
-
-function closeQC() { document.getElementById('qc-modal').classList.add('hidden'); }
+function render() { loadTeams(); }
 
 function switchTab(tab) {
-  ['pending','approved','contractors','history'].forEach(t => {
+  ['teams','summary','jturian','history'].forEach(t => {
     document.getElementById('pane-'+t).classList.add('hidden');
     document.getElementById('t-'+t).classList.remove('border-stone-800','text-stone-800');
     document.getElementById('t-'+t).classList.add('border-transparent','text-stone-500');
@@ -459,8 +489,7 @@ function switchTab(tab) {
   document.getElementById('t-'+tab).classList.remove('border-transparent','text-stone-500');
 }
 
-renderPending();
-renderApproved();
+loadTeams();
 </script>
 </body>
 </html>

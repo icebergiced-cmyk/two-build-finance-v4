@@ -12,7 +12,7 @@
   .drop-zone.active { background: #fef3c7; border-color: #f59e0b; }
 </style>
 </head>
-<body class="text-stone-800">
+<body class="text-stone-800" data-module-shell='{"module":"10","live":true}'>
 
 <!-- Header -->
 <header class="bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 text-stone-100">
@@ -139,6 +139,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
 let DATA = { packets: [], cheques: [], discrepancies: [], vendors: [] };
 let demoPacket = null;

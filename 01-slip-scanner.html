@@ -17,7 +17,7 @@
   .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen" data-module-shell='{"module":"01","live":true}'>
 
 <!-- Header -->
 <header class="bg-white border-b border-stone-200 sticky top-0 z-40">
@@ -377,10 +377,25 @@ const fmt = (n) => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2,
 const bankStyles = {
   SCB:   { bg:'bg-purple-100',  text:'text-purple-700',  border:'border-purple-300',  fullName:'ไทยพาณิชย์' },
   KBANK: { bg:'bg-green-100',   text:'text-green-700',   border:'border-green-300',   fullName:'กสิกรไทย' },
+  KPLUS: { bg:'bg-green-100',   text:'text-green-700',   border:'border-green-300',   fullName:'กสิกรไทย K+' },
   BBL:   { bg:'bg-blue-100',    text:'text-blue-700',    border:'border-blue-300',    fullName:'กรุงเทพ' },
   KTB:   { bg:'bg-cyan-100',    text:'text-cyan-700',    border:'border-cyan-300',    fullName:'กรุงไทย' },
+  TTB:   { bg:'bg-sky-100',     text:'text-sky-700',     border:'border-sky-300',     fullName:'TMBThanachart (ttb)' },
   GSB:   { bg:'bg-pink-100',    text:'text-pink-700',    border:'border-pink-300',    fullName:'ออมสิน' },
   BAY:   { bg:'bg-yellow-100',  text:'text-yellow-700',  border:'border-yellow-300',  fullName:'กรุงศรี' }
+};
+
+// 4 ธนาคารหลักที่ Two Build ใช้บ่อย — pattern detector
+// 🟣 SCB: "โอนเงินสำเร็จ" + "บันทึกช่วยจำ" ใต้ยอด · มี QR
+// 🟢 K+: "เลขที่รายการ" + ลำดับ ผู้โอน→ผู้รับ
+// 🔵 ttb: "จ่ายบิลสำเร็จ" (บัตรเครดิต) + "หมายเลขใบเสร็จ"
+// 🔷 KTB: "บันทึกช่วยจำ" + รหัสอ้างอิงยาว
+const bankPatterns = {
+  SCB:   { hint: 'โอนเงินสำเร็จ + บันทึกช่วยจำ + QR', refPrefix: /^20\d{6}/ },
+  KPLUS: { hint: 'เลขที่รายการ + ลำดับผู้โอน→ผู้รับ', refPrefix: /^\d{15}/ },
+  TTB:   { hint: 'จ่ายบิลสำเร็จ + หมายเลขใบเสร็จ (บัตรเครดิต)', refPrefix: /^\d{10,}/ },
+  KTB:   { hint: 'บันทึกช่วยจำ + รหัสอ้างอิงยาว', refPrefix: /^[A-Z0-9]{16,}/ },
+  KBANK: { hint: 'เลขที่รายการ', refPrefix: /^\d{15}/ }
 };
 
 const typeBadge = {
@@ -1049,15 +1064,53 @@ async function confirmSync() {
     log(`   ↑ ${datePath}${newName}`, 'success');
   }
 
-  // Step 2: บันทึกลง Sheet (ฐานข้อมูลหลัก!)
-  log('📊 [2/2] บันทึกลง Google Sheet "Finance-Master-2569"...', 'info');
-  await sleep(400);
-  log(`   ✓ Sheet "Slip-Log" — เพิ่ม ${toSync.length} แถวใหม่`, 'success');
+  // Step 2: บันทึกลง Sheet ผ่าน Apps Script API (จริง · ไม่ใช่ demo)
+  log('📊 [2/2] บันทึกลง Google Sheet "Finance-Master-2569" ผ่าน Apps Script API...', 'info');
+  let savedOK = 0, savedFail = 0;
   for (const s of toSync) {
-    await sleep(150);
-    const matchInfo = s.matchedExpense ? ` ↔ ${s.matchedExpense.id}` : '';
-    log(`     • ${s.ocr.date.split(' ')[0]} · ${fmt(s.ocr.amount)} · "${s.ocr.memo || '—'}" → ${s.ocr.category || 'ไม่จัดหมวด'}${matchInfo}`, 'success');
+    const row = {
+      slip_id: s.id,
+      date: s.ocr.date.split(' ')[0],
+      time: s.ocr.date.split(' ')[1] || '',
+      uploaded_by: s.uploadedBy,
+      bank_from: s.ocr.bank || s.bank,
+      ref_code: s.ocr.ref,
+      to_name: s.ocr.toName,
+      to_bank: s.ocr.toBank || '',
+      to_account_last4: (s.ocr.toAcc || '').slice(-4),
+      amount: s.ocr.amount,
+      memo: s.ocr.memo || '',
+      category: s.ocr.category || (window.API ? '' : 'ไม่จัดหมวด'),
+      matched_to: s.matchedExpense ? s.matchedExpense.id : '',
+      project: s.matchedExpense ? s.matchedExpense.project : '',
+      file_url: '',
+      status: s.status === 'matched' ? 'matched' : 'review',
+      note: s.note || '',
+      created_by: 'คุณไอซ์',
+      created_at: new Date().toISOString()
+    };
+    // Auto-classify ผ่าน backend (5 bank memo→category) — fallback ถ้าไม่มี
+    if (!row.category && window.API && typeof API.classifyMemo === 'function') {
+      try {
+        const c = await API.classifyMemo(row.memo);
+        if (c.ok) row.category = c.category;
+      } catch (e) { /* ignore */ }
+    }
+    try {
+      const r = await API.append('Slip-Log', row);
+      if (r && r.ok) {
+        savedOK++;
+        log(`     ✓ บันทึก ${row.date} · ${fmt(row.amount)} · "${row.memo || '—'}" → ${row.category}${row.matched_to ? ' ↔ '+row.matched_to : ''}`, 'success');
+      } else {
+        savedFail++;
+        log(`     ✗ บันทึกไม่สำเร็จ ${row.date}: ${(r && r.error) || 'unknown'}`, 'error');
+      }
+    } catch (e) {
+      savedFail++;
+      log(`     ✗ Network error ${row.date}: ${e.message}`, 'error');
+    }
   }
+  log(`   ✓ Sheet "Slip-Log" — บันทึกสำเร็จ ${savedOK}/${toSync.length} (ล้มเหลว ${savedFail})`, savedFail ? 'warn' : 'success');
   await sleep(200);
   log(`   ✓ Sheet "Cash-Book" — บันทึกค่าใช้จ่าย ${toSync.length} รายการ (Module 02 ใช้ต่อ)`, 'success');
   log(`   ✓ Sheet "PO-Tracker" — อัปเดตสถานะ "ชำระแล้ว" ${toSync.filter(s => s.matchedExpense).length} รายการ`, 'success');
@@ -1174,5 +1227,8 @@ log(`📥 พบสลิป ${slips.length} รูปใน /Two Build/Finance/
 log(`📋 มี ${expenses.length} รายการรอจ่ายใน Sheet "PO-Tracker"`, 'info');
 log('💡 กดปุ่ม "สแกนทั้งหมด" เพื่อเริ่มประมวลผล', 'info');
 </script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 </body>
 </html>

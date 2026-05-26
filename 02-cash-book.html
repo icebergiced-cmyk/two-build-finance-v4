@@ -14,7 +14,7 @@
   .fade-in { animation: fade-in 0.3s; }
 </style>
 </head>
-<body>
+<body data-module-shell='{"module":"02","live":true}'>
 
 <!-- Header -->
 <header class="bg-white border-b border-stone-200 sticky top-0 z-40">
@@ -255,6 +255,9 @@
   </div>
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
 const fmt = (n) => '฿' + Math.abs(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtCompact = (n) => '฿' + (n/1000000).toFixed(1) + 'M';
@@ -287,6 +290,48 @@ const initialTx = [
 ];
 
 let tx = JSON.parse(JSON.stringify(initialTx));
+let liveMode = false;
+
+// Convert backend Cash-Book row → UI tx shape
+function rowToTx(r) {
+  const credit = Number(r.credit) || 0;
+  const debit  = Number(r.debit)  || 0;
+  const type   = debit > credit ? 'in' : 'out';
+  const amount = type === 'in' ? debit : credit;
+  // Date arrives as YYYY-MM-DD (Buddhist year). Convert to DD/MM/YYYY display
+  const iso = String(r.date || '');
+  let display = iso;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [y,m,d] = iso.split('-');
+    display = `${d}/${m}/${y}`;
+  }
+  return {
+    date: display, _iso: iso,
+    ref: r.ref || r.voucher_no || '-',
+    desc: r.description || r.desc || r.memo || '-',
+    project: r.project || 'ส่วนกลาง',
+    cat: r.category || r.cat || 'อื่นๆ',
+    type: type,
+    amount: amount,
+    balance: Number(r.balance) || 0
+  };
+}
+
+async function loadFromSheet() {
+  try {
+    const r = await API.read('Cash-Book');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      tx = r.rows.map(rowToTx);
+      liveMode = true;
+      console.log('[Cash-Book] loaded', tx.length, 'rows from Sheet');
+    } else {
+      console.warn('[Cash-Book] no rows — using demo data');
+    }
+  } catch (e) {
+    console.warn('[Cash-Book] API error — using demo data', e);
+  }
+  render();
+}
 
 function render() {
   const search = document.getElementById('search').value.toLowerCase();
@@ -294,11 +339,19 @@ function render() {
   const fCat = document.getElementById('filter-cat').value;
   const fProj = document.getElementById('filter-project').value;
 
+  const fMonth = document.getElementById('filter-month').value; // YYYY-MM (BE-aligned select)
   let filtered = tx.filter(t => {
     if (search && !`${t.ref} ${t.desc} ${t.project}`.toLowerCase().includes(search)) return false;
     if (fType !== 'all' && t.type !== fType) return false;
     if (fCat !== 'all' && t.cat !== fCat) return false;
     if (fProj !== 'all' && t.project !== fProj) return false;
+    // Month filter: t._iso = "2569-05-25" (BE) — select value also BE? It's "2026-05" actually
+    // Map: "2026-05" → "2569-05"
+    if (fMonth && t._iso) {
+      const [yAD, mm] = fMonth.split('-');
+      const yBE = (parseInt(yAD) + 543).toString();
+      if (!t._iso.startsWith(`${yBE}-${mm}`)) return false;
+    }
     return true;
   });
 
@@ -351,26 +404,50 @@ function render() {
 function openAddModal() { document.getElementById('modal').classList.remove('hidden'); }
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
-function saveTx(ev) {
+async function saveTx(ev) {
   ev.preventDefault();
   const f = new FormData(ev.target);
-  const dateStr = f.get('date'); // YYYY-MM-DD
+  const dateStr = f.get('date'); // YYYY-MM-DD (Gregorian from input[type=date])
   const [y, m, d] = dateStr.split('-');
   const yBE = parseInt(y) + 543;
+  const isoBE = `${yBE}-${m}-${d}`;
+  const ref = f.get('ref') || 'CB-' + Date.now().toString().slice(-6);
+  const amount = parseFloat(f.get('amount'));
+  const type = f.get('type');
+
   const newTx = {
-    date: `${d}/${m}/${yBE}`,
-    ref: f.get('ref') || 'NEW-' + Date.now().toString().slice(-6),
-    desc: f.get('desc'),
-    project: f.get('project'),
-    cat: f.get('cat'),
-    type: f.get('type'),
-    amount: parseFloat(f.get('amount'))
+    date: `${d}/${m}/${yBE}`, _iso: isoBE,
+    ref: ref, desc: f.get('desc'), project: f.get('project'), cat: f.get('cat'),
+    type: type, amount: amount
   };
-  tx.push(newTx);
-  closeModal();
-  ev.target.reset();
-  render();
-  alert('✅ เพิ่มรายการสำเร็จ\n\n• บันทึก Sheet "Cash-Book" ทันที\n• ส่งต่อ Journal-2569 (Module 04 GL)\n• ระบบบัญชีภายใน · ไม่เชื่อมต่อภายนอก');
+
+  // Save to backend Cash-Book tab — uses debit/credit columns
+  const row = {
+    date: isoBE,
+    ref: ref,
+    description: f.get('desc'),
+    project: f.get('project'),
+    category: f.get('cat'),
+    debit:  type === 'in'  ? amount : 0,
+    credit: type === 'out' ? amount : 0,
+    balance: '', // backend computes if formula present
+    created_by: 'คุณไอซ์',
+    created_at: new Date().toISOString()
+  };
+  try {
+    const r = await API.append('Cash-Book', row);
+    if (r && r.ok) {
+      tx.push(newTx);
+      closeModal();
+      ev.target.reset();
+      render();
+      alert(`✅ เพิ่มรายการสำเร็จ\n\n• บันทึก Sheet "Cash-Book" แล้ว (row ${r.appendedRow})\n• ${type==='in'?'รายรับ':'รายจ่าย'} ${fmt(amount)}\n• ref: ${ref}`);
+    } else {
+      alert('⚠️ บันทึกไม่สำเร็จ: ' + ((r && r.error) || 'unknown'));
+    }
+  } catch (e) {
+    alert('⚠️ Network error: ' + e.message);
+  }
 }
 
 function deleteTx(ref) {
@@ -380,7 +457,18 @@ function deleteTx(ref) {
 }
 
 function exportCSV() {
-  alert('📊 Export CSV สำเร็จ!\n\nไฟล์: CashBook-2569-05.csv\n• 24 รายการ\n• 4 คอลัมน์: วันที่, ref, รายการ, ยอด\n• เปิดได้ใน Excel/Google Sheets');
+  const headers = ['date','ref','description','project','category','type','amount','balance'];
+  const rows = [headers.join(',')];
+  tx.forEach(t => {
+    rows.push([t.date, t.ref, '"'+(t.desc||'').replaceAll('"','""')+'"', t.project, t.cat, t.type, t.amount, t.balance || ''].join(','));
+  });
+  const csv = '﻿' + rows.join('\n'); // UTF-8 BOM for Excel Thai
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `CashBook-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 function printReport() {
@@ -388,7 +476,9 @@ function printReport() {
   window.print();
 }
 
-render();
+// Init — try to load from Sheet; falls back to demo data if API offline
+if (window.API) loadFromSheet();
+else render();
 </script>
 </body>
 </html>

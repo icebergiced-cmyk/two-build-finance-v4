@@ -12,7 +12,7 @@
   .spinner { animation: spinner 1s linear infinite; }
 </style>
 </head>
-<body>
+<body data-module-shell='{"module":"03","live":true}'>
 
 <header class="bg-white border-b border-stone-200 sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -164,8 +164,44 @@
   <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" id="modal-content"></div>
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
-const fmt = (n) => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = (n) => '฿' + (Number(n)||0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+let vendors = [];
+async function loadVendors() {
+  try {
+    const r = await API.getVendors();
+    if (r && r.ok) {
+      vendors = r.vendors;
+      console.log('[Vendor-Invoice] loaded', vendors.length, 'vendors');
+    }
+  } catch (e) { console.warn('vendors load failed', e); }
+}
+
+async function loadInvoices() {
+  try {
+    const r = await API.read('Vendor-Invoice');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      invoices = r.rows.map(row => ({
+        id: row.invoice_no || row.id || '-',
+        vendor: row.vendor_name || row.vendor || '-',
+        desc: row.description || row.desc || '-',
+        subtotal: Number(row.subtotal) || 0,
+        vat: Number(row.vat) || 0,
+        total: Number(row.total) || 0,
+        status: row.status || 'pending',
+        poId: row.po_id || row.po || null,
+        credit: Number(row.credit_term) || 30,
+        project: row.project || 'One Vela'
+      }));
+      console.log('[Vendor-Invoice] loaded', invoices.length, 'invoices from Sheet');
+    }
+  } catch (e) { console.warn('invoices load failed', e); }
+  render();
+}
 
 const initialInvoices = [
   { id:'INV-2569-1142', vendor:'บจก. ปูนซีเมนต์ไทย', desc:'ปูน 5,000 ถุง · บ้าน A-12,13,14', subtotal:81729, vat:5721, total:87450, status:'pending', poId:'PO-2026-0341', credit:7, project:'One Vela' },
@@ -268,13 +304,34 @@ function render() {
   document.getElementById('k2').textContent = matchedList.length + invoices.filter(i => i.poId).length;
 }
 
-function simulateUpload() {
+async function simulateUpload() {
+  // Use real vendor from list if available
+  const v = vendors.length > 0 ? vendors[Math.floor(Math.random() * vendors.length)] : { name:'บจก. ใหม่จำลอง', credit_term:15 };
+  const subtotal = Math.round((30000 + Math.random() * 100000) * 100) / 100;
+  const vat = Math.round(subtotal * 0.07 * 100) / 100;
+  const total = subtotal + vat;
   const id = 'INV-2569-' + (1200 + invoices.length);
+
   invoices.unshift({
-    id, vendor:'บจก. ใหม่จำลอง', desc:'รายการทดสอบ', subtotal:50000, vat:3500, total:53500, status:'pending', poId:null, credit:15, project:'One Vela'
+    id, vendor: v.name, desc: v.specialty || 'รายการทดสอบ',
+    subtotal, vat, total,
+    status:'pending', poId:null, credit: v.credit_term || 15, project:'One Vela'
   });
+
+  // Append to Vendor-Invoice Sheet
+  try {
+    await API.append('Vendor-Invoice', {
+      invoice_no: id, vendor_name: v.name, vendor_id: v.id || '',
+      description: v.specialty || 'รายการทดสอบ',
+      subtotal, vat, total,
+      status: 'pending', credit_term: v.credit_term || 15,
+      project: 'One Vela',
+      created_by: 'คุณไอซ์', created_at: new Date().toISOString()
+    });
+  } catch (e) { /* sheet save best-effort */ }
+
   render();
-  alert(`📥 อัปโหลดบิลใหม่: ${id}\n\n• เพิ่มเข้าคิวรอ OCR\n• กดปุ่ม "เริ่ม OCR" เพื่อประมวลผล`);
+  alert(`📥 อัปโหลดบิลใหม่: ${id}\n\n• Vendor: ${v.name}\n• ยอดรวม: ${fmt(total)}\n• บันทึก Sheet "Vendor-Invoice" แล้ว\n• กดปุ่ม "เริ่ม OCR" เพื่อ match PO`);
 }
 
 async function startOCR() {
@@ -282,12 +339,37 @@ async function startOCR() {
   btn.disabled = true;
   btn.innerHTML = '⏳ กำลังประมวลผล...';
 
+  // 3-way match: invoice ↔ PO ↔ goods receipt
+  // Pull PO-Tracker first
+  let pos = [];
+  try {
+    const r = await API.read('PO-Tracker');
+    if (r.ok) pos = r.rows || [];
+  } catch (e) { console.warn('PO-Tracker read failed', e); }
+
   const pending = invoices.filter(i => i.status === 'pending');
   for (const inv of pending) {
     inv.status = 'scanning';
     render();
-    await sleep(700);
-    if (inv.poId) {
+    await sleep(500);
+
+    // Try to match against an open PO by vendor + amount within 5%
+    const match = pos.find(p => {
+      if (!p) return false;
+      const sameVendor = (p.vendor_name || '').includes(inv.vendor.slice(0,10)) ||
+                        inv.vendor.includes((p.vendor_name||'').slice(0,10));
+      const amt = Number(p.total) || 0;
+      const close = Math.abs(amt - inv.total) / (inv.total || 1) < 0.05;
+      const openish = !p.status || ['open','sent','received'].includes(String(p.status).toLowerCase());
+      return sameVendor && close && openish;
+    });
+
+    if (match) {
+      inv.poId = match.po_id || match.po_no || match.id;
+      inv.status = 'matched';
+      // Update Sheet
+      try { await API.update('Vendor-Invoice', 'invoice_no', inv.id, { status:'matched', po_id: inv.poId }); } catch(e){}
+    } else if (inv.poId) {
       inv.status = 'matched';
     } else {
       inv.status = 'unmatched';
@@ -298,7 +380,8 @@ async function startOCR() {
   btn.disabled = false;
   btn.innerHTML = '✅ OCR เสร็จ · กดสแกนใหม่';
 
-  alert(`🎉 OCR ${pending.length} บิลเสร็จสมบูรณ์!\n\n• Match PO ใน Sheet: ${pending.filter(i=>i.poId).length}\n• ไม่พบ PO: ${pending.filter(i=>!i.poId).length}\n\nคลิก tab "จับคู่แล้ว" เพื่อยืนยัน`);
+  const matchedCount = pending.filter(i => i.status === 'matched').length;
+  alert(`🎉 OCR ${pending.length} บิลเสร็จสมบูรณ์!\n\n• 3-way match กับ PO-Tracker: ${matchedCount}\n• ไม่พบ PO: ${pending.length - matchedCount}\n\nคลิก tab "จับคู่แล้ว" เพื่อยืนยัน`);
 }
 
 function viewInvoice(id) {
@@ -389,7 +472,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     simulateUpload();
   });
 })();
-render();
+
+// Init — load vendors + invoices from Sheet (fallback to demo data if API offline)
+(async () => {
+  if (window.API) {
+    await loadVendors();
+    await loadInvoices();
+  } else {
+    render();
+  }
+})();
 </script>
 </body>
 </html>

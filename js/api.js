@@ -65,6 +65,31 @@ const API = {
   async getVendors() {
     const r = await fetch(`${FINANCE_API_URL}?action=getVendors`);
     return await r.json();
+  },
+
+  // O1: Module-level Drive folders
+  async setupAllFolders() {
+    const r = await fetch(`${FINANCE_API_URL}?action=setupAllFolders`);
+    return await r.json();
+  },
+
+  async listModuleFolder(moduleNo, subPath) {
+    let url = `${FINANCE_API_URL}?action=listModuleFolder&module=${encodeURIComponent(moduleNo)}`;
+    if (subPath) url += `&subPath=${encodeURIComponent(subPath)}`;
+    const r = await fetch(url);
+    return await r.json();
+  },
+
+  // O3: Contractor teams (real April template)
+  async getContractorTeams() {
+    const r = await fetch(`${FINANCE_API_URL}?action=getContractorTeams`);
+    return await r.json();
+  },
+
+  // O4: Memo classifier
+  async classifyMemo(memo) {
+    const r = await fetch(`${FINANCE_API_URL}?action=classifyMemo&memo=${encodeURIComponent(memo)}`);
+    return await r.json();
   }
 };
 

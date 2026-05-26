@@ -10,7 +10,7 @@
   .serif { font-family: 'Playfair Display', serif; }
 </style>
 </head>
-<body>
+<body data-module-shell='{"module":"08","live":true}'>
 
 <header class="bg-white border-b border-stone-200 sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -198,10 +198,13 @@
   <div class="bg-white rounded-xl max-w-md w-full" id="modal-content"></div>
 </div>
 
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/module-shell.js"></script>
 <script>
-const fmt = n => '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = n => '฿' + (Number(n)||0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const employees = [
+let employees = [
   { id:'EMP001', name:'คุณไอซ์ ดีเวลลอปเมนท์', pos:'ผู้บริหารโครงการ', dept:'บริหาร', base:120000, ot:0, bonus:5000 },
   { id:'EMP002', name:'นายธนา วิศวกร', pos:'วิศวกรอาวุโส', dept:'วิศวกรรม', base:65000, ot:8500, bonus:3000 },
   { id:'EMP003', name:'นางสาวแอน บัญชี', pos:'ผู้จัดการบัญชี', dept:'บัญชี', base:55000, ot:0, bonus:3000 },
@@ -352,9 +355,80 @@ function approvePayroll() {
   alert('✅ อนุมัติงวดเงินเดือนสำเร็จ!\n\n• สถานะ → รอจ่าย ใน Sheet "Payroll-2569"\n• สร้าง Journal Entry → Sheet "Journal-2569" (Module 04)\n• ลง Cash Book → Sheet "Cash-Book" (Module 02)\n• ส่งแจ้งเตือนพนักงานทาง LINE (รอ V4)');
 }
 
-function openAddEmp() { alert('+ เพิ่มพนักงานใหม่ (Demo)'); }
+function openAddEmp() {
+  const name = prompt('ชื่อพนักงานใหม่:');
+  if (!name) return;
+  const isDaily = confirm('เป็นพนักงานรายวัน? (OK = รายวัน · Cancel = ประจำ)');
+  let emp;
+  if (isDaily) {
+    const daily = parseFloat(prompt('ค่าแรงต่อวัน:', '850')) || 850;
+    const days  = parseInt(prompt('จำนวนวันงานเดือนนี้:', '22')) || 22;
+    emp = { id: 'DLY' + String(employees.filter(e=>e.id.startsWith('DLY')).length + 1).padStart(3,'0'),
+            name, pos: 'พนักงานรายวัน', dept: 'ก่อสร้าง', base: 0, daily, days, ot: 0, bonus: 0 };
+  } else {
+    const base = parseFloat(prompt('ฐานเงินเดือน:', '25000')) || 25000;
+    emp = { id: 'EMP' + String(employees.filter(e=>e.id.startsWith('EMP')).length + 1).padStart(3,'0'),
+            name, pos: 'พนักงาน', dept: 'ทั่วไป', base, ot: 0, bonus: 0 };
+  }
+  employees.push(emp);
+  render();
+  // Save row to Sheet
+  if (window.API) {
+    API.append('Payroll-2569', {
+      emp_id: emp.id, name: emp.name, position: emp.pos, department: emp.dept,
+      base_salary: emp.base || 0, daily_rate: emp.daily || 0, days: emp.days || 0,
+      ot: 0, bonus: 0, period: '2569-05',
+      created_by: 'คุณไอซ์', created_at: new Date().toISOString()
+    });
+  }
+}
 
-render();
+async function loadEmployees() {
+  try {
+    const r = await API.read('Payroll-2569');
+    if (r.ok && r.rows && r.rows.length > 0) {
+      employees = r.rows.map(row => ({
+        id: row.emp_id || row.id || 'E???',
+        name: row.name || '-',
+        pos: row.position || '-',
+        dept: row.department || '-',
+        base: Number(row.base_salary) || 0,
+        daily: Number(row.daily_rate) || 0,
+        days: Number(row.days) || 0,
+        ot: Number(row.ot) || 0,
+        bonus: Number(row.bonus) || 0
+      }));
+      console.log('[Payroll] loaded', employees.length, 'employees from Sheet');
+    }
+  } catch (e) { console.warn('payroll load failed', e); }
+  render();
+}
+
+// Override approvePayroll to actually write to Sheet
+const _origApprove = approvePayroll;
+approvePayroll = async function() {
+  if (!confirm(`ยืนยันอนุมัติงวดเงินเดือน พ.ค. 2569?\n\n• ${employees.length} พนักงาน\n• จะบันทึกทุกแถวลง Sheet "Payroll-2569"`)) return;
+  let ok = 0, fail = 0;
+  for (const e of employees) {
+    const p = calcPay(e);
+    try {
+      const r = await API.append('Payroll-2569', {
+        emp_id: e.id, name: e.name, position: e.pos, department: e.dept,
+        base_salary: e.base || 0, daily_rate: e.daily || 0, days: e.days || 0,
+        ot: e.ot || 0, bonus: e.bonus || 0,
+        gross: p.gross, sso: p.sso, wht_pnd1: p.wht, net: p.net,
+        period: '2569-05', status: 'approved',
+        created_by: 'คุณไอซ์', created_at: new Date().toISOString()
+      });
+      if (r && r.ok) ok++; else fail++;
+    } catch (err) { fail++; }
+  }
+  alert(`✅ อนุมัติงวดเงินเดือน พ.ค. 2569\n\n• บันทึก Sheet สำเร็จ ${ok}/${employees.length}${fail ? ` (ล้มเหลว ${fail})` : ''}\n• สถานะ → "approved"\n• ส่งต่อ Journal-2569 (Module 04 GL)\n• ส่งต่อ Cash-Book (Module 02)`);
+};
+
+// Init
+if (window.API) loadEmployees();
+else render();
 </script>
 </body>
 </html>
