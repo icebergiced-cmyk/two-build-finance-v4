@@ -1,3 +1,15 @@
+// === Global: prevent browser from opening file when dropped on page ===
+// (loaded by every module — protects pages without explicit drop handler)
+['dragenter','dragover','dragleave','drop'].forEach(ev => {
+  window.addEventListener(ev, function(e) {
+    // Only prevent if dragging files (not text/links)
+    if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.indexOf && e.dataTransfer.types.indexOf('Files') > -1) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, false);
+});
+
 // === Two Build Finance V4 — API client ===
 // Wraps fetch() calls to Apps Script API (FINANCE_API_URL from config.js)
 
