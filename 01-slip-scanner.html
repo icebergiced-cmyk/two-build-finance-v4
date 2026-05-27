@@ -1068,26 +1068,24 @@ async function confirmSync() {
   log('📊 [2/2] บันทึกลง Google Sheet "Finance-Master-2569" ผ่าน Apps Script API...', 'info');
   let savedOK = 0, savedFail = 0;
   for (const s of toSync) {
+    // Match real headers: date, amount, direction, counterparty, bank, ref_no, memo, category,
+    //                    project, plot, po_ref, drive_file_url, status, created_by, created_at
     const row = {
-      slip_id: s.id,
       date: s.ocr.date.split(' ')[0],
-      time: s.ocr.date.split(' ')[1] || '',
-      uploaded_by: s.uploadedBy,
-      bank_from: s.ocr.bank || s.bank,
-      ref_code: s.ocr.ref,
-      to_name: s.ocr.toName,
-      to_bank: s.ocr.toBank || '',
-      to_account_last4: (s.ocr.toAcc || '').slice(-4),
       amount: s.ocr.amount,
+      direction: 'OUT',  // โอนออก (Two Build เป็นผู้จ่าย)
+      counterparty: s.ocr.toName,
+      bank: s.ocr.bank || s.bank,
+      ref_no: s.ocr.ref,
       memo: s.ocr.memo || '',
-      category: s.ocr.category || (window.API ? '' : 'ไม่จัดหมวด'),
-      matched_to: s.matchedExpense ? s.matchedExpense.id : '',
+      category: s.ocr.category || '',
       project: s.matchedExpense ? s.matchedExpense.project : '',
-      file_url: '',
-      status: s.status === 'matched' ? 'matched' : 'review',
-      note: s.note || '',
-      created_by: 'คุณไอซ์',
-      created_at: new Date().toISOString()
+      plot: '',
+      po_ref: s.matchedExpense ? s.matchedExpense.id : '',
+      drive_file_url: '',
+      status: s.status === 'matched' ? 'synced' : 'review',
+      created_by: 'Ice',
+      created_at: new Date().toISOString().replace('T',' ').slice(0,16)
     };
     // Auto-classify ผ่าน backend (5 bank memo→category) — fallback ถ้าไม่มี
     if (!row.category && window.API && typeof API.classifyMemo === 'function') {

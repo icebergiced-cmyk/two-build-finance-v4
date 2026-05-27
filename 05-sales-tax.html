@@ -478,13 +478,17 @@ async function loadSales() {
     const r = await API.read('Sales-Pipeline');
     if (r.ok && r.rows && r.rows.length > 0) {
       sales = r.rows.map(row => {
-        const transferred = String(row.status || '').toLowerCase().includes('โอน') || row.status === 'transferred';
+        const status = String(row.status || '');
+        const transferred = status.includes('โอน') || status === 'transferred';
+        // Real headers: plot_no, project, customer_name, phone, booking_date, contract_date,
+        //               transfer_date, sale_price, sbt_3_3, transfer_fee_2, mortgage_fee_1, wht_1, net_revenue, status, notes
         return {
-          plot: row.plot || row.unit || '-',
+          plot: row.plot_no || row.plot || row.unit || '-',
           cust: row.customer_name || row.customer || '-',
-          date: row.transfer_date || row.date || '-',
+          date: row.transfer_date || row.contract_date || row.booking_date || '-',
           sell: Number(row.sale_price) || Number(row.price) || 0,
-          assess: Number(row.assess_price) || Number(row.govt_price) || 0,
+          // ราคาประเมิน — Sheet ใช้ transfer_fee_2 / 2% ในการคำนวณ
+          assess: Number(row.assess_price) || (Number(row.transfer_fee_2) ? Number(row.transfer_fee_2)/0.02 : 0),
           status: transferred ? 'transferred' : 'pending'
         };
       });
@@ -507,21 +511,21 @@ async function loadTaxCalendar() {
 // Save sale → Tax-Tracker (auto-generate taxes for transferred sale)
 async function recordTransfer(plot, sell, assess) {
   if (!window.API) return;
+  // Tax-Tracker schema: form_type, period, due_date, amount_due, status, filed_date, paid_date, ref_no, notes
   const sbt = sell * 0.033;
   const transfer = assess * 0.02;
+  const period = '2569-' + String(new Date().getMonth()+1).padStart(2,'0');
   await API.append('Tax-Tracker', {
-    tax_id: 'TAX-' + Date.now().toString().slice(-6),
-    type: 'SBT 3.3%', amount_due: sbt, base_amount: sell, plot,
-    period: '2569-' + String(new Date().getMonth()+1).padStart(2,'0'),
-    status: 'pending', due_date: '',
-    created_at: new Date().toISOString()
+    form_type: 'ภ.ธ.40 (SBT 3.3%)', period: period,
+    due_date: '', amount_due: sbt,
+    status: 'pending', filed_date: '', paid_date: '', ref_no: '',
+    notes: `ภาษีธุรกิจเฉพาะ แปลง ${plot}`
   });
   await API.append('Tax-Tracker', {
-    tax_id: 'TAX-' + Date.now().toString().slice(-6),
-    type: 'Transfer Fee 2%', amount_due: transfer, base_amount: assess, plot,
-    period: '2569-' + String(new Date().getMonth()+1).padStart(2,'0'),
-    status: 'pending', due_date: '',
-    created_at: new Date().toISOString()
+    form_type: 'ค่าโอน 2%', period: period,
+    due_date: '', amount_due: transfer,
+    status: 'pending', filed_date: '', paid_date: '', ref_no: '',
+    notes: `ค่าโอนกรมที่ดิน แปลง ${plot}`
   });
 }
 

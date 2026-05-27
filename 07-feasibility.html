@@ -444,19 +444,28 @@ async function saveAnalysis() {
     np_margin: document.getElementById('m-npm').textContent
   };
 
+  // Real schema: analysis_id, saved_date, project_name, total_units,
+  //              total_investment, expected_revenue, irr, npv, payback_years,
+  //              scenario, notes
+  const totalInvest = (inputs.rai * inputs.rai_price) + inputs.infra +
+                      (inputs.units * inputs.cost) + (inputs.opex * inputs.years);
+  const expectedRev = inputs.units * inputs.price;
+  const irrPct = parseFloat(results.irr) || 0;
+  const npvAmt = parseFloat(results.npv.replace(/[฿,M\s]/g,'')) * 1e6 || 0;
+  const paybackY = parseFloat(results.payback) || 0;
+
   const row = {
-    analysis_id: 'FEAS-' + Date.now().toString().slice(-8),
+    analysis_id: 'FS-' + Date.now().toString().slice(-8),
+    saved_date: (d => `${d.getFullYear()+543}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)(new Date()),
     project_name: inputs.name,
-    saved_date: new Date().toISOString().slice(0,10),
-    rai: inputs.rai, rai_price: inputs.rai_price,
-    units: inputs.units, sale_price: inputs.price, cost_per_unit: inputs.cost,
-    infra_cost: inputs.infra, years: inputs.years,
-    discount_rate: inputs.discount_rate,
-    opex_per_year: inputs.opex, marketing_pct: inputs.marketing_pct,
-    irr: results.irr, npv: results.npv, payback: results.payback, np_margin: results.np_margin,
-    inputs_json: JSON.stringify(inputs),
-    created_by: 'คุณไอซ์',
-    created_at: new Date().toISOString()
+    total_units: inputs.units,
+    total_investment: totalInvest,
+    expected_revenue: expectedRev,
+    irr: irrPct / 100,
+    npv: npvAmt,
+    payback_years: paybackY,
+    scenario: 'Base',
+    notes: JSON.stringify(inputs)
   };
 
   try {
@@ -483,12 +492,15 @@ async function loadSavedAnalyses() {
 }
 
 function renderSavedList() {
-  const html = savedAnalyses.slice(-8).reverse().map((a, idx) => `
+  const html = savedAnalyses.slice(-8).reverse().map((a, idx) => {
+    const irrPct = typeof a.irr === 'number' ? (a.irr*100).toFixed(1)+'%' : (a.irr || '-');
+    return `
     <button onclick="loadAnalysisFromSheet(${idx})" class="w-full text-left p-2 hover:bg-stone-50 rounded text-sm">
       <div class="font-medium">${a.project_name || '-'}</div>
-      <div class="text-xs text-stone-500">บันทึก ${a.saved_date || a.created_at?.slice(0,10) || '-'} · IRR ${a.irr || '-'}</div>
+      <div class="text-xs text-stone-500">บันทึก ${a.saved_date || '-'} · IRR ${irrPct}</div>
     </button>
-  `).join('');
+  `;
+  }).join('');
   // Find the saved-analyses container — it's the div with text "📁 Analysis ที่บันทึก"
   document.querySelectorAll('.font-bold.text-stone-800.mb-2.text-sm').forEach(el => {
     if (el.textContent.includes('Analysis ที่บันทึก')) {
@@ -501,19 +513,21 @@ function loadAnalysisFromSheet(idx) {
   const reversed = savedAnalyses.slice(-8).reverse();
   const a = reversed[idx];
   if (!a) return;
-  // Parse inputs_json if available, else use individual columns
-  let i = a;
-  if (a.inputs_json) { try { i = { ...a, ...JSON.parse(a.inputs_json) }; } catch (e) {} }
-  document.getElementById('i-name').value = i.project_name || i.name || '';
+  // Parse `notes` JSON (where we stash full inputs) — fallback to columns
+  let i = { name: a.project_name, units: a.total_units };
+  if (a.notes && a.notes.startsWith('{')) {
+    try { i = { ...i, ...JSON.parse(a.notes) }; } catch (e) {}
+  }
+  document.getElementById('i-name').value = i.name || a.project_name || '';
   document.getElementById('i-rai').value = i.rai || 0;
   document.getElementById('i-rai-price').value = i.rai_price || 0;
-  document.getElementById('i-units').value = i.units || 0;
-  document.getElementById('i-price').value = i.sale_price || i.price || 0;
-  document.getElementById('i-cost').value = i.cost_per_unit || i.cost || 0;
-  document.getElementById('i-infra').value = i.infra_cost || i.infra || 0;
-  document.getElementById('i-years').value = i.years || 1;
+  document.getElementById('i-units').value = i.units || a.total_units || 0;
+  document.getElementById('i-price').value = i.price || (a.expected_revenue && a.total_units ? Math.round(a.expected_revenue/a.total_units) : 0);
+  document.getElementById('i-cost').value = i.cost || 0;
+  document.getElementById('i-infra').value = i.infra || 0;
+  document.getElementById('i-years').value = i.years || 3;
   document.getElementById('i-dr').value = i.discount_rate || 8;
-  document.getElementById('i-opex').value = i.opex_per_year || i.opex || 0;
+  document.getElementById('i-opex').value = i.opex || 0;
   document.getElementById('i-mkt').value = i.marketing_pct || 2.5;
   calculate();
 }

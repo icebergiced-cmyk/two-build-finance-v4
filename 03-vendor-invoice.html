@@ -188,14 +188,14 @@ async function loadInvoices() {
       invoices = r.rows.map(row => ({
         id: row.invoice_no || row.id || '-',
         vendor: row.vendor_name || row.vendor || '-',
-        desc: row.description || row.desc || '-',
-        subtotal: Number(row.subtotal) || 0,
-        vat: Number(row.vat) || 0,
+        desc: row.description || row.notes || row.po_ref || '-',
+        subtotal: Number(row.amount_before_vat) || Number(row.subtotal) || 0,
+        vat: Number(row.vat_7) || Number(row.vat) || 0,
         total: Number(row.total) || 0,
         status: row.status || 'pending',
-        poId: row.po_id || row.po || null,
-        credit: Number(row.credit_term) || 30,
-        project: row.project || 'One Vela'
+        poId: row.po_ref || row.po_id || row.po || null,
+        credit: Number(row.credit_term_days) || Number(row.credit_term) || 30,
+        project: row.project || 'OV'
       }));
       console.log('[Vendor-Invoice] loaded', invoices.length, 'invoices from Sheet');
     }
@@ -318,15 +318,29 @@ async function simulateUpload() {
     status:'pending', poId:null, credit: v.credit_term || 15, project:'One Vela'
   });
 
-  // Append to Vendor-Invoice Sheet
+  // Append to Vendor-Invoice — match real headers:
+  // invoice_no, invoice_date, vendor_id, vendor_name, amount_before_vat, vat_7,
+  // total, credit_term_days, due_date, po_ref, project, status, payment_date, wht_3
   try {
+    const today = new Date();
+    const isoBE = (d => `${d.getFullYear()+543}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`)(today);
+    const dueDate = new Date(today.getTime() + (v.credit_term || 15) * 86400000);
+    const dueISO = `${dueDate.getFullYear()+543}-${String(dueDate.getMonth()+1).padStart(2,'0')}-${String(dueDate.getDate()).padStart(2,'0')}`;
     await API.append('Vendor-Invoice', {
-      invoice_no: id, vendor_name: v.name, vendor_id: v.id || '',
-      description: v.specialty || 'รายการทดสอบ',
-      subtotal, vat, total,
-      status: 'pending', credit_term: v.credit_term || 15,
-      project: 'One Vela',
-      created_by: 'คุณไอซ์', created_at: new Date().toISOString()
+      invoice_no: id,
+      invoice_date: isoBE,
+      vendor_id: v.id || '',
+      vendor_name: v.name,
+      amount_before_vat: subtotal,
+      vat_7: vat,
+      total: total,
+      credit_term_days: v.credit_term || 15,
+      due_date: dueISO,
+      po_ref: '',
+      project: 'OV',
+      status: 'pending',
+      payment_date: '',
+      wht_3: 0
     });
   } catch (e) { /* sheet save best-effort */ }
 

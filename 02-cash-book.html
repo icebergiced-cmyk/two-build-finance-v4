@@ -421,18 +421,18 @@ async function saveTx(ev) {
     type: type, amount: amount
   };
 
-  // Save to backend Cash-Book tab — uses debit/credit columns
+  // Save to backend Cash-Book — match real headers
+  // ['date','voucher_no','description','category','project','debit','credit','balance','ref_doc']
   const row = {
     date: isoBE,
-    ref: ref,
+    voucher_no: ref,
     description: f.get('desc'),
-    project: f.get('project'),
     category: f.get('cat'),
+    project: f.get('project'),
     debit:  type === 'in'  ? amount : 0,
     credit: type === 'out' ? amount : 0,
-    balance: '', // backend computes if formula present
-    created_by: 'คุณไอซ์',
-    created_at: new Date().toISOString()
+    balance: '',
+    ref_doc: ''
   };
   try {
     const r = await API.append('Cash-Book', row);

@@ -509,19 +509,30 @@ async function saveJournal(ev) {
     return;
   }
 
-  const row = {
-    jv_no: jvNo, date: dateBE,
-    dr_account: drAcc, cr_account: crAcc,
-    description: desc,
-    dr_amount: drAmt, cr_amount: crAmt,
-    posted_by: 'คุณไอซ์',
-    posted_at: new Date().toISOString()
+  // Journal-2569 schema: entry_no, date, account_code, account_name, debit, credit,
+  //                      description, project, ref_doc, created_by
+  // เขียน 2 แถว/JV: แถว Dr และแถว Cr ใช้ entry_no เดียวกัน
+  const accName = (code) => (coaMap[code] || code);
+  const drRow = {
+    entry_no: jvNo, date: dateBE,
+    account_code: drAcc, account_name: accName(drAcc),
+    debit: drAmt, credit: 0,
+    description: desc, project: '', ref_doc: '',
+    created_by: 'Ice'
+  };
+  const crRow = {
+    entry_no: jvNo, date: dateBE,
+    account_code: crAcc, account_name: accName(crAcc),
+    debit: 0, credit: crAmt,
+    description: desc, project: '', ref_doc: '',
+    created_by: 'Ice'
   };
 
   try {
-    const r = await API.append('Journal-2569', row);
-    if (r && r.ok) {
-      const accName = (code) => (coaMap[code] || code);
+    const r1 = await API.append('Journal-2569', drRow);
+    const r2 = await API.append('Journal-2569', crRow);
+    const r = (r1 && r1.ok && r2 && r2.ok) ? { ok:true, appendedRow: r2.appendedRow } : { ok:false, error: (r1&&r1.error)||(r2&&r2.error) };
+    if (r.ok) {
       journal.unshift({
         date: dispDate, jv: jvNo,
         drAcc, drName: accName(drAcc), crAcc, crName: accName(crAcc),
@@ -548,9 +559,10 @@ async function loadCOA() {
   try {
     const r = await API.read('COA');
     if (r.ok) (r.rows || []).forEach(row => {
-      const code = row.code || row.account_code || row.acc_code;
-      if (code) coaMap[code] = row.name || row.account_name || code;
+      const code = row.account_code || row.code || row.acc_code;
+      if (code) coaMap[String(code)] = row.account_name || row.name || code;
     });
+    console.log('[COA] loaded', Object.keys(coaMap).length, 'accounts');
   } catch (e) {}
 }
 
@@ -558,22 +570,36 @@ async function loadJournal() {
   try {
     const r = await API.read('Journal-2569');
     if (r.ok && r.rows && r.rows.length > 0) {
-      journal = r.rows.map(row => {
-        const iso = String(row.date || '');
-        const [yBE, m, d] = iso.split('-');
-        return {
-          date: d && m && yBE ? `${d}/${m}/${yBE}` : iso,
-          jv: row.jv_no || row.jv || '-',
-          drAcc: row.dr_account || row.dr_acc || '',
-          drName: coaMap[row.dr_account] || row.dr_name || '',
-          crAcc: row.cr_account || row.cr_acc || '',
-          crName: coaMap[row.cr_account] || row.cr_name || '',
-          desc: row.description || row.desc || '-',
-          dr: Number(row.dr_amount) || Number(row.dr) || 0,
-          cr: Number(row.cr_amount) || Number(row.cr) || 0
-        };
+      // Group rows by entry_no — Dr + Cr รวมกันเป็น 1 JV
+      const grouped = {};
+      r.rows.forEach(row => {
+        const eno = row.entry_no || row.jv_no || row.jv || '';
+        if (!grouped[eno]) {
+          const iso = String(row.date || '');
+          const [yBE, m, d] = iso.split('-');
+          grouped[eno] = {
+            date: d && m && yBE ? `${d}/${m}/${yBE}` : iso,
+            jv: eno,
+            drAcc:'', drName:'', crAcc:'', crName:'',
+            desc: row.description || '-',
+            dr: 0, cr: 0
+          };
+        }
+        const dr = Number(row.debit) || 0;
+        const cr = Number(row.credit) || 0;
+        if (dr > 0) {
+          grouped[eno].drAcc = row.account_code || '';
+          grouped[eno].drName = row.account_name || coaMap[row.account_code] || '';
+          grouped[eno].dr = dr;
+        }
+        if (cr > 0) {
+          grouped[eno].crAcc = row.account_code || '';
+          grouped[eno].crName = row.account_name || coaMap[row.account_code] || '';
+          grouped[eno].cr = cr;
+        }
       });
-      console.log('[Journal-2569] loaded', journal.length, 'entries');
+      journal = Object.values(grouped);
+      console.log('[Journal-2569] loaded', journal.length, 'entries from', r.rows.length, 'rows');
     }
   } catch (e) { console.warn('journal load failed', e); }
 }

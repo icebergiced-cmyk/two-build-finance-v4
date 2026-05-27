@@ -313,21 +313,25 @@ async function loadHistory() {
   try {
     const r = await API.read('Contractor-Master');
     if (r.ok && r.rows && r.rows.length > 0) {
+      // Schema: contractor_id, name, specialty, phone, line_id, tax_id,
+      //         bank_account, status, total_jobs, total_paid_ytd, notes
+      // Sheet เก็บเป็น Master List — แสดงเป็น summary
       document.getElementById('history-body').innerHTML = r.rows.map(row => `
         <tr class="border-b border-stone-100">
-          <td class="px-3 py-2">${row.date || row.work_date || '-'}</td>
-          <td class="px-3 py-2 font-mono text-xs">${row.ctr_no || row.contractor_id || '-'}</td>
-          <td class="px-3 py-2">${row.contractor_name || row.team || '-'}</td>
-          <td class="px-3 py-2 text-xs">${row.work || row.description || '-'} · ${row.installment || ''} · ${row.house || ''}</td>
-          <td class="px-3 py-2 text-right font-mono">${fmt(row.amount || row.gross || 0)}</td>
-          <td class="px-3 py-2 text-right font-mono text-red-700">(${fmt((row.retention||0) + (row.wht||0))})</td>
-          <td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">${fmt(row.net || row.net_paid || 0)}</td>
-          <td class="px-3 py-2 text-center">${row.qc_status === 'passed' ? '✅' : (row.qc_status || '⏳')}</td>
+          <td class="px-3 py-2 text-xs text-stone-500">YTD</td>
+          <td class="px-3 py-2 font-mono text-xs">${row.contractor_id || '-'}</td>
+          <td class="px-3 py-2"><div class="font-medium">${row.name || '-'}</div><div class="text-xs text-stone-500">${row.phone || ''} · ${row.line_id ? 'LINE: '+row.line_id : ''}</div></td>
+          <td class="px-3 py-2 text-xs">${row.specialty || '-'} · ${row.total_jobs || 0} งาน · ${row.notes || ''}</td>
+          <td class="px-3 py-2 text-right font-mono">${fmt(row.total_paid_ytd || 0)}</td>
+          <td class="px-3 py-2 text-right font-mono text-stone-400">YTD</td>
+          <td class="px-3 py-2 text-right font-mono text-emerald-700 font-bold">${fmt(row.total_paid_ytd || 0)}</td>
+          <td class="px-3 py-2 text-center">${row.status === 'active' ? '🟢 active' : (row.status || '-')}</td>
         </tr>
       `).join('');
-      document.getElementById('k-pending').textContent = r.rows.filter(x => (x.qc_status||'').toLowerCase()==='pending' || x.qc_status==='รอตรวจ').length;
+      // คน active ที่นับเป็น "รอตรวจ" — สำหรับ KPI
+      document.getElementById('k-pending').textContent = r.rows.filter(x => x.status === 'active').length;
     } else {
-      document.getElementById('history-body').innerHTML = `<tr><td colspan="8" class="text-center py-8 text-stone-400">ยังไม่มีประวัติใน Sheet "Contractor-Master" · ใช้แท็บ "ใบสรุปยอด" บันทึกใบแรก</td></tr>`;
+      document.getElementById('history-body').innerHTML = `<tr><td colspan="8" class="text-center py-8 text-stone-400">ยังไม่มีข้อมูลใน Sheet "Contractor-Master"</td></tr>`;
       document.getElementById('k-pending').textContent = '0';
     }
   } catch (e) {

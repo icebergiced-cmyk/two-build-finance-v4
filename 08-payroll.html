@@ -372,13 +372,24 @@ function openAddEmp() {
   }
   employees.push(emp);
   render();
-  // Save row to Sheet
+  // Save row to Sheet — match real schema
   if (window.API) {
+    const p = calcPay(emp);
     API.append('Payroll-2569', {
-      emp_id: emp.id, name: emp.name, position: emp.pos, department: emp.dept,
-      base_salary: emp.base || 0, daily_rate: emp.daily || 0, days: emp.days || 0,
-      ot: 0, bonus: 0, period: '2569-05',
-      created_by: 'คุณไอซ์', created_at: new Date().toISOString()
+      month: '2569-05',
+      employee_id: emp.id,
+      name: emp.name,
+      position: emp.pos,
+      type: emp.id.startsWith('DLY') ? 'daily' : 'monthly',
+      base_salary: emp.base || 0,
+      ot_hours: 0,
+      ot_amount: emp.ot || 0,
+      gross: p.gross,
+      sso_5: p.sso,
+      wht: p.wht,
+      net: p.net,
+      bank_account: '',
+      slip_pdf_url: ''
     });
   }
 }
@@ -387,15 +398,17 @@ async function loadEmployees() {
   try {
     const r = await API.read('Payroll-2569');
     if (r.ok && r.rows && r.rows.length > 0) {
+      // Real schema: month, employee_id, name, position, type, base_salary,
+      //              ot_hours, ot_amount, gross, sso_5, wht, net, bank_account, slip_pdf_url
       employees = r.rows.map(row => ({
-        id: row.emp_id || row.id || 'E???',
+        id: row.employee_id || row.emp_id || 'E???',
         name: row.name || '-',
         pos: row.position || '-',
-        dept: row.department || '-',
+        dept: row.department || row.type || '-',
         base: Number(row.base_salary) || 0,
         daily: Number(row.daily_rate) || 0,
         days: Number(row.days) || 0,
-        ot: Number(row.ot) || 0,
+        ot: Number(row.ot_amount) || Number(row.ot) || 0,
         bonus: Number(row.bonus) || 0
       }));
       console.log('[Payroll] loaded', employees.length, 'employees from Sheet');
@@ -411,14 +424,24 @@ approvePayroll = async function() {
   let ok = 0, fail = 0;
   for (const e of employees) {
     const p = calcPay(e);
+    // Match real schema: month, employee_id, name, position, type, base_salary,
+    //                    ot_hours, ot_amount, gross, sso_5, wht, net, bank_account, slip_pdf_url
     try {
       const r = await API.append('Payroll-2569', {
-        emp_id: e.id, name: e.name, position: e.pos, department: e.dept,
-        base_salary: e.base || 0, daily_rate: e.daily || 0, days: e.days || 0,
-        ot: e.ot || 0, bonus: e.bonus || 0,
-        gross: p.gross, sso: p.sso, wht_pnd1: p.wht, net: p.net,
-        period: '2569-05', status: 'approved',
-        created_by: 'คุณไอซ์', created_at: new Date().toISOString()
+        month: '2569-05',
+        employee_id: e.id,
+        name: e.name,
+        position: e.pos,
+        type: e.id.startsWith('DLY') ? 'daily' : 'monthly',
+        base_salary: e.base || 0,
+        ot_hours: 0,
+        ot_amount: e.ot || 0,
+        gross: p.gross,
+        sso_5: p.sso,
+        wht: p.wht,
+        net: p.net,
+        bank_account: '',
+        slip_pdf_url: ''
       });
       if (r && r.ok) ok++; else fail++;
     } catch (err) { fail++; }
